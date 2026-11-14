@@ -195,35 +195,56 @@ class Certificate:
 
 
 def verify_certificate(cert: Certificate, tolerance: float = 0.0) -> bool:
-    """Replay leaf bounds and domain coverage independently of the model."""
+    """Replay bounds and prove that terminal boxes cover the declared domain."""
     expr = Expr.from_dict(cert.expression)
-    if not cert.active_regions:
+    if (
+        not cert.active_regions
+        or tolerance < 0
+        or cert.absolute_gap < 0
+        or not np.all(
+            np.isfinite([cert.upper_bound, cert.lower_bound, cert.absolute_gap, tolerance])
+        )
+    ):
+        return False
+    domain_lo = np.asarray(cert.domain_lower, dtype=np.float64)
+    domain_hi = np.asarray(cert.domain_upper, dtype=np.float64)
+    incumbent = np.asarray(cert.incumbent_x, dtype=np.float64)
+    if (
+        domain_lo.ndim != 1
+        or domain_lo.shape != domain_hi.shape
+        or incumbent.shape != domain_lo.shape
+        or not np.all(np.isfinite(domain_lo))
+        or not np.all(np.isfinite(domain_hi))
+        or np.any(domain_lo >= domain_hi)
+        or np.any(incumbent < domain_lo)
+        or np.any(incumbent > domain_hi)
+    ):
         return False
     lbs = []
     boxes: list[tuple[np.ndarray, np.ndarray]] = []
-    domain_lo = np.asarray(cert.domain_lower, dtype=float)
-    domain_hi = np.asarray(cert.domain_upper, dtype=float)
     for r in cert.active_regions:
-        lo = np.asarray(r["lo"], dtype=float)
-        hi = np.asarray(r["hi"], dtype=float)
-        if np.any(lo < domain_lo) or np.any(hi > domain_hi) or np.any(lo >= hi):
+        lo = np.asarray(r["lo"], dtype=np.float64)
+        hi = np.asarray(r["hi"], dtype=np.float64)
+        if (
+            lo.shape != domain_lo.shape
+            or hi.shape != domain_lo.shape
+            or np.any(lo < domain_lo)
+            or np.any(hi > domain_hi)
+            or np.any(lo >= hi)
+        ):
             return False
-        boxes.append((lo, hi))
         iv = expr.interval(lo, hi)
         lbs.append(float(iv.lo))
-        if float(iv.lo) + tolerance < r["lower_bound"]:
+        if not np.isfinite(r["lower_bound"]) or float(iv.lo) + tolerance < r["lower_bound"]:
             return False
-    domain_volume = float(np.prod(domain_hi - domain_lo))
-    leaf_volume = float(sum(np.prod(hi - lo) for lo, hi in boxes))
-    if not np.isclose(leaf_volume, domain_volume, rtol=1e-12, atol=tolerance):
+        boxes.append((lo, hi))
+    if not _is_binary_partition(boxes, domain_lo, domain_hi, 0.0):
         return False
-    if not _is_binary_partition(boxes, domain_lo, domain_hi, tolerance):
-        return False
-    value = expr.evaluate(cert.incumbent_x)
+    point = expr.interval(incumbent, incumbent)
     return (
-        value <= cert.upper_bound
+        float(point.hi) <= cert.upper_bound
         and min(lbs) >= cert.lower_bound - tolerance
-        and cert.upper_bound - min(lbs) <= cert.absolute_gap + tolerance
+        and cert.upper_bound - cert.lower_bound <= cert.absolute_gap + tolerance
     )
 
 
@@ -301,7 +322,7 @@ def certify(
     """Interval branch-and-bound with midpoint incumbents and widest splits."""
     lo, hi = np.asarray(lo, float), np.asarray(hi, float)
     mid = (lo + hi) / 2
-    best_x, upper = mid, _up(expr.evaluate(mid)).item()
+    best_x, upper = mid, float(expr.interval(mid, mid).hi)
     counter, processed, pruned = 0, 0, 0
     lower = float(expr.interval(lo, hi).lo)
 
@@ -343,17 +364,11 @@ def certify(
         if d < 0 or d >= len(a) or not b[d] > a[d]:
             raise ValueError("split policy selected an invalid dimension")
         m = (a[d] + b[d]) / 2
-        for aa, bb in ((a.copy(), b.copy()), (a.copy(), b.copy())):
-            if aa[d] == a[d]:
-                bb[d] = m
-            else:
-                aa[d] = m
-        # Explicit children avoids alias-sensitive branching.
         children = [(a.copy(), b.copy()), (a.copy(), b.copy())]
         children[0][1][d], children[1][0][d] = m, m
         for ca, cb in children:
             cm = (ca + cb) / 2
-            value = _up(expr.evaluate(cm)).item()
+            value = float(expr.interval(cm, cm).hi)
             if value < upper:
                 upper, best_x = value, cm
             cl = float(expr.interval(ca, cb).lo)
