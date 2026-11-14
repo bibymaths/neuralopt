@@ -94,6 +94,16 @@ def test_baseline_accounting_and_certificate_coverage_tamper():
     assert row["objective_evaluations"] == 6
     assert row["gradient_evaluations"] == 5
 
+    unknown = Problem(lambda x: jnp.sum((x - 0.2) ** 2), (-1.0, 1.0), 2)
+    unknown_row = run_baseline(unknown, "random", 3)
+    assert unknown_row["known_optimum"] is None
+    assert unknown_row["regret"] is None
+
+    pytest.importorskip("scipy")
+    limited = run_baseline(p, "scipy-lbfgsb", 1)
+    assert limited["objective_evaluations"] == 1
+    assert limited["status"] == "budget_exhausted"
+
     x = Variable()
     cp = Problem(
         lambda z: (z[0] - 0.1) ** 2,

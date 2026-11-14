@@ -47,15 +47,28 @@ def write_json(path: str, rows: list[dict[str, Any]]) -> None:
 
 def run_baseline(problem: Problem, algorithm: str, budget: int, seed: int = 0) -> dict[str, Any]:
     """Run an explicitly counted benchmark baseline outside NeuralOpt inference."""
+    if budget < 1:
+        raise ValueError("budget must be positive")
     lo, hi = (np.asarray(v, dtype=float) for v in problem.bounds)
     x0 = np.asarray(problem.x0, dtype=float)
     objective_calls = 0
     gradient_calls = 0
+    best_x: np.ndarray | None = None
+    best_value = np.inf
+
+    class ObjectiveBudgetExhausted(RuntimeError):
+        pass
 
     def objective(x: Any) -> float:
-        nonlocal objective_calls
+        nonlocal best_value, best_x, objective_calls
+        if objective_calls >= budget:
+            raise ObjectiveBudgetExhausted
         objective_calls += 1
-        return float(problem.objective(x))
+        point = np.asarray(x, dtype=float)
+        value = float(problem.objective(point))
+        if np.isfinite(value) and value < best_value:
+            best_x, best_value = point.copy(), value
+        return value
 
     grad_fn = problem.gradient or jax.grad(problem.objective)
 
@@ -73,8 +86,7 @@ def run_baseline(problem: Problem, algorithm: str, budget: int, seed: int = 0) -
         x, value, status = candidates[index], float(values[index]), "budget_exhausted"
     elif algorithm == "adam":
         x, m, v = x0.copy(), np.zeros_like(x0), np.zeros_like(x0)
-        value = objective(x)
-        best_x, best = x.copy(), value
+        objective(x)
         for step in range(1, budget):
             g = gradient(x)
             m = 0.9 * m + 0.1 * g
@@ -88,26 +100,32 @@ def run_baseline(problem: Problem, algorithm: str, budget: int, seed: int = 0) -
                 lo,
                 hi,
             )
-            value = objective(x)
-            if value < best:
-                best, best_x = value, x.copy()
-        x, value, status = best_x, best, "budget_exhausted"
+            objective(x)
+        assert best_x is not None
+        x, value, status = best_x, best_value, "budget_exhausted"
     elif algorithm == "scipy-lbfgsb":
         try:
             from scipy.optimize import minimize as scipy_minimize
         except ImportError as exc:
             raise ImportError("install neuralopt[benchmark] for SciPy baselines") from exc
-        result = scipy_minimize(
-            objective,
-            x0,
-            jac=gradient,
-            bounds=list(zip(lo, hi, strict=True)),
-            method="L-BFGS-B",
-            options={"maxfun": budget, "maxiter": budget},
-        )
-        x, value, status = result.x, float(result.fun), "success" if result.success else "stopped"
+        try:
+            result = scipy_minimize(
+                objective,
+                x0,
+                jac=gradient,
+                bounds=list(zip(lo, hi, strict=True)),
+                method="L-BFGS-B",
+                options={"maxfun": budget, "maxiter": budget},
+            )
+            status = "success" if result.success else "stopped"
+        except ObjectiveBudgetExhausted:
+            status = "budget_exhausted"
+        if best_x is None:
+            raise FloatingPointError("objective produced no finite in-budget value")
+        x, value = best_x, best_value
     else:
         raise ValueError("algorithm must be random, adam, or scipy-lbfgsb")
+    known_optimum = problem.metadata.get("known_optimum")
     return {
         "task_family": problem.identifier or "anonymous",
         "instance": problem.metadata.get("instance"),
@@ -121,8 +139,8 @@ def run_baseline(problem: Problem, algorithm: str, budget: int, seed: int = 0) -
         "runtime_seconds": time.perf_counter() - start,
         "final_solution": np.asarray(x).tolist(),
         "best_objective": value,
-        "known_optimum": problem.metadata.get("known_optimum"),
-        "regret": value - problem.metadata.get("known_optimum", value),
+        "known_optimum": known_optimum,
+        "regret": value - known_optimum if known_optimum is not None else None,
         "status": status,
         "hardware": platform.machine(),
         "precision": str(problem.dtype),

@@ -4,6 +4,9 @@ Machine-readable rows must separate objective calls, gradient calls, derivative
 products, compilation, warm execution, loading, and total time. Compilation is
 not silently amortized. Comparisons are paired by instance and seed and report
 medians, intervals, success, and anytime regret.
+Objective wrappers enforce the requested budget even when a third-party solver
+would finish an over-budget line search. Regret is `null`, rather than zero, when
+a task has no known optimum.
 
 The current v0.2 artifact is only a smoke experiment. A fixed normalized-gradient
 control beats v0.1.0 on every recorded family; for example, its final values are
