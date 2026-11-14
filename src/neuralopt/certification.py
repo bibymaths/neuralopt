@@ -217,16 +217,73 @@ def verify_certificate(cert: Certificate, tolerance: float = 0.0) -> bool:
     leaf_volume = float(sum(np.prod(hi - lo) for lo, hi in boxes))
     if not np.isclose(leaf_volume, domain_volume, rtol=1e-12, atol=tolerance):
         return False
-    for i, (a, b) in enumerate(boxes):
-        for c, d in boxes[i + 1 :]:
-            if np.all(np.minimum(b, d) - np.maximum(a, c) > tolerance):
-                return False
+    if not _is_binary_partition(boxes, domain_lo, domain_hi, tolerance):
+        return False
     value = expr.evaluate(cert.incumbent_x)
     return (
         value <= cert.upper_bound
         and min(lbs) >= cert.lower_bound - tolerance
         and cert.upper_bound - min(lbs) <= cert.absolute_gap + tolerance
     )
+
+
+def _is_binary_partition(
+    boxes: list[tuple[np.ndarray, np.ndarray]],
+    domain_lo: np.ndarray,
+    domain_hi: np.ndarray,
+    tolerance: float,
+) -> bool:
+    """Verify a guillotine box partition without all-pairs overlap tests.
+
+    Branch-and-bound creates leaves by recursively bisecting a parent box. At
+    each recursion this routine finds a shared endpoint crossed by no leaf and
+    chooses the most balanced valid split. Valid replay is typically
+    ``O(n log² n)`` rather than ``O(n²)`` in the number of leaves.
+    """
+    lower = np.stack([box[0] for box in boxes])
+    upper = np.stack([box[1] for box in boxes])
+
+    def visit(indices: np.ndarray, lo: np.ndarray, hi: np.ndarray) -> bool:
+        if indices.size == 1:
+            i = int(indices[0])
+            return bool(
+                np.allclose(lower[i], lo, rtol=0.0, atol=tolerance)
+                and np.allclose(upper[i], hi, rtol=0.0, atol=tolerance)
+            )
+
+        best: tuple[int, int, float, np.ndarray, np.ndarray] | None = None
+        for dimension in range(lo.size):
+            starts = np.sort(lower[indices, dimension])
+            ends = np.sort(upper[indices, dimension])
+            candidates = np.unique(np.concatenate((starts, ends)))
+            candidates = candidates[(candidates > lo[dimension]) & (candidates < hi[dimension])]
+            if not candidates.size:
+                continue
+            left_counts = np.searchsorted(ends, candidates, side="right")
+            right_counts = indices.size - np.searchsorted(starts, candidates, side="left")
+            valid = (left_counts > 0) & (right_counts > 0)
+            valid &= left_counts + right_counts == indices.size
+            if not np.any(valid):
+                continue
+            positions = np.flatnonzero(valid)
+            position = int(
+                positions[np.argmax(np.minimum(left_counts[valid], right_counts[valid]))]
+            )
+            split = float(candidates[position])
+            left = indices[upper[indices, dimension] <= split]
+            right = indices[lower[indices, dimension] >= split]
+            balance = min(left.size, right.size)
+            if best is None or balance > best[0]:
+                best = (balance, dimension, split, left, right)
+        if best is None:
+            return False
+        _, dimension, split, left, right = best
+        left_hi, right_lo = hi.copy(), lo.copy()
+        left_hi[dimension] = split
+        right_lo[dimension] = split
+        return visit(left, lo, left_hi) and visit(right, right_lo, hi)
+
+    return visit(np.arange(len(boxes)), domain_lo, domain_hi)
 
 
 def certify(

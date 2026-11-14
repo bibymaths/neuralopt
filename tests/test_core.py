@@ -99,6 +99,19 @@ def test_baseline_accounting_and_certificate_coverage_tamper():
     assert unknown_row["known_optimum"] is None
     assert unknown_row["regret"] is None
 
+    partial_domain = Problem(
+        lambda x: jnp.log(x[0]),
+        (-1.0, 1.0),
+        1,
+        x0=jnp.array([0.5]),
+    )
+    finite_row = run_baseline(partial_domain, "random", 8, seed=0)
+    assert np.isfinite(finite_row["best_objective"])
+    assert np.asarray(finite_row["final_solution"])[0] > 0
+    all_nonfinite = Problem(lambda x: jnp.asarray(jnp.nan), (-1.0, 1.0), 1)
+    with pytest.raises(FloatingPointError, match="no finite"):
+        run_baseline(all_nonfinite, "random", 3)
+
     pytest.importorskip("scipy")
     limited = run_baseline(p, "scipy-lbfgsb", 1)
     assert limited["objective_evaluations"] == 1

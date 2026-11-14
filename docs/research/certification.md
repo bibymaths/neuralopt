@@ -9,7 +9,9 @@ floating-point assumptions.
 Every terminal pruned box is serialized. Independent replay re-evaluates each
 interval bound, checks that boxes lie inside the original domain, compares total
 leaf and domain volume, rejects positive-volume overlap, and checks the final
-gap. This closes the v0.1.0 verifier's domain-accounting omission.
+gap. Partition replay follows shared bisection boundaries recursively, avoiding
+quadratic all-pairs overlap checks. This closes the v0.1.0 verifier's
+domain-accounting omission while remaining practical for thousands of leaves.
 
 No learned certification policy has yet been trained or benchmarked. Therefore
 there is no supported node-count or wall-time speedup claim.

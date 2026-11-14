@@ -81,9 +81,11 @@ def run_baseline(problem: Problem, algorithm: str, budget: int, seed: int = 0) -
     if algorithm == "random":
         rng = np.random.default_rng(seed)
         candidates = np.vstack((x0, rng.uniform(lo, hi, size=(budget - 1, problem.dimension))))
-        values = np.asarray([objective(x) for x in candidates])
-        index = int(np.argmin(values))
-        x, value, status = candidates[index], float(values[index]), "budget_exhausted"
+        for candidate in candidates:
+            objective(candidate)
+        if best_x is None:
+            raise FloatingPointError("objective produced no finite in-budget value")
+        x, value, status = best_x, best_value, "budget_exhausted"
     elif algorithm == "adam":
         x, m, v = x0.copy(), np.zeros_like(x0), np.zeros_like(x0)
         objective(x)
