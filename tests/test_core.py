@@ -4,8 +4,13 @@ import numpy as np
 import pytest
 
 from neuralopt import ModelConfig, Problem, Variable, init_model, minimize, verify_certificate
-from neuralopt.features import parameter_features
-from neuralopt.model import apply_model, precondition
+from neuralopt.benchmark import run_baseline
+from neuralopt.features import (
+    denormalize_coordinates,
+    normalize_coordinates,
+    parameter_features,
+)
+from neuralopt.model import apply_mlp_model, apply_model, init_mlp_model, precondition
 
 
 def test_problem_validation():
@@ -25,6 +30,12 @@ def test_model_shapes_and_positive_preconditioner():
     v = jnp.arange(7.0)
     pv = precondition(v, out["diag"], out["lowrank"])
     assert float(v @ pv) > 0
+    mlp = init_mlp_model(jax.random.PRNGKey(1), c)
+    mlp_out = apply_mlp_model(mlp, f, 1.0, c)
+    assert mlp_out["direction"].shape == (7,)
+    assert sum(x.size for x in jax.tree_util.tree_leaves(mlp)) < sum(
+        x.size for x in jax.tree_util.tree_leaves(p)
+    )
 
 
 def test_deterministic_learned_minimize_and_bounds():
@@ -35,6 +46,19 @@ def test_deterministic_learned_minimize_and_bounds():
     assert a.fun == b.fun
     assert np.all(np.asarray(a.x) >= -1) and np.all(np.asarray(a.x) <= 1)
     assert len(a.trajectory) == 12 and np.all(np.diff(a.trajectory) <= 0)
+
+
+def test_coordinate_roundtrip_and_diagnostics():
+    lo, hi = jnp.array([-2.0, 1.0]), jnp.array([4.0, 9.0])
+    x = jnp.array([0.5, 3.0])
+    np.testing.assert_allclose(denormalize_coordinates(normalize_coordinates(x, lo, hi), lo, hi), x)
+    problem = Problem(lambda z: jnp.sum((z - 0.2) ** 2), (lo, hi), 2, x0=x)
+    result = minimize(problem, max_evaluations=6, record_diagnostics=True)
+    records = result.diagnostics["records"]
+    assert len(records) == 5
+    assert all(np.isfinite(r["raw_alignment"]) for r in records)
+    assert all(r["preconditioner_min_eigenvalue"] > 0 for r in records)
+    assert 0.0 <= result.diagnostics["acceptance_rate"] <= 1.0
 
 
 def test_certified_quadratic_and_replay():
@@ -57,3 +81,27 @@ def test_arbitrary_jax_fails_closed():
     p = Problem(lambda x: jnp.sin(x[0]), (-1.0, 1.0), 1)
     with pytest.raises(ValueError, match="requires a neuralopt Expr"):
         minimize(p, mode="certified")
+
+
+def test_baseline_accounting_and_certificate_coverage_tamper():
+    p = Problem(
+        lambda x: jnp.sum((x - 0.1) ** 2),
+        (-1.0, 1.0),
+        2,
+        metadata={"known_optimum": 0.0},
+    )
+    row = run_baseline(p, "adam", 6)
+    assert row["objective_evaluations"] == 6
+    assert row["gradient_evaluations"] == 5
+
+    x = Variable()
+    cp = Problem(
+        lambda z: (z[0] - 0.1) ** 2,
+        (-1.0, 1.0),
+        1,
+        certified_expression=(x[0] - 0.1) ** 2,
+    )
+    cert = minimize(cp, mode="certified", absolute_gap=0.1, max_evaluations=100).certificate
+    assert cert is not None and verify_certificate(cert)
+    cert.active_regions.pop()
+    assert not verify_certificate(cert)

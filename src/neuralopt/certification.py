@@ -10,8 +10,9 @@ from __future__ import annotations
 import heapq
 import json
 import platform
+from collections.abc import Callable
 from dataclasses import asdict, dataclass
-from typing import Any
+from typing import Any, Literal
 
 import numpy as np
 
@@ -182,7 +183,7 @@ class Certificate:
     arithmetic: str
     precision: str
     status: str
-    software_version: str = "0.1.0"
+    software_version: str = "0.2.0"
     environment: str = platform.platform()
 
     def to_json(self) -> str:
@@ -194,16 +195,32 @@ class Certificate:
 
 
 def verify_certificate(cert: Certificate, tolerance: float = 0.0) -> bool:
-    """Replay all retained leaf interval bounds independently of the model."""
+    """Replay leaf bounds and domain coverage independently of the model."""
     expr = Expr.from_dict(cert.expression)
     if not cert.active_regions:
         return False
     lbs = []
+    boxes: list[tuple[np.ndarray, np.ndarray]] = []
+    domain_lo = np.asarray(cert.domain_lower, dtype=float)
+    domain_hi = np.asarray(cert.domain_upper, dtype=float)
     for r in cert.active_regions:
-        iv = expr.interval(r["lo"], r["hi"])
+        lo = np.asarray(r["lo"], dtype=float)
+        hi = np.asarray(r["hi"], dtype=float)
+        if np.any(lo < domain_lo) or np.any(hi > domain_hi) or np.any(lo >= hi):
+            return False
+        boxes.append((lo, hi))
+        iv = expr.interval(lo, hi)
         lbs.append(float(iv.lo))
         if float(iv.lo) + tolerance < r["lower_bound"]:
             return False
+    domain_volume = float(np.prod(domain_hi - domain_lo))
+    leaf_volume = float(sum(np.prod(hi - lo) for lo, hi in boxes))
+    if not np.isclose(leaf_volume, domain_volume, rtol=1e-12, atol=tolerance):
+        return False
+    for i, (a, b) in enumerate(boxes):
+        for c, d in boxes[i + 1 :]:
+            if np.all(np.minimum(b, d) - np.maximum(a, c) > tolerance):
+                return False
     value = expr.evaluate(cert.incumbent_x)
     return (
         value <= cert.upper_bound
@@ -213,7 +230,16 @@ def verify_certificate(cert: Certificate, tolerance: float = 0.0) -> bool:
 
 
 def certify(
-    expr: Expr, lo: Any, hi: Any, gap: float, max_nodes: int, problem_id: str
+    expr: Expr,
+    lo: Any,
+    hi: Any,
+    gap: float,
+    max_nodes: int,
+    problem_id: str,
+    priority: Literal["lower_bound", "widest"] = "lower_bound",
+    split: Literal["widest", "round_robin"] = "widest",
+    region_score: Callable[[np.ndarray, np.ndarray, float, float], float] | None = None,
+    split_selector: Callable[[np.ndarray, np.ndarray], int] | None = None,
 ) -> Certificate:
     """Interval branch-and-bound with midpoint incumbents and widest splits."""
     lo, hi = np.asarray(lo, float), np.asarray(hi, float)
@@ -221,14 +247,31 @@ def certify(
     best_x, upper = mid, _up(expr.evaluate(mid)).item()
     counter, processed, pruned = 0, 0, 0
     lower = float(expr.interval(lo, hi).lo)
-    heap: list[tuple[float, int, np.ndarray, np.ndarray]] = [(lower, counter, lo, hi)]
-    while heap and upper - heap[0][0] > gap and processed < max_nodes:
-        lb, _, a, b = heapq.heappop(heap)
+
+    def score(a: np.ndarray, b: np.ndarray, lb: float) -> float:
+        if region_score is not None:
+            return float(region_score(a, b, lb, upper))
+        return lb if priority == "lower_bound" else -float(np.max(b - a))
+
+    heap: list[tuple[float, int, float, np.ndarray, np.ndarray]] = [
+        (score(lo, hi, lower), counter, lower, lo, hi)
+    ]
+    terminal: list[tuple[float, np.ndarray, np.ndarray]] = []
+    while heap and upper - min(item[2] for item in heap) > gap and processed < max_nodes:
+        _, _, lb, a, b = heapq.heappop(heap)
         processed += 1
         if lb >= upper:
             pruned += 1
+            terminal.append((lb, a, b))
             continue
-        d = int(np.argmax(b - a))
+        if split_selector is not None:
+            d = int(split_selector(a, b))
+        elif split == "round_robin":
+            d = (processed - 1) % len(a)
+        else:
+            d = int(np.argmax(b - a))
+        if d < 0 or d >= len(a) or not b[d] > a[d]:
+            raise ValueError("split policy selected an invalid dimension")
         m = (a[d] + b[d]) / 2
         for aa, bb in ((a.copy(), b.copy()), (a.copy(), b.copy())):
             if aa[d] == a[d]:
@@ -246,10 +289,12 @@ def certify(
             cl = float(expr.interval(ca, cb).lo)
             if cl < upper:
                 counter += 1
-                heapq.heappush(heap, (cl, counter, ca, cb))
+                heapq.heappush(heap, (score(ca, cb, cl), counter, cl, ca, cb))
             else:
                 pruned += 1
-    leaves = [{"lo": a.tolist(), "hi": b.tolist(), "lower_bound": lb} for lb, _, a, b in heap]
+                terminal.append((cl, ca, cb))
+    retained = [(lb, a, b) for _, _, lb, a, b in heap] + terminal
+    leaves = [{"lo": a.tolist(), "hi": b.tolist(), "lower_bound": lb} for lb, a, b in retained]
     global_lb = min((r["lower_bound"] for r in leaves), default=upper)
     status = "certified_gap" if upper - global_lb <= gap else "budget_exhausted"
     rel = (upper - global_lb) / max(1.0, abs(upper))

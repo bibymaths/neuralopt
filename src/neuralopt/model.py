@@ -48,6 +48,23 @@ def init_model(key: Any, config: ModelConfig = DEFAULT_CONFIG) -> Params:
     return p
 
 
+def init_mlp_model(key: Any, config: ModelConfig = DEFAULT_CONFIG) -> Params:
+    """Initialize a shared-coordinate MLP baseline with no attention."""
+    k = iter(jax.random.split(key, 9))
+
+    def w(a: int, b: int) -> Any:
+        return jax.random.normal(next(k), (a, b)) * a**-0.5
+
+    return {
+        "hidden": w(7, config.width),
+        "direction": w(config.width, 1),
+        "proposal": w(config.width, 1),
+        "diag": w(config.width, 1),
+        "lowrank": w(config.width, config.rank),
+        "global": w(config.width, 5),
+    }
+
+
 def _attention(z: Any, p: Params, i: int, heads: int) -> Any:
     n, width = z.shape
     depth = width // heads
@@ -77,6 +94,29 @@ def apply_model(
     for i in range(config.layers):
         z = jax.nn.gelu(_attention(_layer_norm(z), params, i, config.heads))
     coord, pooled = z[2:], jnp.mean(z[:2], axis=0)
+    g = pooled @ params["global"]
+    return {
+        "direction": jnp.tanh((coord @ params["direction"])[:, 0]),
+        "proposal": jnp.tanh((coord @ params["proposal"])[:, 0]),
+        "diag": jax.nn.softplus((coord @ params["diag"])[:, 0]) + 1e-4,
+        "lowrank": coord @ params["lowrank"] / jnp.sqrt(coord.shape[0]),
+        "step": jax.nn.sigmoid(g[0]),
+        "exploration": jax.nn.sigmoid(g[1]),
+        "region_priority": g[2],
+        "split_preference": jax.nn.sigmoid((coord @ params["diag"])[:, 0]),
+        "uncertainty": jax.nn.softplus(g[3]),
+        "stop": jax.nn.sigmoid(g[4]),
+    }
+
+
+def apply_mlp_model(
+    params: Params, features: Any, budget_fraction: Any, config: ModelConfig
+) -> dict[str, Any]:
+    """Apply the matched-input MLP architectural ablation."""
+    budget = jnp.full((features.shape[0], 1), budget_fraction)
+    dimension = jnp.full((features.shape[0], 1), jnp.log1p(features.shape[0]) / 5.0)
+    coord = jax.nn.gelu(jnp.concatenate((features, budget, dimension), axis=-1) @ params["hidden"])
+    pooled = jnp.mean(coord, axis=0)
     g = pooled @ params["global"]
     return {
         "direction": jnp.tanh((coord @ params["direction"])[:, 0]),

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterable
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, cast
 
@@ -11,18 +12,99 @@ import jax.numpy as jnp
 import numpy as np
 
 from .features import parameter_features
-from .model import DEFAULT_CONFIG, ModelConfig, Params, apply_model, init_model
+from .model import (
+    DEFAULT_CONFIG,
+    ModelConfig,
+    Params,
+    apply_mlp_model,
+    apply_model,
+    init_mlp_model,
+    init_model,
+    precondition,
+)
 from .problem import Problem
 
 
-def imitation_loss(params: Params, problem: Problem, key: Any, config: ModelConfig) -> Any:
+def imitation_loss(
+    params: Params,
+    problem: Problem,
+    key: Any,
+    config: ModelConfig,
+    model_kind: str = "transformer",
+) -> Any:
     """Train directions toward known improving quadratic-style displacement."""
     lo, hi = problem.bounds
     x = jax.random.uniform(key, (problem.dimension,), minval=lo, maxval=hi)
     grad = jax.grad(problem.objective)(x)
-    out = apply_model(params, parameter_features(x, grad, lo, hi, problem.x0), 1.0, config)
+    apply = apply_model if model_kind == "transformer" else apply_mlp_model
+    out = apply(params, parameter_features(x, grad, lo, hi, problem.x0), 1.0, config)
     target = -grad / (jnp.linalg.norm(grad) + 1e-8)
     return jnp.mean((out["direction"] - target) ** 2) + 1e-4 * jnp.mean(out["lowrank"] ** 2)
+
+
+@dataclass(frozen=True)
+class UnrollConfig:
+    """Static differentiable optimization and loss configuration."""
+
+    steps: int = 25
+    horizons: tuple[int, ...] = (5, 10, 25)
+    stability_weight: float = 1e-3
+    direction_weight: float = 1e-2
+    preconditioner_weight: float = 1e-4
+
+
+def unrolled_regret_loss(
+    params: Params,
+    problem: Problem,
+    key: Any,
+    config: ModelConfig,
+    unroll: UnrollConfig = UnrollConfig(),
+    model_kind: str = "transformer",
+) -> Any:
+    """Differentiate best-so-far multi-horizon regret through learned updates.
+
+    The training path uses a continuous projected update. Hard inference
+    acceptance and branch decisions are intentionally absent; gradients through
+    ``minimum`` are valid subgradients of the incumbent objective.
+    """
+    lo, hi = problem.bounds
+    x0 = jax.random.uniform(key, (problem.dimension,), minval=lo, maxval=hi)
+    f0 = problem.objective(x0)
+    optimum = jnp.asarray(problem.metadata.get("known_optimum", 0.0), dtype=f0.dtype)
+    scale = jnp.maximum(jnp.abs(f0 - optimum), 1.0)
+
+    def update(carry: tuple[Any, Any], t: Any) -> tuple[tuple[Any, Any], tuple[Any, ...]]:
+        x, best = carry
+        grad = jax.grad(problem.objective)(x)
+        apply = apply_model if model_kind == "transformer" else apply_mlp_model
+        out = apply(
+            params,
+            parameter_features(x, grad, lo, hi, x),
+            1.0 - t / unroll.steps,
+            config,
+        )
+        raw = out["direction"]
+        direction = precondition(raw, out["diag"], out["lowrank"])
+        unit = direction / (jnp.linalg.norm(direction) + 1e-8)
+        candidate = jnp.clip(x + 0.25 * out["step"] * (hi - lo) * unit, lo, hi)
+        value = problem.objective(candidate)
+        new_best = jnp.minimum(best, value)
+        alignment = jnp.sum(unit * grad) / (jnp.linalg.norm(grad) + 1e-8)
+        regularizer = (
+            unroll.stability_weight * jnp.mean((candidate - x) ** 2 / ((hi - lo) ** 2))
+            + unroll.direction_weight * jax.nn.relu(alignment)
+            + unroll.preconditioner_weight * jnp.mean(jnp.log(out["diag"]) ** 2)
+        )
+        return (candidate, new_best), (new_best, regularizer)
+
+    (_, _), (best_values, regularizers) = jax.lax.scan(
+        update, (x0, f0), jnp.arange(unroll.steps, dtype=f0.dtype)
+    )
+    indices = jnp.asarray([min(h, unroll.steps) - 1 for h in unroll.horizons])
+    regrets = jnp.maximum(best_values[indices] - optimum, 0.0) / scale
+    weights = 1.0 / jnp.asarray(unroll.horizons, dtype=f0.dtype)
+    weights = weights / jnp.sum(weights)
+    return jnp.sum(weights * jnp.log1p(regrets)) + jnp.mean(regularizers)
 
 
 def train(
@@ -31,6 +113,9 @@ def train(
     steps: int = 100,
     learning_rate: float = 1e-3,
     config: ModelConfig = DEFAULT_CONFIG,
+    objective: str = "imitation",
+    unroll: UnrollConfig = UnrollConfig(),
+    model_kind: str = "transformer",
 ) -> tuple[Params, list[float]]:
     """Train with Optax; objective optimization inference never uses Optax."""
     try:
@@ -41,14 +126,26 @@ def train(
     if not items:
         raise ValueError("at least one training problem is required")
     key = jax.random.PRNGKey(seed)
-    params = init_model(key, config)
+    if model_kind not in {"transformer", "mlp"}:
+        raise ValueError("model_kind must be 'transformer' or 'mlp'")
+    params = init_model(key, config) if model_kind == "transformer" else init_mlp_model(key, config)
     optimizer = optax.chain(optax.clip_by_global_norm(1.0), optax.adam(learning_rate))
     state = optimizer.init(params)
     losses: list[float] = []
     for step in range(steps):
         key, sub = jax.random.split(key)
         problem = items[step % len(items)]
-        loss, grads = jax.value_and_grad(imitation_loss)(params, problem, sub, config)
+        loss_fn = imitation_loss if objective == "imitation" else unrolled_regret_loss
+        if objective not in {"imitation", "regret"}:
+            raise ValueError("objective must be 'imitation' or 'regret'")
+        args = (
+            (params, problem, sub, config, model_kind)
+            if objective == "imitation"
+            else (params, problem, sub, config, unroll, model_kind)
+        )
+        loss, grads = jax.value_and_grad(loss_fn)(*args)
+        if not bool(jnp.isfinite(loss)):
+            raise FloatingPointError(f"nonfinite training loss at step {step}")
         updates, state = optimizer.update(grads, state, params)
         params = cast(Params, optax.apply_updates(params, updates))
         losses.append(float(loss))
