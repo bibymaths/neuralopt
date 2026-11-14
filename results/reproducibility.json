@@ -1,0 +1,12 @@
+{
+  "date": "2026-11-15",
+  "python": "3.12.14",
+  "jax": "0.12.0.1",
+  "jaxlib": "0.12.0.1",
+  "numpy": "2.5.4",
+  "platform": "Linux CPU onboarding environment",
+  "training_command": "neuralopt train-demo --steps 100 --seed 42 --output artifacts/demo-v0.1.0.npz",
+  "test_command": "pytest --cov=neuralopt --cov-report=term-missing",
+  "benchmark": "results/heldout-smoke.json",
+  "notes": "Compilation is included in reported end-to-end benchmark time."
+}

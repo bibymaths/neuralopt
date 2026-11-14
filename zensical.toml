@@ -1,0 +1,8 @@
+[project]
+site_name = "neuralopt"
+site_description = "Learned optimization with restricted native certification"
+docs_dir = "docs"
+
+[project.theme]
+name = "material"
+

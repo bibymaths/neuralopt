@@ -1,0 +1,12 @@
+cff-version: 1.2.0
+message: "If you use this research software, please cite it."
+title: "neuralopt"
+version: 0.1.0
+type: software
+authors:
+  - family-names: Mishra
+    given-names: Abhinav
+    orcid: "https://orcid.org/0009-0005-3179-7408"
+repository-code: "https://github.com/bibymaths/neuralopt"
+license: MIT
+

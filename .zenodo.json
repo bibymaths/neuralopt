@@ -1,0 +1,8 @@
+{
+  "title": "neuralopt: learned optimization with restricted native certification",
+  "description": "An alpha JAX research framework for transformer-generated numerical updates and independently replayable interval certificates.",
+  "license": "MIT",
+  "creators": [{"name": "Mishra, Abhinav", "orcid": "0009-0005-3179-7408"}],
+  "keywords": ["learned optimization", "JAX", "interval arithmetic", "global optimization"]
+}
+

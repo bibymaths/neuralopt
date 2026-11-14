@@ -1,0 +1,110 @@
+[
+  {
+    "instance": 17,
+    "split": "test",
+    "dimension": 4,
+    "algorithm": "neuralopt-trained",
+    "final_objective": 3.6111373901367188,
+    "evaluations": 100,
+    "runtime_seconds": 2.0399017129999493,
+    "checkpoint": "demo-v0.1.0.npz",
+    "precision": "float32",
+    "status": "budget_exhausted"
+  },
+  {
+    "instance": 17,
+    "split": "test",
+    "dimension": 4,
+    "algorithm": "neuralopt-random",
+    "final_objective": 39.61180114746094,
+    "evaluations": 100,
+    "runtime_seconds": 1.5527329989999998,
+    "checkpoint": null,
+    "precision": "float32",
+    "status": "budget_exhausted"
+  },
+  {
+    "instance": 17,
+    "split": "test",
+    "dimension": 4,
+    "algorithm": "scipy-L-BFGS-B",
+    "final_objective": 2.1431222681916884e-12,
+    "evaluations": 10,
+    "runtime_seconds": 0.022013638999965224,
+    "checkpoint": null,
+    "precision": "float32",
+    "status": "success"
+  },
+  {
+    "instance": 18,
+    "split": "test",
+    "dimension": 4,
+    "algorithm": "neuralopt-trained",
+    "final_objective": 13.052496910095215,
+    "evaluations": 100,
+    "runtime_seconds": 0.5875820990000875,
+    "checkpoint": "demo-v0.1.0.npz",
+    "precision": "float32",
+    "status": "budget_exhausted"
+  },
+  {
+    "instance": 18,
+    "split": "test",
+    "dimension": 4,
+    "algorithm": "neuralopt-random",
+    "final_objective": 195.74542236328125,
+    "evaluations": 100,
+    "runtime_seconds": 0.6172490909999624,
+    "checkpoint": null,
+    "precision": "float32",
+    "status": "budget_exhausted"
+  },
+  {
+    "instance": 18,
+    "split": "test",
+    "dimension": 4,
+    "algorithm": "scipy-L-BFGS-B",
+    "final_objective": 1.0235269663066981e-12,
+    "evaluations": 12,
+    "runtime_seconds": 0.03703356899995924,
+    "checkpoint": null,
+    "precision": "float32",
+    "status": "success"
+  },
+  {
+    "instance": 19,
+    "split": "test",
+    "dimension": 4,
+    "algorithm": "neuralopt-trained",
+    "final_objective": 492.1116027832031,
+    "evaluations": 100,
+    "runtime_seconds": 0.6354842690000169,
+    "checkpoint": "demo-v0.1.0.npz",
+    "precision": "float32",
+    "status": "budget_exhausted"
+  },
+  {
+    "instance": 19,
+    "split": "test",
+    "dimension": 4,
+    "algorithm": "neuralopt-random",
+    "final_objective": 360.03546142578125,
+    "evaluations": 100,
+    "runtime_seconds": 0.6522121450000213,
+    "checkpoint": null,
+    "precision": "float32",
+    "status": "budget_exhausted"
+  },
+  {
+    "instance": 19,
+    "split": "test",
+    "dimension": 4,
+    "algorithm": "scipy-L-BFGS-B",
+    "final_objective": 3.781508439715253e-11,
+    "evaluations": 15,
+    "runtime_seconds": 0.032911505000015495,
+    "checkpoint": null,
+    "precision": "float32",
+    "status": "success"
+  }
+]
