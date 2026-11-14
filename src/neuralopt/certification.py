@@ -11,6 +11,7 @@ import heapq
 import json
 import platform
 from dataclasses import asdict, dataclass
+from fractions import Fraction
 from typing import Any
 
 import numpy as np
@@ -194,22 +195,76 @@ class Certificate:
 
 
 def verify_certificate(cert: Certificate, tolerance: float = 0.0) -> bool:
-    """Replay all retained leaf interval bounds independently of the model."""
+    """Replay bounds and prove that terminal boxes cover the declared domain."""
     expr = Expr.from_dict(cert.expression)
-    if not cert.active_regions:
+    if (
+        not cert.active_regions
+        or tolerance < 0
+        or cert.absolute_gap < 0
+        or not np.all(
+            np.isfinite([cert.upper_bound, cert.lower_bound, cert.absolute_gap, tolerance])
+        )
+    ):
+        return False
+    domain_lo = np.asarray(cert.domain_lower, dtype=np.float64)
+    domain_hi = np.asarray(cert.domain_upper, dtype=np.float64)
+    incumbent = np.asarray(cert.incumbent_x, dtype=np.float64)
+    if (
+        domain_lo.ndim != 1
+        or domain_lo.shape != domain_hi.shape
+        or incumbent.shape != domain_lo.shape
+        or not np.all(np.isfinite(domain_lo))
+        or not np.all(np.isfinite(domain_hi))
+        or np.any(domain_lo >= domain_hi)
+        or np.any(incumbent < domain_lo)
+        or np.any(incumbent > domain_hi)
+    ):
         return False
     lbs = []
+    boxes: list[tuple[np.ndarray, np.ndarray]] = []
     for r in cert.active_regions:
-        iv = expr.interval(r["lo"], r["hi"])
-        lbs.append(float(iv.lo))
-        if float(iv.lo) + tolerance < r["lower_bound"]:
+        lo = np.asarray(r["lo"], dtype=np.float64)
+        hi = np.asarray(r["hi"], dtype=np.float64)
+        if (
+            lo.shape != domain_lo.shape
+            or hi.shape != domain_lo.shape
+            or np.any(lo < domain_lo)
+            or np.any(hi > domain_hi)
+            or np.any(lo >= hi)
+        ):
             return False
-    value = expr.evaluate(cert.incumbent_x)
+        iv = expr.interval(lo, hi)
+        lbs.append(float(iv.lo))
+        if not np.isfinite(r["lower_bound"]) or float(iv.lo) + tolerance < r["lower_bound"]:
+            return False
+        boxes.append((lo, hi))
+    if not _boxes_cover_domain(boxes, domain_lo, domain_hi):
+        return False
+    point = expr.interval(incumbent, incumbent)
     return (
-        value <= cert.upper_bound
+        float(point.hi) <= cert.upper_bound
         and min(lbs) >= cert.lower_bound - tolerance
-        and cert.upper_bound - min(lbs) <= cert.absolute_gap + tolerance
+        and cert.upper_bound - cert.lower_bound <= cert.absolute_gap + tolerance
     )
+
+
+def _boxes_cover_domain(
+    boxes: list[tuple[np.ndarray, np.ndarray]], domain_lo: np.ndarray, domain_hi: np.ndarray
+) -> bool:
+    """Verify exact volume equality and pairwise interior disjointness."""
+    for i, (lo_i, hi_i) in enumerate(boxes):
+        for lo_j, hi_j in boxes[i + 1 :]:
+            if np.all(np.maximum(lo_i, lo_j) < np.minimum(hi_i, hi_j)):
+                return False
+
+    def volume(lo: np.ndarray, hi: np.ndarray) -> Fraction:
+        result = Fraction(1)
+        for lower, upper in zip(lo, hi, strict=True):
+            result *= Fraction.from_float(float(upper)) - Fraction.from_float(float(lower))
+        return result
+
+    covered = sum((volume(lo, hi) for lo, hi in boxes), Fraction(0))
+    return covered == volume(domain_lo, domain_hi)
 
 
 def certify(
@@ -218,8 +273,9 @@ def certify(
     """Interval branch-and-bound with midpoint incumbents and widest splits."""
     lo, hi = np.asarray(lo, float), np.asarray(hi, float)
     mid = (lo + hi) / 2
-    best_x, upper = mid, _up(expr.evaluate(mid)).item()
+    best_x, upper = mid, float(expr.interval(mid, mid).hi)
     counter, processed, pruned = 0, 0, 0
+    terminal: list[tuple[float, np.ndarray, np.ndarray]] = []
     lower = float(expr.interval(lo, hi).lo)
     heap: list[tuple[float, int, np.ndarray, np.ndarray]] = [(lower, counter, lo, hi)]
     while heap and upper - heap[0][0] > gap and processed < max_nodes:
@@ -227,20 +283,15 @@ def certify(
         processed += 1
         if lb >= upper:
             pruned += 1
+            terminal.append((lb, a, b))
             continue
         d = int(np.argmax(b - a))
         m = (a[d] + b[d]) / 2
-        for aa, bb in ((a.copy(), b.copy()), (a.copy(), b.copy())):
-            if aa[d] == a[d]:
-                bb[d] = m
-            else:
-                aa[d] = m
-        # Explicit children avoids alias-sensitive branching.
         children = [(a.copy(), b.copy()), (a.copy(), b.copy())]
         children[0][1][d], children[1][0][d] = m, m
         for ca, cb in children:
             cm = (ca + cb) / 2
-            value = _up(expr.evaluate(cm)).item()
+            value = float(expr.interval(cm, cm).hi)
             if value < upper:
                 upper, best_x = value, cm
             cl = float(expr.interval(ca, cb).lo)
@@ -249,7 +300,9 @@ def certify(
                 heapq.heappush(heap, (cl, counter, ca, cb))
             else:
                 pruned += 1
+                terminal.append((cl, ca, cb))
     leaves = [{"lo": a.tolist(), "hi": b.tolist(), "lower_bound": lb} for lb, _, a, b in heap]
+    leaves.extend({"lo": a.tolist(), "hi": b.tolist(), "lower_bound": lb} for lb, a, b in terminal)
     global_lb = min((r["lower_bound"] for r in leaves), default=upper)
     status = "certified_gap" if upper - global_lb <= gap else "budget_exhausted"
     rel = (upper - global_lb) / max(1.0, abs(upper))

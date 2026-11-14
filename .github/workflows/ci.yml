@@ -15,9 +15,9 @@ jobs:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v6
       - run: uv sync --extra dev --python ${{ matrix.python }}
-      - run: uv run ruff check src tests
-      - run: uv run pyright
-      - run: uv run pytest --cov=neuralopt --cov-report=term-missing
-      - run: uv build
-      - run: uv run twine check dist/*
+      - run: uv run --no-sync ruff check src tests
+      - run: uv run --no-sync pyright
+      - run: uv run --no-sync pytest --cov=neuralopt --cov-report=term-missing
+      - run: uv build --python ${{ matrix.python }}
+      - run: uv run --no-sync twine check dist/*
 

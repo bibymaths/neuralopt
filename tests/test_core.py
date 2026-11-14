@@ -1,3 +1,5 @@
+from dataclasses import replace
+
 import jax
 import jax.numpy as jnp
 import numpy as np
@@ -51,6 +53,46 @@ def test_certified_quadratic_and_replay():
     assert result.status == "certified_gap"
     assert result.lower_bound <= 0 <= result.upper_bound
     assert verify_certificate(result.certificate)
+
+
+def test_certified_incumbent_preserves_binary64_precision():
+    x = Variable()
+    expr = (x[0] - 0.1) ** 2
+    problem = Problem(
+        lambda z: (z[0] - 0.1) ** 2,
+        (0.0, 1.0),
+        1,
+        certified_expression=expr,
+    )
+    result = minimize(problem, mode="certified", absolute_gap=1e-8, max_evaluations=1000)
+    assert result.x.dtype == np.float64
+    point_upper = float(expr.interval(result.x, result.x).hi)
+    assert point_upper <= result.upper_bound
+
+
+def test_verifier_rejects_incomplete_domain_coverage():
+    x = Variable()
+    expr = x[0] ** 2
+    problem = Problem(lambda z: z[0] ** 2, (-1.0, 1.0), 1, certified_expression=expr)
+    result = minimize(problem, mode="certified", absolute_gap=0.1, max_evaluations=100)
+    forged = replace(
+        result.certificate,
+        incumbent_x=[1.0],
+        upper_bound=1.1,
+        lower_bound=0.97,
+        absolute_gap=0.2,
+        active_regions=[{"lo": [0.99], "hi": [1.0], "lower_bound": 0.97}],
+    )
+    assert not verify_certificate(forged)
+
+
+def test_cancellation_uses_point_interval_upper_bound():
+    x = Variable()
+    expr = (x[0] + 1e16) - 1e16
+    problem = Problem(lambda z: z[0], (0.5, 1.5), 1, certified_expression=expr)
+    result = minimize(problem, mode="certified", absolute_gap=1.0, max_evaluations=1)
+    assert result.upper_bound >= 0.5
+    assert float(expr.interval(result.x, result.x).hi) <= result.upper_bound
 
 
 def test_arbitrary_jax_fails_closed():

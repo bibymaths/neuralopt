@@ -55,7 +55,7 @@ def minimize(
             problem.identifier or "anonymous",
         )
         return OptimizationResult(
-            jnp.asarray(cert.incumbent_x),
+            np.asarray(cert.incumbent_x, dtype=np.float64),
             cert.upper_bound,
             cert.status,
             cert.nodes_processed,
