@@ -313,9 +313,22 @@ def certify(
     heap: list[tuple[float, int, float, np.ndarray, np.ndarray]] = [
         (score(lo, hi, lower), counter, lower, lo, hi)
     ]
+    separate_lower_bounds = region_score is not None or priority != "lower_bound"
+    lower_heap: list[tuple[float, int]] = [(lower, counter)] if separate_lower_bounds else []
+    active_ids = {counter} if separate_lower_bounds else set()
     terminal: list[tuple[float, np.ndarray, np.ndarray]] = []
-    while heap and upper - min(item[2] for item in heap) > gap and processed < max_nodes:
-        _, _, lb, a, b = heapq.heappop(heap)
+
+    def active_lower_bound() -> float:
+        if not separate_lower_bounds:
+            return heap[0][2]
+        while lower_heap and lower_heap[0][1] not in active_ids:
+            heapq.heappop(lower_heap)
+        return lower_heap[0][0]
+
+    while heap and upper - active_lower_bound() > gap and processed < max_nodes:
+        _, node_id, lb, a, b = heapq.heappop(heap)
+        if separate_lower_bounds:
+            active_ids.remove(node_id)
         processed += 1
         if lb >= upper:
             pruned += 1
@@ -347,6 +360,9 @@ def certify(
             if cl < upper:
                 counter += 1
                 heapq.heappush(heap, (score(ca, cb, cl), counter, cl, ca, cb))
+                if separate_lower_bounds:
+                    active_ids.add(counter)
+                    heapq.heappush(lower_heap, (cl, counter))
             else:
                 pruned += 1
                 terminal.append((cl, ca, cb))

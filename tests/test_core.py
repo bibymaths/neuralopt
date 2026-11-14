@@ -5,6 +5,7 @@ import pytest
 
 from neuralopt import ModelConfig, Problem, Variable, init_model, minimize, verify_certificate
 from neuralopt.benchmark import run_baseline
+from neuralopt.certification import certify
 from neuralopt.features import (
     denormalize_coordinates,
     normalize_coordinates,
@@ -128,3 +129,20 @@ def test_baseline_accounting_and_certificate_coverage_tamper():
     assert cert is not None and verify_certificate(cert)
     cert.active_regions.pop()
     assert not verify_certificate(cert)
+
+
+def test_alternative_certification_priority_tracks_true_lower_bound():
+    x = Variable()
+    expr = (x[0] - 0.2) ** 2 + (x[1] + 0.3) ** 2
+    cert = certify(
+        expr,
+        np.array([-1.0, -1.0]),
+        np.array([1.0, 1.0]),
+        gap=0.05,
+        max_nodes=500,
+        problem_id="alternate-priority",
+        priority="widest",
+        split="round_robin",
+    )
+    assert cert.status == "certified_gap"
+    assert verify_certificate(cert)
