@@ -7,6 +7,11 @@ from typing import Any
 import jax.numpy as jnp
 
 
+def safe_l2_norm(x: Any, eps: float = 1e-8) -> Any:
+    """A differentiably smooth Euclidean norm, including at ``x == 0``."""
+    return jnp.sqrt(jnp.sum(jnp.square(x)) + eps**2)
+
+
 def normalize_coordinates(x: Any, lo: Any, hi: Any, eps: float = 1e-12) -> Any:
     """Map a finite box to ``[-1, 1]`` without dividing by a tiny width."""
     width = jnp.maximum(hi - lo, eps)
@@ -28,5 +33,5 @@ def parameter_features(x: Any, grad: Any, lo: Any, hi: Any, best_x: Any) -> Any:
     xn = normalize_coordinates(x, lo, hi)
     bn = normalize_coordinates(best_x, lo, hi)
     gs = gradient_to_normalized(grad, lo, hi)
-    gn = gs / (jnp.linalg.norm(gs) + 1e-8)
+    gn = gs / safe_l2_norm(gs)
     return jnp.stack((xn, bn, gn, jnp.abs(gn), jnp.ones_like(xn)), axis=-1)

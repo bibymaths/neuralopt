@@ -11,7 +11,7 @@ import jax
 import jax.numpy as jnp
 import numpy as np
 
-from .features import parameter_features
+from .features import parameter_features, safe_l2_norm
 from .model import (
     DEFAULT_CONFIG,
     ModelConfig,
@@ -38,7 +38,7 @@ def imitation_loss(
     grad = jax.grad(problem.objective)(x)
     apply = apply_model if model_kind == "transformer" else apply_mlp_model
     out = apply(params, parameter_features(x, grad, lo, hi, problem.x0), 1.0, config)
-    target = -grad / (jnp.linalg.norm(grad) + 1e-8)
+    target = -grad / safe_l2_norm(grad)
     return jnp.mean((out["direction"] - target) ** 2) + 1e-4 * jnp.mean(out["lowrank"] ** 2)
 
 
@@ -70,7 +70,9 @@ def unrolled_regret_loss(
     lo, hi = problem.bounds
     x0 = jax.random.uniform(key, (problem.dimension,), minval=lo, maxval=hi)
     f0 = problem.objective(x0)
-    optimum = jnp.asarray(problem.metadata.get("known_optimum", 0.0), dtype=f0.dtype)
+    if "known_optimum" not in problem.metadata:
+        raise ValueError("regret training requires problem.metadata['known_optimum']")
+    optimum = jnp.asarray(problem.metadata["known_optimum"], dtype=f0.dtype)
     scale = jnp.maximum(jnp.abs(f0 - optimum), 1.0)
 
     def update(carry: tuple[Any, Any], t: Any) -> tuple[tuple[Any, Any], tuple[Any, ...]]:
@@ -85,11 +87,11 @@ def unrolled_regret_loss(
         )
         raw = out["direction"]
         direction = precondition(raw, out["diag"], out["lowrank"])
-        unit = direction / (jnp.linalg.norm(direction) + 1e-8)
+        unit = direction / safe_l2_norm(direction)
         candidate = jnp.clip(x + 0.25 * out["step"] * (hi - lo) * unit, lo, hi)
         value = problem.objective(candidate)
         new_best = jnp.minimum(best, value)
-        alignment = jnp.sum(unit * grad) / (jnp.linalg.norm(grad) + 1e-8)
+        alignment = jnp.sum(unit * grad) / safe_l2_norm(grad)
         regularizer = (
             unroll.stability_weight * jnp.mean((candidate - x) ** 2 / ((hi - lo) ** 2))
             + unroll.direction_weight * jax.nn.relu(alignment)
@@ -146,6 +148,11 @@ def train(
         loss, grads = jax.value_and_grad(loss_fn)(*args)
         if not bool(jnp.isfinite(loss)):
             raise FloatingPointError(f"nonfinite training loss at step {step}")
+        gradients_finite = all(
+            bool(jnp.all(jnp.isfinite(leaf))) for leaf in jax.tree_util.tree_leaves(grads)
+        )
+        if not gradients_finite:
+            raise FloatingPointError(f"nonfinite training gradient at step {step}")
         updates, state = optimizer.update(grads, state, params)
         params = cast(Params, optax.apply_updates(params, updates))
         losses.append(float(loss))

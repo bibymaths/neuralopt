@@ -1,7 +1,9 @@
 import jax
+import jax.numpy as jnp
 import numpy as np
 import pytest
 
+from neuralopt import Problem
 from neuralopt.model import ModelConfig
 from neuralopt.tasks import task_split
 from neuralopt.training import (
@@ -72,3 +74,47 @@ def test_mlp_baseline_can_train_and_run():
 
     result = minimize(problem, max_evaluations=4, params=params, config=config, model_kind="mlp")
     assert np.isfinite(losses).all() and np.isfinite(result.fun)
+
+
+def test_regret_requires_known_optimum():
+    problem = Problem(lambda x: jnp.sum(x**2) - 100.0, (-1.0, 1.0), 2)
+    config = ModelConfig(width=8, heads=2, rank=1, layers=1)
+    from neuralopt.model import init_model
+
+    params = init_model(jax.random.PRNGKey(0), config)
+    with pytest.raises(ValueError, match="known_optimum"):
+        unrolled_regret_loss(
+            params,
+            problem,
+            jax.random.PRNGKey(1),
+            config,
+            UnrollConfig(steps=2, horizons=(1, 2)),
+        )
+
+
+def test_stationary_unroll_has_finite_meta_gradient(monkeypatch):
+    problem = Problem(
+        lambda x: jnp.sum(x * x),
+        (-1.0, 1.0),
+        2,
+        metadata={"known_optimum": 0.0},
+    )
+    config = ModelConfig(width=8, heads=2, rank=1, layers=1)
+    from neuralopt.model import init_model
+
+    params = init_model(jax.random.PRNGKey(0), config)
+
+    # Force the unroll's sampled start to the exact stationary point.
+    def zeros(*args, **kwargs):
+        return jnp.zeros(kwargs.get("shape", args[1]))
+
+    monkeypatch.setattr(jax.random, "uniform", zeros)
+    loss, grad = jax.value_and_grad(unrolled_regret_loss)(
+        params,
+        problem,
+        jax.random.PRNGKey(1),
+        config,
+        UnrollConfig(steps=3, horizons=(1, 3)),
+    )
+    leaves = jax.tree_util.tree_leaves(grad)
+    assert np.isfinite(loss) and all(np.isfinite(np.asarray(leaf)).all() for leaf in leaves)

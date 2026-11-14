@@ -5,6 +5,10 @@ updates. At configured horizons it minimizes robust normalized best-so-far
 regret, `log1p(max(f_best-f*, 0) / max(|f_initial-f*|, 1))`. It also includes
 small step, ascent-direction, and log-diagonal regularizers. There is no claimed
 gradient through hard inference acceptance or certified branching.
+Regret training requires an explicit `problem.metadata["known_optimum"]`; it
+never assumes that an untranslated objective has optimum zero. All differentiable
+normalizations use square-root smoothing so their derivatives remain finite at
+stationary points.
 
 Training uses explicit PRNG keys, Optax global-norm clipping, nonfinite loss
 detection, and portable checkpoints. The test suite verifies finite, nonzero
