@@ -127,7 +127,20 @@ def stochastic_geometry_loss(
     f0 = problem.objective(x0)
     optimum = jnp.asarray(problem.metadata["known_optimum"], dtype=f0.dtype)
     regret_scale = jnp.maximum(jnp.abs(f0 - optimum), 1.0)
-    momentum0 = jnp.zeros_like(z0)
+    if stochastic.integrator == "underdamped":
+        momentum_key, trajectory_key = jax.random.split(trajectory_key)
+        initial_gradient = jax.grad(problem.objective)(x0)
+        initial_geometry = apply_model(
+            params,
+            parameter_features(x0, initial_gradient, lo, hi, x0),
+            1.0,
+            config,
+        )
+        momentum0 = jnp.sqrt(stochastic.temperature) * sample_mobility_noise(
+            momentum_key, initial_geometry["diag"], initial_geometry["lowrank"]
+        )
+    else:
+        momentum0 = jnp.zeros_like(z0)
     episode_keys = jax.random.split(trajectory_key, stochastic.episodes)
     damping = jnp.exp(-stochastic.friction * stochastic.step_size)
 

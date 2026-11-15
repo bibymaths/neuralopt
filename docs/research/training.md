@@ -45,6 +45,8 @@ the current point, gradient, incumbent, and remaining budget, predicts a
 strictly positive diagonal plus low-rank factor, and freezes it for the episode.
 The next episode may predict different geometry, so the complete training
 policy is adaptive and has no fixed Gibbs invariant-measure guarantee.
+BAOAB training initializes momentum from `N(0, T M)` using the first predicted
+mass, matching inference and retaining the pathwise mass/noise gradient.
 
 The primary loss is weighted multi-horizon `log1p` best-feasible regret. A
 normalized displacement penalty discourages unstable trajectories. Integration

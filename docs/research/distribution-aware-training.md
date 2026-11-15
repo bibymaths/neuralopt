@@ -13,6 +13,9 @@ and exact Ornstein--Uhlenbeck momentum covariance
 `T(1-exp(-2 gamma h)) M`. Explicit PRNG keys make trajectories reproducible and
 pathwise differentiation carries gradients through both drift geometry and
 noise scale.
+The BAOAB rollout also samples its initial momentum from `N(0, T M)` using the
+first predicted mass, matching the inference transition rather than beginning
+from an artificial zero-momentum state.
 
 The weak Fokker--Planck term compares the conditional expected one-step change
 of `phi(z)=mean(z^2)` with
@@ -64,22 +67,22 @@ gradient evaluations and 52 integration steps; BAOAB used 75 and 30.
 | BAOAB identity | 1.712 | 0.000 | -- |
 | BAOAB fixed diagonal | 1.272 | -0.441 [-0.878, -0.078] | 6 |
 | BAOAB untrained transformer | 1.460 | -0.253 [-0.790, 0.091] | 4 |
-| BAOAB regret trained | 1.532 | -0.181 [-0.716, 0.197] | 4 |
+| BAOAB regret trained | 1.685 | -0.028 [-0.259, 0.207] | 3 |
 | BAOAB transferred regret + FP | 1.465 | -0.247 [-0.752, 0.072] | 4 |
 
 The direct paired FP-minus-regret comparison is `-0.048` with 95% interval
 `[-0.105, -0.006]` for overdamped dynamics (5/10 wins). This is evidence on the
 small prespecified held-out set, not a universal advantage. For BAOAB transfer
-the difference is `-0.067 [-0.186, 0.017]`, so no improvement is established.
+the difference is `-0.220 [-0.570, 0.022]`, so no improvement is established.
 
 At unseen temperatures and budgets the overdamped FP-minus-regret point estimate
 remained negative in all four settings, but every four-instance interval touched
 or crossed zero. At budget 40, transferred FP geometry was worse for BAOAB at
-both temperatures (`+0.774` at 0.25 and `+0.770` at 1.0). The simple fixed
+both temperatures (`+0.377` at 0.25 and `+0.357` at 1.0). The simple fixed
 diagonal remains the strongest supported BAOAB result.
 
-Training took 23.9 seconds for overdamped regret, 24.4 seconds for BAOAB regret,
-and 18.8 seconds for regret plus FP on the recorded CPU run. Median warm
+Training took 22.9 seconds for overdamped regret, 28.9 seconds for BAOAB regret,
+and 17.3 seconds for regret plus FP on the recorded CPU run. Median warm
 inference was about 0.08--0.12 seconds. First-call timings in the shared process
 are cache- and order-sensitive and are retained in the artifact rather than
 interpreted as isolated compilation measurements.

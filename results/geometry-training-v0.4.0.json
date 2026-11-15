@@ -22,19 +22,19 @@
   },
   "training": {
     "regret_overdamped": {
-      "seconds": 23.917783323002368,
+      "seconds": 22.86819010900217,
       "initial_loss": 0.49215203523635864,
       "final_loss": 0.14659324288368225,
       "median_loss": 0.5657932460308075
     },
     "regret_baoab": {
-      "seconds": 24.410920528000133,
-      "initial_loss": 0.5363674163818359,
-      "final_loss": 0.456359326839447,
-      "median_loss": 0.44592052698135376
+      "seconds": 28.886274405998847,
+      "initial_loss": 0.30149248242378235,
+      "final_loss": 0.4400789737701416,
+      "median_loss": 0.4469515085220337
     },
     "regret_fp_overdamped": {
-      "seconds": 18.814566354998533,
+      "seconds": 17.308461141001317,
       "initial_loss": 0.5499330759048462,
       "final_loss": 1.2182644605636597,
       "median_loss": 1.0864570140838623
@@ -50,8 +50,8 @@
         0.0
       ],
       "wins_vs_identity": 0,
-      "median_warm_seconds": 0.11844975250096468,
-      "median_first_seconds": 0.5619486759987922,
+      "median_warm_seconds": 0.11556463800116035,
+      "median_first_seconds": 0.5235346210010903,
       "mean_gradient_evaluations": 78.0,
       "mean_integration_steps": 52.0,
       "mean_finite_rate": 1.0
@@ -65,8 +65,8 @@
         0.14314851476716503
       ],
       "wins_vs_identity": 3,
-      "median_warm_seconds": 0.11849333749887592,
-      "median_first_seconds": 0.12889956499930122,
+      "median_warm_seconds": 0.1155980504991021,
+      "median_first_seconds": 0.12596820399994613,
       "mean_gradient_evaluations": 78.0,
       "mean_integration_steps": 52.0,
       "mean_finite_rate": 1.0
@@ -80,8 +80,8 @@
         0.07521446344686115
       ],
       "wins_vs_identity": 5,
-      "median_warm_seconds": 0.1030472144993837,
-      "median_first_seconds": 0.10666728399883141,
+      "median_warm_seconds": 0.10571872299806273,
+      "median_first_seconds": 0.10460215950115526,
       "mean_gradient_evaluations": 78.0,
       "mean_integration_steps": 52.0,
       "mean_finite_rate": 1.0
@@ -95,8 +95,8 @@
         0.056364475877679066
       ],
       "wins_vs_identity": 6,
-      "median_warm_seconds": 0.11445135050053068,
-      "median_first_seconds": 0.11345119699944917,
+      "median_warm_seconds": 0.1011239295003179,
+      "median_first_seconds": 0.10030731899860257,
       "mean_gradient_evaluations": 78.0,
       "mean_integration_steps": 52.0,
       "mean_finite_rate": 1.0
@@ -110,8 +110,8 @@
         0.03936901099892034
       ],
       "wins_vs_identity": 6,
-      "median_warm_seconds": 0.10834762899867201,
-      "median_first_seconds": 0.11382625350051967,
+      "median_warm_seconds": 0.0998759335016075,
+      "median_first_seconds": 0.10287235850046272,
       "mean_gradient_evaluations": 78.0,
       "mean_integration_steps": 52.0,
       "mean_finite_rate": 1.0
@@ -133,8 +133,8 @@
         0.0
       ],
       "wins_vs_identity": 0,
-      "median_warm_seconds": 0.09668349200183002,
-      "median_first_seconds": 0.8349421475013514,
+      "median_warm_seconds": 0.10126368750024994,
+      "median_first_seconds": 0.898183830000562,
       "mean_gradient_evaluations": 75.0,
       "mean_integration_steps": 30.0,
       "mean_finite_rate": 1.0
@@ -148,8 +148,8 @@
         -0.07822634526867966
       ],
       "wins_vs_identity": 6,
-      "median_warm_seconds": 0.0916741170003661,
-      "median_first_seconds": 0.09049652249996143,
+      "median_warm_seconds": 0.09197770600258082,
+      "median_first_seconds": 0.09496059400044032,
       "mean_gradient_evaluations": 75.0,
       "mean_integration_steps": 30.0,
       "mean_finite_rate": 1.0
@@ -163,23 +163,23 @@
         0.09146666473401371
       ],
       "wins_vs_identity": 4,
-      "median_warm_seconds": 0.08588698700077657,
-      "median_first_seconds": 0.09477203900132736,
+      "median_warm_seconds": 0.09109741000065696,
+      "median_first_seconds": 0.09299497900065035,
       "mean_gradient_evaluations": 75.0,
       "mean_integration_steps": 30.0,
       "mean_finite_rate": 1.0
     },
     "underdamped:regret_trained": {
-      "mean_log_regret": 1.5317631769486835,
-      "mean_anytime_auc": 1.8842929806481046,
-      "paired_difference_vs_identity": -0.18059151628073616,
+      "mean_log_regret": 1.6845875249560147,
+      "mean_anytime_auc": 1.9935683020391064,
+      "paired_difference_vs_identity": -0.027767168273404707,
       "paired_95_percent_ci": [
-        -0.7157243136545652,
-        0.19699472664445317
+        -0.25906973542721,
+        0.2065827693427516
       ],
-      "wins_vs_identity": 4,
-      "median_warm_seconds": 0.08873255400067137,
-      "median_first_seconds": 0.08800740900005621,
+      "wins_vs_identity": 3,
+      "median_warm_seconds": 0.09029978100079461,
+      "median_first_seconds": 0.09223016500072845,
       "mean_gradient_evaluations": 75.0,
       "mean_integration_steps": 30.0,
       "mean_finite_rate": 1.0
@@ -193,17 +193,17 @@
         0.07177768005916639
       ],
       "wins_vs_identity": 4,
-      "median_warm_seconds": 0.08455836100074521,
-      "median_first_seconds": 0.08277354249912605,
+      "median_warm_seconds": 0.09542694650008343,
+      "median_first_seconds": 0.09473290250025457,
       "mean_gradient_evaluations": 75.0,
       "mean_integration_steps": 30.0,
       "mean_finite_rate": 1.0
     },
     "underdamped:fp_effect_vs_regret": {
-      "paired_difference": -0.06681722798774248,
+      "paired_difference": -0.21964157599507397,
       "paired_95_percent_ci": [
-        -0.1864786138633282,
-        0.01659418558388978
+        -0.5700487034353051,
+        0.021746429868891675
       ],
       "wins": 4
     }
@@ -246,37 +246,37 @@
       "instances": 4
     },
     "underdamped:T=0.25:budget=40": {
-      "fp_difference_vs_regret": 0.7736883362169447,
+      "fp_difference_vs_regret": 0.3768806112110934,
       "paired_95_percent_ci": [
-        0.011690817545688792,
-        2.1538771330589555
+        0.012239780239181153,
+        0.9968625411192121
       ],
       "fp_wins": 0,
       "instances": 4
     },
     "underdamped:T=0.25:budget=120": {
-      "fp_difference_vs_regret": 0.0015674244777811458,
+      "fp_difference_vs_regret": -0.32502093823772316,
       "paired_95_percent_ci": [
-        -0.031243720374113826,
-        0.05090300814165798
+        -1.154917689611585,
+        0.14047456639162909
       ],
-      "fp_wins": 3,
+      "fp_wins": 2,
       "instances": 4
     },
     "underdamped:T=1.0:budget=40": {
-      "fp_difference_vs_regret": 0.7704577325144399,
+      "fp_difference_vs_regret": 0.35735533950716486,
       "paired_95_percent_ci": [
-        0.009295356399137256,
-        2.1407755796257435
+        0.009480571647612845,
+        0.9371434972764847
       ],
       "fp_wins": 0,
       "instances": 4
     },
     "underdamped:T=1.0:budget=120": {
-      "fp_difference_vs_regret": -0.0036313584696884837,
+      "fp_difference_vs_regret": -0.3575072467324414,
       "paired_95_percent_ci": [
-        -0.06493897108953145,
-        0.044862164503853164
+        -1.1574420397694927,
+        0.07378769444540578
       ],
       "fp_wins": 1,
       "instances": 4
@@ -299,8 +299,8 @@
       "integration_steps": 52,
       "improvement_rate": 0.5769230769230769,
       "finite_rate": 1.0,
-      "first_seconds": 1.6804453860022477,
-      "warm_seconds": 0.12723506800102768
+      "first_seconds": 1.6826070019997132,
+      "warm_seconds": 0.11912934899737593
     },
     {
       "integrator": "overdamped",
@@ -318,8 +318,8 @@
       "integration_steps": 52,
       "improvement_rate": 0.5384615384615384,
       "finite_rate": 1.0,
-      "first_seconds": 0.15267719099938404,
-      "warm_seconds": 0.12051816399980453
+      "first_seconds": 0.15357706299982965,
+      "warm_seconds": 0.12342288500076393
     },
     {
       "integrator": "overdamped",
@@ -337,8 +337,8 @@
       "integration_steps": 52,
       "improvement_rate": 0.5384615384615384,
       "finite_rate": 1.0,
-      "first_seconds": 0.1066979019997234,
-      "warm_seconds": 0.12214959799894132
+      "first_seconds": 0.11692064799717627,
+      "warm_seconds": 0.12112066899862839
     },
     {
       "integrator": "overdamped",
@@ -356,8 +356,8 @@
       "integration_steps": 52,
       "improvement_rate": 0.5,
       "finite_rate": 1.0,
-      "first_seconds": 0.12053298799946788,
-      "warm_seconds": 0.12435959299909882
+      "first_seconds": 0.21189165599935222,
+      "warm_seconds": 0.11202871100249467
     },
     {
       "integrator": "overdamped",
@@ -375,8 +375,8 @@
       "integration_steps": 52,
       "improvement_rate": 0.5,
       "finite_rate": 1.0,
-      "first_seconds": 0.11354556400328875,
-      "warm_seconds": 0.10619564099761192
+      "first_seconds": 0.12578266600030474,
+      "warm_seconds": 0.10240703000090434
     },
     {
       "integrator": "overdamped",
@@ -394,8 +394,8 @@
       "integration_steps": 52,
       "improvement_rate": 0.5,
       "finite_rate": 1.0,
-      "first_seconds": 1.6789065550001396,
-      "warm_seconds": 0.11161176799942041
+      "first_seconds": 2.228903731000173,
+      "warm_seconds": 0.10545737099891994
     },
     {
       "integrator": "overdamped",
@@ -413,8 +413,8 @@
       "integration_steps": 52,
       "improvement_rate": 0.46153846153846156,
       "finite_rate": 1.0,
-      "first_seconds": 0.12827568499778863,
-      "warm_seconds": 0.10162822599886567
+      "first_seconds": 0.15320916500058956,
+      "warm_seconds": 0.11893285999758518
     },
     {
       "integrator": "overdamped",
@@ -432,8 +432,8 @@
       "integration_steps": 52,
       "improvement_rate": 0.4230769230769231,
       "finite_rate": 1.0,
-      "first_seconds": 0.09562002200254938,
-      "warm_seconds": 0.09973073799847043
+      "first_seconds": 0.10219062800024403,
+      "warm_seconds": 0.08418087899917737
     },
     {
       "integrator": "overdamped",
@@ -451,8 +451,8 @@
       "integration_steps": 52,
       "improvement_rate": 0.6923076923076923,
       "finite_rate": 1.0,
-      "first_seconds": 0.0982005299993034,
-      "warm_seconds": 0.09511719799775165
+      "first_seconds": 0.09171902600064641,
+      "warm_seconds": 0.08791622099670349
     },
     {
       "integrator": "overdamped",
@@ -470,8 +470,8 @@
       "integration_steps": 52,
       "improvement_rate": 0.4230769230769231,
       "finite_rate": 1.0,
-      "first_seconds": 0.09369793699806905,
-      "warm_seconds": 0.0911629959991842
+      "first_seconds": 0.08768099299777532,
+      "warm_seconds": 0.08830347800176241
     },
     {
       "integrator": "overdamped",
@@ -489,8 +489,8 @@
       "integration_steps": 52,
       "improvement_rate": 0.46153846153846156,
       "finite_rate": 1.0,
-      "first_seconds": 1.5521671140013495,
-      "warm_seconds": 0.13448341399998753
+      "first_seconds": 1.6771465869969688,
+      "warm_seconds": 0.11810784000044805
     },
     {
       "integrator": "overdamped",
@@ -508,8 +508,8 @@
       "integration_steps": 52,
       "improvement_rate": 0.3076923076923077,
       "finite_rate": 1.0,
-      "first_seconds": 0.15754802799710887,
-      "warm_seconds": 0.1164685109979473
+      "first_seconds": 0.14404395499877864,
+      "warm_seconds": 0.1145487920002779
     },
     {
       "integrator": "overdamped",
@@ -527,8 +527,8 @@
       "integration_steps": 52,
       "improvement_rate": 0.4230769230769231,
       "finite_rate": 1.0,
-      "first_seconds": 0.11506412199742044,
-      "warm_seconds": 0.12911279000036302
+      "first_seconds": 0.10612212799969711,
+      "warm_seconds": 0.12007159999848227
     },
     {
       "integrator": "overdamped",
@@ -546,8 +546,8 @@
       "integration_steps": 52,
       "improvement_rate": 0.46153846153846156,
       "finite_rate": 1.0,
-      "first_seconds": 0.11317088099895045,
-      "warm_seconds": 0.12116817299829563
+      "first_seconds": 0.10049585199885769,
+      "warm_seconds": 0.10225638200063258
     },
     {
       "integrator": "overdamped",
@@ -565,8 +565,8 @@
       "integration_steps": 52,
       "improvement_rate": 0.5,
       "finite_rate": 1.0,
-      "first_seconds": 0.12846366799931275,
-      "warm_seconds": 0.1104996169997321
+      "first_seconds": 0.10521292100020219,
+      "warm_seconds": 0.09734483700231067
     },
     {
       "integrator": "overdamped",
@@ -584,8 +584,8 @@
       "integration_steps": 52,
       "improvement_rate": 0.5,
       "finite_rate": 1.0,
-      "first_seconds": 2.189425962998939,
-      "warm_seconds": 0.1474526540005172
+      "first_seconds": 1.74653915500312,
+      "warm_seconds": 0.13484770899958676
     },
     {
       "integrator": "overdamped",
@@ -603,8 +603,8 @@
       "integration_steps": 52,
       "improvement_rate": 0.46153846153846156,
       "finite_rate": 1.0,
-      "first_seconds": 0.1862283580012445,
-      "warm_seconds": 0.13536867099901428
+      "first_seconds": 0.1570717450013035,
+      "warm_seconds": 0.137809116000426
     },
     {
       "integrator": "overdamped",
@@ -622,8 +622,8 @@
       "integration_steps": 52,
       "improvement_rate": 0.38461538461538464,
       "finite_rate": 1.0,
-      "first_seconds": 0.14220924899927923,
-      "warm_seconds": 0.13993956900230842
+      "first_seconds": 0.11253478700018604,
+      "warm_seconds": 0.1158877300003951
     },
     {
       "integrator": "overdamped",
@@ -641,8 +641,8 @@
       "integration_steps": 52,
       "improvement_rate": 0.4230769230769231,
       "finite_rate": 1.0,
-      "first_seconds": 0.1443204950010113,
-      "warm_seconds": 0.1590264529986598
+      "first_seconds": 0.11749239300115732,
+      "warm_seconds": 0.12042696299977251
     },
     {
       "integrator": "overdamped",
@@ -660,8 +660,8 @@
       "integration_steps": 52,
       "improvement_rate": 0.4230769230769231,
       "finite_rate": 1.0,
-      "first_seconds": 0.13420976400084328,
-      "warm_seconds": 0.1334523639998224
+      "first_seconds": 0.13024923199918703,
+      "warm_seconds": 0.1359349230006046
     },
     {
       "integrator": "overdamped",
@@ -679,8 +679,8 @@
       "integration_steps": 52,
       "improvement_rate": 0.5,
       "finite_rate": 1.0,
-      "first_seconds": 0.46534758300185786,
-      "warm_seconds": 0.10712747500292608
+      "first_seconds": 0.5102646740015189,
+      "warm_seconds": 0.10987401600141311
     },
     {
       "integrator": "overdamped",
@@ -698,8 +698,8 @@
       "integration_steps": 52,
       "improvement_rate": 0.5384615384615384,
       "finite_rate": 1.0,
-      "first_seconds": 0.10138807800103677,
-      "warm_seconds": 0.10245788899919717
+      "first_seconds": 0.10072223400129587,
+      "warm_seconds": 0.08790950299953693
     },
     {
       "integrator": "overdamped",
@@ -717,8 +717,8 @@
       "integration_steps": 52,
       "improvement_rate": 0.46153846153846156,
       "finite_rate": 1.0,
-      "first_seconds": 0.10064324099948863,
-      "warm_seconds": 0.09762236799724633
+      "first_seconds": 0.10014208900247468,
+      "warm_seconds": 0.09982485399814323
     },
     {
       "integrator": "overdamped",
@@ -736,8 +736,8 @@
       "integration_steps": 52,
       "improvement_rate": 0.4230769230769231,
       "finite_rate": 1.0,
-      "first_seconds": 0.08996412900160067,
-      "warm_seconds": 0.09657172299921513
+      "first_seconds": 0.0905821759988612,
+      "warm_seconds": 0.08366631399985636
     },
     {
       "integrator": "overdamped",
@@ -755,8 +755,8 @@
       "integration_steps": 52,
       "improvement_rate": 0.46153846153846156,
       "finite_rate": 1.0,
-      "first_seconds": 0.09175707699978375,
-      "warm_seconds": 0.08653081000011298
+      "first_seconds": 0.08394422299897997,
+      "warm_seconds": 0.08206804300061776
     },
     {
       "integrator": "overdamped",
@@ -774,8 +774,8 @@
       "integration_steps": 52,
       "improvement_rate": 0.5,
       "finite_rate": 1.0,
-      "first_seconds": 0.5132150270001148,
-      "warm_seconds": 0.12528773700250895
+      "first_seconds": 0.5291350750012498,
+      "warm_seconds": 0.12182203499833122
     },
     {
       "integrator": "overdamped",
@@ -793,8 +793,8 @@
       "integration_steps": 52,
       "improvement_rate": 0.46153846153846156,
       "finite_rate": 1.0,
-      "first_seconds": 0.1295234450008138,
-      "warm_seconds": 0.12080983000123524
+      "first_seconds": 0.1278355559988995,
+      "warm_seconds": 0.1166473089979263
     },
     {
       "integrator": "overdamped",
@@ -812,8 +812,8 @@
       "integration_steps": 52,
       "improvement_rate": 0.4230769230769231,
       "finite_rate": 1.0,
-      "first_seconds": 0.10663666599793942,
-      "warm_seconds": 0.09841783500087331
+      "first_seconds": 0.13004762200216646,
+      "warm_seconds": 0.11161259199798224
     },
     {
       "integrator": "overdamped",
@@ -831,8 +831,8 @@
       "integration_steps": 52,
       "improvement_rate": 0.46153846153846156,
       "finite_rate": 1.0,
-      "first_seconds": 0.1127392799971858,
-      "warm_seconds": 0.1113096740009496
+      "first_seconds": 0.11040863600283046,
+      "warm_seconds": 0.11726494899994577
     },
     {
       "integrator": "overdamped",
@@ -850,8 +850,8 @@
       "integration_steps": 52,
       "improvement_rate": 0.38461538461538464,
       "finite_rate": 1.0,
-      "first_seconds": 0.1141069429977506,
-      "warm_seconds": 0.11486987800162751
+      "first_seconds": 0.10521993699876475,
+      "warm_seconds": 0.11961050100217108
     },
     {
       "integrator": "overdamped",
@@ -869,8 +869,8 @@
       "integration_steps": 52,
       "improvement_rate": 0.38461538461538464,
       "finite_rate": 1.0,
-      "first_seconds": 0.5051476590015227,
-      "warm_seconds": 0.10431843300102628
+      "first_seconds": 0.45247024499985855,
+      "warm_seconds": 0.10064057300041895
     },
     {
       "integrator": "overdamped",
@@ -888,8 +888,8 @@
       "integration_steps": 52,
       "improvement_rate": 0.6153846153846154,
       "finite_rate": 1.0,
-      "first_seconds": 0.09726209099972039,
-      "warm_seconds": 0.14021588999821688
+      "first_seconds": 0.10110664400053793,
+      "warm_seconds": 0.10394268199888756
     },
     {
       "integrator": "overdamped",
@@ -907,8 +907,8 @@
       "integration_steps": 52,
       "improvement_rate": 0.4230769230769231,
       "finite_rate": 1.0,
-      "first_seconds": 0.09564368700011983,
-      "warm_seconds": 0.09581068799889181
+      "first_seconds": 0.10120007899968186,
+      "warm_seconds": 0.09492057299939916
     },
     {
       "integrator": "overdamped",
@@ -926,8 +926,8 @@
       "integration_steps": 52,
       "improvement_rate": 0.38461538461538464,
       "finite_rate": 1.0,
-      "first_seconds": 0.1514132949996565,
-      "warm_seconds": 0.11759302700011176
+      "first_seconds": 0.09656244199868524,
+      "warm_seconds": 0.0957098250000854
     },
     {
       "integrator": "overdamped",
@@ -945,8 +945,8 @@
       "integration_steps": 52,
       "improvement_rate": 0.6153846153846154,
       "finite_rate": 1.0,
-      "first_seconds": 0.1459502679972502,
-      "warm_seconds": 0.10325580800054013
+      "first_seconds": 0.09675719699953333,
+      "warm_seconds": 0.09680036999998265
     },
     {
       "integrator": "overdamped",
@@ -964,8 +964,8 @@
       "integration_steps": 52,
       "improvement_rate": 0.46153846153846156,
       "finite_rate": 1.0,
-      "first_seconds": 0.5751618229987798,
-      "warm_seconds": 0.10805063700172468
+      "first_seconds": 0.49832654599958914,
+      "warm_seconds": 0.11302143600187264
     },
     {
       "integrator": "overdamped",
@@ -983,8 +983,8 @@
       "integration_steps": 52,
       "improvement_rate": 0.38461538461538464,
       "finite_rate": 1.0,
-      "first_seconds": 0.1149448840005789,
-      "warm_seconds": 0.10824583700014045
+      "first_seconds": 0.11287453000113601,
+      "warm_seconds": 0.1083895100018708
     },
     {
       "integrator": "overdamped",
@@ -1002,8 +1002,8 @@
       "integration_steps": 52,
       "improvement_rate": 0.5769230769230769,
       "finite_rate": 1.0,
-      "first_seconds": 0.10842966700147372,
-      "warm_seconds": 0.10636369100029697
+      "first_seconds": 0.1030821910026134,
+      "warm_seconds": 0.09945204999894486
     },
     {
       "integrator": "overdamped",
@@ -1021,8 +1021,8 @@
       "integration_steps": 52,
       "improvement_rate": 0.6153846153846154,
       "finite_rate": 1.0,
-      "first_seconds": 0.11373151299994788,
-      "warm_seconds": 0.10567408600036288
+      "first_seconds": 0.10011878599834745,
+      "warm_seconds": 0.09999147700000321
     },
     {
       "integrator": "overdamped",
@@ -1040,8 +1040,8 @@
       "integration_steps": 52,
       "improvement_rate": 0.5384615384615384,
       "finite_rate": 1.0,
-      "first_seconds": 0.10907307100205799,
-      "warm_seconds": 0.11449546000221744
+      "first_seconds": 0.10053179600072326,
+      "warm_seconds": 0.10806541700003436
     },
     {
       "integrator": "overdamped",
@@ -1059,8 +1059,8 @@
       "integration_steps": 52,
       "improvement_rate": 0.46153846153846156,
       "finite_rate": 1.0,
-      "first_seconds": 0.5487355289988045,
-      "warm_seconds": 0.15770780400271178
+      "first_seconds": 0.5179341670009308,
+      "warm_seconds": 0.13278178299879073
     },
     {
       "integrator": "overdamped",
@@ -1078,8 +1078,8 @@
       "integration_steps": 52,
       "improvement_rate": 0.5769230769230769,
       "finite_rate": 1.0,
-      "first_seconds": 0.13564180500179646,
-      "warm_seconds": 0.13842502099942067
+      "first_seconds": 0.12410085200099275,
+      "warm_seconds": 0.12246804499955033
     },
     {
       "integrator": "overdamped",
@@ -1097,8 +1097,8 @@
       "integration_steps": 52,
       "improvement_rate": 0.4230769230769231,
       "finite_rate": 1.0,
-      "first_seconds": 0.12337824499991257,
-      "warm_seconds": 0.16030977299669757
+      "first_seconds": 0.12292015300045023,
+      "warm_seconds": 0.11927402400033316
     },
     {
       "integrator": "overdamped",
@@ -1116,8 +1116,8 @@
       "integration_steps": 52,
       "improvement_rate": 0.4230769230769231,
       "finite_rate": 1.0,
-      "first_seconds": 0.12591921000057482,
-      "warm_seconds": 0.13267346900101984
+      "first_seconds": 0.13029961100255605,
+      "warm_seconds": 0.12714771600076347
     },
     {
       "integrator": "overdamped",
@@ -1135,8 +1135,8 @@
       "integration_steps": 52,
       "improvement_rate": 0.4230769230769231,
       "finite_rate": 1.0,
-      "first_seconds": 0.1317153439995309,
-      "warm_seconds": 0.13355015500201262
+      "first_seconds": 0.1360672139999224,
+      "warm_seconds": 0.12199824600247666
     },
     {
       "integrator": "overdamped",
@@ -1154,8 +1154,8 @@
       "integration_steps": 52,
       "improvement_rate": 0.46153846153846156,
       "finite_rate": 1.0,
-      "first_seconds": 0.5101556800000253,
-      "warm_seconds": 0.09859702999892761
+      "first_seconds": 0.4765721809999377,
+      "warm_seconds": 0.10370571100065717
     },
     {
       "integrator": "overdamped",
@@ -1173,8 +1173,8 @@
       "integration_steps": 52,
       "improvement_rate": 0.5769230769230769,
       "finite_rate": 1.0,
-      "first_seconds": 0.10529867700097384,
-      "warm_seconds": 0.10043342599965399
+      "first_seconds": 0.09575409600074636,
+      "warm_seconds": 0.10084814299989375
     },
     {
       "integrator": "overdamped",
@@ -1192,8 +1192,8 @@
       "integration_steps": 52,
       "improvement_rate": 0.5,
       "finite_rate": 1.0,
-      "first_seconds": 0.09823481399871525,
-      "warm_seconds": 0.0975313439994352
+      "first_seconds": 0.09059227599937003,
+      "warm_seconds": 0.08823527700224076
     },
     {
       "integrator": "overdamped",
@@ -1211,8 +1211,8 @@
       "integration_steps": 52,
       "improvement_rate": 0.5,
       "finite_rate": 1.0,
-      "first_seconds": 0.09716727799968794,
-      "warm_seconds": 0.10320607500034384
+      "first_seconds": 0.08906777300217072,
+      "warm_seconds": 0.0915571089972218
     },
     {
       "integrator": "overdamped",
@@ -1230,8 +1230,8 @@
       "integration_steps": 52,
       "improvement_rate": 0.5384615384615384,
       "finite_rate": 1.0,
-      "first_seconds": 0.09366850500009605,
-      "warm_seconds": 0.09617090499887126
+      "first_seconds": 0.093822986997111,
+      "warm_seconds": 0.09360727999955998
     },
     {
       "integrator": "underdamped",
@@ -1249,8 +1249,8 @@
       "integration_steps": 30,
       "improvement_rate": 0.6666666666666666,
       "finite_rate": 1.0,
-      "first_seconds": 1.1089183320000302,
-      "warm_seconds": 0.1177592169988202
+      "first_seconds": 1.0850350729997444,
+      "warm_seconds": 0.1378312429988
     },
     {
       "integrator": "underdamped",
@@ -1268,8 +1268,8 @@
       "integration_steps": 30,
       "improvement_rate": 0.6666666666666666,
       "finite_rate": 1.0,
-      "first_seconds": 0.09433777300000656,
-      "warm_seconds": 0.10068223299822421
+      "first_seconds": 0.09723104799923021,
+      "warm_seconds": 0.08836166800028877
     },
     {
       "integrator": "underdamped",
@@ -1287,8 +1287,8 @@
       "integration_steps": 30,
       "improvement_rate": 0.6,
       "finite_rate": 1.0,
-      "first_seconds": 0.09939816499900189,
-      "warm_seconds": 0.09949396199954208
+      "first_seconds": 0.08712277199811069,
+      "warm_seconds": 0.1008819169983326
     },
     {
       "integrator": "underdamped",
@@ -1298,16 +1298,16 @@
       "dimension": 3,
       "temperature": 0.5,
       "budget": 80,
-      "best_objective": 1.9747364521026611,
-      "log_regret": 1.090155447544969,
-      "anytime_log_regret_auc": 1.7890320144276826,
+      "best_objective": 1.4345577955245972,
+      "log_regret": 0.8897651365619861,
+      "anytime_log_regret_auc": 1.7249823413084555,
       "objective_evaluations": 76,
       "gradient_evaluations": 75,
       "integration_steps": 30,
       "improvement_rate": 0.5333333333333333,
       "finite_rate": 1.0,
-      "first_seconds": 0.09832523099976243,
-      "warm_seconds": 0.08783053899969673
+      "first_seconds": 0.09693531499942765,
+      "warm_seconds": 0.09211601300194161
     },
     {
       "integrator": "underdamped",
@@ -1325,8 +1325,8 @@
       "integration_steps": 30,
       "improvement_rate": 0.6,
       "finite_rate": 1.0,
-      "first_seconds": 0.09059135099960258,
-      "warm_seconds": 0.11595802899682894
+      "first_seconds": 0.09001466799963964,
+      "warm_seconds": 0.09298105500056408
     },
     {
       "integrator": "underdamped",
@@ -1344,8 +1344,8 @@
       "integration_steps": 30,
       "improvement_rate": 0.6,
       "finite_rate": 1.0,
-      "first_seconds": 0.932524394000211,
-      "warm_seconds": 0.09091839300162974
+      "first_seconds": 0.8949148930005322,
+      "warm_seconds": 0.08387281899922527
     },
     {
       "integrator": "underdamped",
@@ -1363,8 +1363,8 @@
       "integration_steps": 30,
       "improvement_rate": 0.6,
       "finite_rate": 1.0,
-      "first_seconds": 0.08606890000010026,
-      "warm_seconds": 0.08829942900047172
+      "first_seconds": 0.08097020900095231,
+      "warm_seconds": 0.07666786000118009
     },
     {
       "integrator": "underdamped",
@@ -1382,8 +1382,8 @@
       "integration_steps": 30,
       "improvement_rate": 0.5333333333333333,
       "finite_rate": 1.0,
-      "first_seconds": 0.09310647700112895,
-      "warm_seconds": 0.08429384400005802
+      "first_seconds": 0.0707530969993968,
+      "warm_seconds": 0.0791073599975789
     },
     {
       "integrator": "underdamped",
@@ -1393,16 +1393,16 @@
       "dimension": 5,
       "temperature": 0.5,
       "budget": 80,
-      "best_objective": 6.2472639083862305,
-      "log_regret": 1.980624005689594,
-      "anytime_log_regret_auc": 3.090145774231143,
+      "best_objective": 33.951271057128906,
+      "log_regret": 3.553954835890596,
+      "anytime_log_regret_auc": 4.114034282362159,
       "objective_evaluations": 76,
       "gradient_evaluations": 75,
       "integration_steps": 30,
-      "improvement_rate": 0.4666666666666667,
+      "improvement_rate": 0.5333333333333333,
       "finite_rate": 1.0,
-      "first_seconds": 0.08212404300138587,
-      "warm_seconds": 0.1087961439989158
+      "first_seconds": 0.07542157799980487,
+      "warm_seconds": 0.0713534639980935
     },
     {
       "integrator": "underdamped",
@@ -1420,8 +1420,8 @@
       "integration_steps": 30,
       "improvement_rate": 0.5333333333333333,
       "finite_rate": 1.0,
-      "first_seconds": 0.0769749690007302,
-      "warm_seconds": 0.0774836390010023
+      "first_seconds": 0.07577498099999502,
+      "warm_seconds": 0.07649707699965802
     },
     {
       "integrator": "underdamped",
@@ -1439,8 +1439,8 @@
       "integration_steps": 30,
       "improvement_rate": 0.4,
       "finite_rate": 1.0,
-      "first_seconds": 0.9703545689990278,
-      "warm_seconds": 0.10695340800157283
+      "first_seconds": 0.9553926830012642,
+      "warm_seconds": 0.09894208600235288
     },
     {
       "integrator": "underdamped",
@@ -1458,8 +1458,8 @@
       "integration_steps": 30,
       "improvement_rate": 0.4,
       "finite_rate": 1.0,
-      "first_seconds": 0.09084753999923123,
-      "warm_seconds": 0.08355904999916675
+      "first_seconds": 0.09298237899929518,
+      "warm_seconds": 0.09136497100189445
     },
     {
       "integrator": "underdamped",
@@ -1477,8 +1477,8 @@
       "integration_steps": 30,
       "improvement_rate": 0.26666666666666666,
       "finite_rate": 1.0,
-      "first_seconds": 0.08923169699846767,
-      "warm_seconds": 0.08535425800073426
+      "first_seconds": 0.09853164200103492,
+      "warm_seconds": 0.09832468600143329
     },
     {
       "integrator": "underdamped",
@@ -1496,8 +1496,8 @@
       "integration_steps": 30,
       "improvement_rate": 0.26666666666666666,
       "finite_rate": 1.0,
-      "first_seconds": 0.08141651899859426,
-      "warm_seconds": 0.08543246399858617
+      "first_seconds": 0.08752501500202925,
+      "warm_seconds": 0.09075128900076379
     },
     {
       "integrator": "underdamped",
@@ -1515,8 +1515,8 @@
       "integration_steps": 30,
       "improvement_rate": 0.26666666666666666,
       "finite_rate": 1.0,
-      "first_seconds": 0.08305048699912732,
-      "warm_seconds": 0.08664920099909068
+      "first_seconds": 0.09550274099819944,
+      "warm_seconds": 0.09407548699891777
     },
     {
       "integrator": "underdamped",
@@ -1534,8 +1534,8 @@
       "integration_steps": 30,
       "improvement_rate": 0.7333333333333333,
       "finite_rate": 1.0,
-      "first_seconds": 1.146249979003187,
-      "warm_seconds": 0.13703388500289293
+      "first_seconds": 0.9974778600007994,
+      "warm_seconds": 0.12228460400001495
     },
     {
       "integrator": "underdamped",
@@ -1553,8 +1553,8 @@
       "integration_steps": 30,
       "improvement_rate": 0.9333333333333333,
       "finite_rate": 1.0,
-      "first_seconds": 0.11386345299979439,
-      "warm_seconds": 0.11833753999962937
+      "first_seconds": 0.12261734400090063,
+      "warm_seconds": 0.13446841599943582
     },
     {
       "integrator": "underdamped",
@@ -1572,8 +1572,8 @@
       "integration_steps": 30,
       "improvement_rate": 0.6666666666666666,
       "finite_rate": 1.0,
-      "first_seconds": 0.13018482299958123,
-      "warm_seconds": 0.11737656900004367
+      "first_seconds": 0.12671549800143111,
+      "warm_seconds": 0.14744838499973412
     },
     {
       "integrator": "underdamped",
@@ -1583,16 +1583,16 @@
       "dimension": 6,
       "temperature": 0.5,
       "budget": 80,
-      "best_objective": 1.7946386337280273,
-      "log_regret": 1.0277028079900479,
-      "anytime_log_regret_auc": 1.0934216680434103,
+      "best_objective": 1.802821159362793,
+      "log_regret": 1.0306264668516627,
+      "anytime_log_regret_auc": 1.0943882556132338,
       "objective_evaluations": 76,
       "gradient_evaluations": 75,
       "integration_steps": 30,
       "improvement_rate": 0.6666666666666666,
       "finite_rate": 1.0,
-      "first_seconds": 0.11688194499947713,
-      "warm_seconds": 0.12124766400302178
+      "first_seconds": 0.11682906900023227,
+      "warm_seconds": 0.14033640100024058
     },
     {
       "integrator": "underdamped",
@@ -1610,8 +1610,8 @@
       "integration_steps": 30,
       "improvement_rate": 0.6666666666666666,
       "finite_rate": 1.0,
-      "first_seconds": 0.11202988299919525,
-      "warm_seconds": 0.11728821100041387
+      "first_seconds": 0.11433454899815843,
+      "warm_seconds": 0.10782652900161338
     },
     {
       "integrator": "underdamped",
@@ -1629,8 +1629,8 @@
       "integration_steps": 30,
       "improvement_rate": 0.4666666666666667,
       "finite_rate": 1.0,
-      "first_seconds": 0.7781698110011348,
-      "warm_seconds": 0.0888285060027556
+      "first_seconds": 0.7638047699983872,
+      "warm_seconds": 0.09143909100021119
     },
     {
       "integrator": "underdamped",
@@ -1648,8 +1648,8 @@
       "integration_steps": 30,
       "improvement_rate": 0.6,
       "finite_rate": 1.0,
-      "first_seconds": 0.09014550500069163,
-      "warm_seconds": 0.08054133400219143
+      "first_seconds": 0.0843873989979329,
+      "warm_seconds": 0.09259044100326719
     },
     {
       "integrator": "underdamped",
@@ -1667,8 +1667,8 @@
       "integration_steps": 30,
       "improvement_rate": 0.6,
       "finite_rate": 1.0,
-      "first_seconds": 0.07677187400258845,
-      "warm_seconds": 0.07920770200144034
+      "first_seconds": 0.07430801399823395,
+      "warm_seconds": 0.0790903650013206
     },
     {
       "integrator": "underdamped",
@@ -1678,16 +1678,16 @@
       "dimension": 3,
       "temperature": 0.5,
       "budget": 80,
-      "best_objective": 2.451200485229492,
-      "log_regret": 1.2387221372500712,
-      "anytime_log_regret_auc": 1.5584183551710167,
+      "best_objective": 2.485837936401367,
+      "log_regret": 1.2487084561724404,
+      "anytime_log_regret_auc": 1.5671116947288128,
       "objective_evaluations": 76,
       "gradient_evaluations": 75,
       "integration_steps": 30,
-      "improvement_rate": 0.5333333333333333,
+      "improvement_rate": 0.6,
       "finite_rate": 1.0,
-      "first_seconds": 0.07552347599994391,
-      "warm_seconds": 0.07975544800137868
+      "first_seconds": 0.08431722699970123,
+      "warm_seconds": 0.07871113000146579
     },
     {
       "integrator": "underdamped",
@@ -1705,8 +1705,8 @@
       "integration_steps": 30,
       "improvement_rate": 0.5333333333333333,
       "finite_rate": 1.0,
-      "first_seconds": 0.0728146569999808,
-      "warm_seconds": 0.07542180299788015
+      "first_seconds": 0.18314616799762007,
+      "warm_seconds": 0.10624135800026124
     },
     {
       "integrator": "underdamped",
@@ -1724,8 +1724,8 @@
       "integration_steps": 30,
       "improvement_rate": 0.6666666666666666,
       "finite_rate": 1.0,
-      "first_seconds": 0.7615797389989893,
-      "warm_seconds": 0.0960890680034936
+      "first_seconds": 1.1507543369989435,
+      "warm_seconds": 0.10781712899915874
     },
     {
       "integrator": "underdamped",
@@ -1743,8 +1743,8 @@
       "integration_steps": 30,
       "improvement_rate": 0.6666666666666666,
       "finite_rate": 1.0,
-      "first_seconds": 0.08441968799888855,
-      "warm_seconds": 0.09778119499969762
+      "first_seconds": 0.10226764699837076,
+      "warm_seconds": 0.09617111099942122
     },
     {
       "integrator": "underdamped",
@@ -1762,8 +1762,8 @@
       "integration_steps": 30,
       "improvement_rate": 0.6666666666666666,
       "finite_rate": 1.0,
-      "first_seconds": 0.09643760100152576,
-      "warm_seconds": 0.08770821600046474
+      "first_seconds": 0.09082879500056151,
+      "warm_seconds": 0.09639924600196537
     },
     {
       "integrator": "underdamped",
@@ -1773,16 +1773,16 @@
       "dimension": 3,
       "temperature": 0.5,
       "budget": 80,
-      "best_objective": 0.2421460747718811,
-      "log_regret": 0.2168405891332212,
-      "anytime_log_regret_auc": 0.7519973466148084,
+      "best_objective": 0.22488385438919067,
+      "log_regret": 0.2028460267581602,
+      "anytime_log_regret_auc": 0.7412465472810146,
       "objective_evaluations": 76,
       "gradient_evaluations": 75,
       "integration_steps": 30,
-      "improvement_rate": 0.6,
+      "improvement_rate": 0.5333333333333333,
       "finite_rate": 1.0,
-      "first_seconds": 0.09389077499872656,
-      "warm_seconds": 0.08872511200024746
+      "first_seconds": 0.13437275099931867,
+      "warm_seconds": 0.08984827300082543
     },
     {
       "integrator": "underdamped",
@@ -1800,8 +1800,8 @@
       "integration_steps": 30,
       "improvement_rate": 0.6,
       "finite_rate": 1.0,
-      "first_seconds": 0.10072717199727776,
-      "warm_seconds": 0.09020074900035979
+      "first_seconds": 0.10513933900074335,
+      "warm_seconds": 0.0967784060012491
     },
     {
       "integrator": "underdamped",
@@ -1819,8 +1819,8 @@
       "integration_steps": 30,
       "improvement_rate": 0.4666666666666667,
       "finite_rate": 1.0,
-      "first_seconds": 0.8062988279998535,
-      "warm_seconds": 0.09561044499787386
+      "first_seconds": 0.87265344700063,
+      "warm_seconds": 0.09289872999943327
     },
     {
       "integrator": "underdamped",
@@ -1838,8 +1838,8 @@
       "integration_steps": 30,
       "improvement_rate": 0.5333333333333333,
       "finite_rate": 1.0,
-      "first_seconds": 0.08171592300277553,
-      "warm_seconds": 0.0783956559971557
+      "first_seconds": 0.0818303529995319,
+      "warm_seconds": 0.20426344800216611
     },
     {
       "integrator": "underdamped",
@@ -1857,8 +1857,8 @@
       "integration_steps": 30,
       "improvement_rate": 0.6,
       "finite_rate": 1.0,
-      "first_seconds": 0.0761826089983515,
-      "warm_seconds": 0.07618227300190483
+      "first_seconds": 0.1302886720004608,
+      "warm_seconds": 0.08579557399934856
     },
     {
       "integrator": "underdamped",
@@ -1868,16 +1868,16 @@
       "dimension": 5,
       "temperature": 0.5,
       "budget": 80,
-      "best_objective": 36.78153991699219,
-      "log_regret": 3.631820621353656,
-      "anytime_log_regret_auc": 4.097397482392449,
+      "best_objective": 36.03502655029297,
+      "log_regret": 3.611864128362335,
+      "anytime_log_regret_auc": 4.092562968911337,
       "objective_evaluations": 76,
       "gradient_evaluations": 75,
       "integration_steps": 30,
       "improvement_rate": 0.5333333333333333,
       "finite_rate": 1.0,
-      "first_seconds": 0.09401261600214639,
-      "warm_seconds": 0.07282480800131452
+      "first_seconds": 0.11049685699981637,
+      "warm_seconds": 0.1018087230004312
     },
     {
       "integrator": "underdamped",
@@ -1895,8 +1895,8 @@
       "integration_steps": 30,
       "improvement_rate": 0.6,
       "finite_rate": 1.0,
-      "first_seconds": 0.07457039699875168,
-      "warm_seconds": 0.07757016400137218
+      "first_seconds": 0.09396306400230969,
+      "warm_seconds": 0.1913123859994812
     },
     {
       "integrator": "underdamped",
@@ -1914,8 +1914,8 @@
       "integration_steps": 30,
       "improvement_rate": 0.4,
       "finite_rate": 1.0,
-      "first_seconds": 0.8355552259999968,
-      "warm_seconds": 0.09727791600016644
+      "first_seconds": 0.9014527670005918,
+      "warm_seconds": 0.10358528899814701
     },
     {
       "integrator": "underdamped",
@@ -1933,8 +1933,8 @@
       "integration_steps": 30,
       "improvement_rate": 0.4,
       "finite_rate": 1.0,
-      "first_seconds": 0.0923091580007167,
-      "warm_seconds": 0.09504880500026047
+      "first_seconds": 0.09693880900158547,
+      "warm_seconds": 0.0868746989981446
     },
     {
       "integrator": "underdamped",
@@ -1952,8 +1952,8 @@
       "integration_steps": 30,
       "improvement_rate": 0.3333333333333333,
       "finite_rate": 1.0,
-      "first_seconds": 0.09763373899841099,
-      "warm_seconds": 0.08641971600081888
+      "first_seconds": 0.09516116300073918,
+      "warm_seconds": 0.08270668499972089
     },
     {
       "integrator": "underdamped",
@@ -1971,8 +1971,8 @@
       "integration_steps": 30,
       "improvement_rate": 0.4,
       "finite_rate": 1.0,
-      "first_seconds": 0.08090957500098739,
-      "warm_seconds": 0.08873999600109528
+      "first_seconds": 0.0806970289995661,
+      "warm_seconds": 0.08245705199806252
     },
     {
       "integrator": "underdamped",
@@ -1990,8 +1990,8 @@
       "integration_steps": 30,
       "improvement_rate": 0.3333333333333333,
       "finite_rate": 1.0,
-      "first_seconds": 0.08249659799912479,
-      "warm_seconds": 0.08246752100239974
+      "first_seconds": 0.0756291190009506,
+      "warm_seconds": 0.08398673999909079
     },
     {
       "integrator": "underdamped",
@@ -2009,8 +2009,8 @@
       "integration_steps": 30,
       "improvement_rate": 0.6,
       "finite_rate": 1.0,
-      "first_seconds": 0.8343290690027061,
-      "warm_seconds": 0.11229217700019944
+      "first_seconds": 0.8279936209983134,
+      "warm_seconds": 0.11593421900033718
     },
     {
       "integrator": "underdamped",
@@ -2028,8 +2028,8 @@
       "integration_steps": 30,
       "improvement_rate": 0.5333333333333333,
       "finite_rate": 1.0,
-      "first_seconds": 0.11213950300225406,
-      "warm_seconds": 0.10942794199945638
+      "first_seconds": 0.15592396600186476,
+      "warm_seconds": 0.11768142000073567
     },
     {
       "integrator": "underdamped",
@@ -2047,8 +2047,8 @@
       "integration_steps": 30,
       "improvement_rate": 0.5333333333333333,
       "finite_rate": 1.0,
-      "first_seconds": 0.10425224300342961,
-      "warm_seconds": 0.10878574299931643
+      "first_seconds": 0.11607779200130608,
+      "warm_seconds": 0.1173899130008067
     },
     {
       "integrator": "underdamped",
@@ -2058,16 +2058,16 @@
       "dimension": 6,
       "temperature": 0.5,
       "budget": 80,
-      "best_objective": 2.4147119522094727,
-      "log_regret": 1.2280931416496021,
-      "anytime_log_regret_auc": 1.282344296649232,
+      "best_objective": 2.4196958541870117,
+      "log_regret": 1.2295516155956057,
+      "anytime_log_regret_auc": 1.2825896727342236,
       "objective_evaluations": 76,
       "gradient_evaluations": 75,
       "integration_steps": 30,
       "improvement_rate": 0.5333333333333333,
       "finite_rate": 1.0,
-      "first_seconds": 0.11057758999959333,
-      "warm_seconds": 0.11373352499867906
+      "first_seconds": 0.12028002299848595,
+      "warm_seconds": 0.10871400399992126
     },
     {
       "integrator": "underdamped",
@@ -2085,8 +2085,8 @@
       "integration_steps": 30,
       "improvement_rate": 0.6,
       "finite_rate": 1.0,
-      "first_seconds": 0.11383623499932582,
-      "warm_seconds": 0.10364459799893666
+      "first_seconds": 0.11135491000095499,
+      "warm_seconds": 0.10530436699991697
     },
     {
       "integrator": "underdamped",
@@ -2104,8 +2104,8 @@
       "integration_steps": 30,
       "improvement_rate": 0.5333333333333333,
       "finite_rate": 1.0,
-      "first_seconds": 0.7383969239999715,
-      "warm_seconds": 0.08205365799949504
+      "first_seconds": 0.7856553599995095,
+      "warm_seconds": 0.07938529600141919
     },
     {
       "integrator": "underdamped",
@@ -2123,8 +2123,8 @@
       "integration_steps": 30,
       "improvement_rate": 0.5333333333333333,
       "finite_rate": 1.0,
-      "first_seconds": 0.08796532099950127,
-      "warm_seconds": 0.08079548399837222
+      "first_seconds": 0.08074760200179298,
+      "warm_seconds": 0.08136144799937028
     },
     {
       "integrator": "underdamped",
@@ -2142,8 +2142,8 @@
       "integration_steps": 30,
       "improvement_rate": 0.6,
       "finite_rate": 1.0,
-      "first_seconds": 0.07463795100193238,
-      "warm_seconds": 0.08094688200071687
+      "first_seconds": 0.07196593599655898,
+      "warm_seconds": 0.07707204600228579
     },
     {
       "integrator": "underdamped",
@@ -2153,16 +2153,16 @@
       "dimension": 3,
       "temperature": 0.5,
       "budget": 80,
-      "best_objective": 7.4239959716796875,
-      "log_regret": 2.1310842966358914,
-      "anytime_log_regret_auc": 2.4075841467115193,
+      "best_objective": 9.033905029296875,
+      "log_regret": 2.3059698611275814,
+      "anytime_log_regret_auc": 2.5461785352120465,
       "objective_evaluations": 76,
       "gradient_evaluations": 75,
       "integration_steps": 30,
       "improvement_rate": 0.6666666666666666,
       "finite_rate": 1.0,
-      "first_seconds": 0.07207177199961734,
-      "warm_seconds": 0.09615814299831982
+      "first_seconds": 0.07199269800184993,
+      "warm_seconds": 0.07177516499723424
     },
     {
       "integrator": "underdamped",
@@ -2180,8 +2180,8 @@
       "integration_steps": 30,
       "improvement_rate": 0.5333333333333333,
       "finite_rate": 1.0,
-      "first_seconds": 0.07380901199940126,
-      "warm_seconds": 0.0749113980018592
+      "first_seconds": 0.07038362199818948,
+      "warm_seconds": 0.0725767559997621
     }
   ],
   "generalization_rows": [
@@ -2194,7 +2194,7 @@
       "temperature": 0.25,
       "budget": 40,
       "log_regret": 1.1635813010848695,
-      "warm_seconds": 0.08059621700158459
+      "warm_seconds": 0.07087188200239325
     },
     {
       "integrator": "overdamped",
@@ -2205,7 +2205,7 @@
       "temperature": 0.25,
       "budget": 40,
       "log_regret": 0.5668992150815603,
-      "warm_seconds": 0.07229583200023626
+      "warm_seconds": 0.07023414300056174
     },
     {
       "integrator": "overdamped",
@@ -2216,7 +2216,7 @@
       "temperature": 0.25,
       "budget": 120,
       "log_regret": 0.4729536672268978,
-      "warm_seconds": 0.1159941969999636
+      "warm_seconds": 0.12961208100023214
     },
     {
       "integrator": "overdamped",
@@ -2227,7 +2227,7 @@
       "temperature": 0.25,
       "budget": 120,
       "log_regret": 0.12757403145334267,
-      "warm_seconds": 0.11195278300147038
+      "warm_seconds": 0.1330786389989953
     },
     {
       "integrator": "overdamped",
@@ -2238,7 +2238,7 @@
       "temperature": 1.0,
       "budget": 40,
       "log_regret": 0.8964357827288646,
-      "warm_seconds": 0.07273762999830069
+      "warm_seconds": 0.06926865100103896
     },
     {
       "integrator": "overdamped",
@@ -2249,7 +2249,7 @@
       "temperature": 1.0,
       "budget": 40,
       "log_regret": 0.6317757187135821,
-      "warm_seconds": 0.07261232700329856
+      "warm_seconds": 0.08357011300176964
     },
     {
       "integrator": "overdamped",
@@ -2260,7 +2260,7 @@
       "temperature": 1.0,
       "budget": 120,
       "log_regret": 0.6237218732952408,
-      "warm_seconds": 0.11490726899864967
+      "warm_seconds": 0.11633224400065956
     },
     {
       "integrator": "overdamped",
@@ -2271,7 +2271,7 @@
       "temperature": 1.0,
       "budget": 120,
       "log_regret": 0.4189431454577928,
-      "warm_seconds": 0.12444753499949002
+      "warm_seconds": 0.11005257099895971
     },
     {
       "integrator": "overdamped",
@@ -2282,7 +2282,7 @@
       "temperature": 0.25,
       "budget": 40,
       "log_regret": 7.085926491020277,
-      "warm_seconds": 0.055537232001370285
+      "warm_seconds": 0.0493959769992216
     },
     {
       "integrator": "overdamped",
@@ -2293,7 +2293,7 @@
       "temperature": 0.25,
       "budget": 40,
       "log_regret": 7.085926491020277,
-      "warm_seconds": 0.05836776200158056
+      "warm_seconds": 0.06078427899774397
     },
     {
       "integrator": "overdamped",
@@ -2304,7 +2304,7 @@
       "temperature": 0.25,
       "budget": 120,
       "log_regret": 7.085926491020277,
-      "warm_seconds": 0.11208311199879972
+      "warm_seconds": 0.09951398599878303
     },
     {
       "integrator": "overdamped",
@@ -2315,7 +2315,7 @@
       "temperature": 0.25,
       "budget": 120,
       "log_regret": 7.085926491020277,
-      "warm_seconds": 0.12156776700066985
+      "warm_seconds": 0.09232029600025271
     },
     {
       "integrator": "overdamped",
@@ -2326,7 +2326,7 @@
       "temperature": 1.0,
       "budget": 40,
       "log_regret": 7.085926491020277,
-      "warm_seconds": 0.059821980001288466
+      "warm_seconds": 0.05525999900055467
     },
     {
       "integrator": "overdamped",
@@ -2337,7 +2337,7 @@
       "temperature": 1.0,
       "budget": 40,
       "log_regret": 7.085926491020277,
-      "warm_seconds": 0.05518443400069373
+      "warm_seconds": 0.056340664999879664
     },
     {
       "integrator": "overdamped",
@@ -2348,7 +2348,7 @@
       "temperature": 1.0,
       "budget": 120,
       "log_regret": 7.085926491020277,
-      "warm_seconds": 0.1122419280000031
+      "warm_seconds": 0.10423601499860524
     },
     {
       "integrator": "overdamped",
@@ -2359,7 +2359,7 @@
       "temperature": 1.0,
       "budget": 120,
       "log_regret": 7.085926491020277,
-      "warm_seconds": 0.11095016200124519
+      "warm_seconds": 0.08978813900102978
     },
     {
       "integrator": "overdamped",
@@ -2370,7 +2370,7 @@
       "temperature": 0.25,
       "budget": 40,
       "log_regret": 1.0486607751062078,
-      "warm_seconds": 0.06955189599830192
+      "warm_seconds": 0.06780584900116082
     },
     {
       "integrator": "overdamped",
@@ -2381,7 +2381,7 @@
       "temperature": 0.25,
       "budget": 40,
       "log_regret": 1.1454895974046686,
-      "warm_seconds": 0.06766489100118633
+      "warm_seconds": 0.06983197599765845
     },
     {
       "integrator": "overdamped",
@@ -2392,7 +2392,7 @@
       "temperature": 0.25,
       "budget": 120,
       "log_regret": 1.0487029218983952,
-      "warm_seconds": 0.13042310300079407
+      "warm_seconds": 0.133271311999124
     },
     {
       "integrator": "overdamped",
@@ -2403,7 +2403,7 @@
       "temperature": 0.25,
       "budget": 120,
       "log_regret": 1.1455262242455269,
-      "warm_seconds": 0.13172811699769227
+      "warm_seconds": 0.11164249300054507
     },
     {
       "integrator": "overdamped",
@@ -2414,7 +2414,7 @@
       "temperature": 1.0,
       "budget": 40,
       "log_regret": 1.3862943611198906,
-      "warm_seconds": 0.07719402700240607
+      "warm_seconds": 0.07376249400113011
     },
     {
       "integrator": "overdamped",
@@ -2425,7 +2425,7 @@
       "temperature": 1.0,
       "budget": 40,
       "log_regret": 1.3862943611198906,
-      "warm_seconds": 0.07037763200059999
+      "warm_seconds": 0.0682614570032456
     },
     {
       "integrator": "overdamped",
@@ -2436,7 +2436,7 @@
       "temperature": 1.0,
       "budget": 120,
       "log_regret": 1.3862943611198906,
-      "warm_seconds": 0.11859565300255781
+      "warm_seconds": 0.10832370500065736
     },
     {
       "integrator": "overdamped",
@@ -2447,7 +2447,7 @@
       "temperature": 1.0,
       "budget": 120,
       "log_regret": 1.3862943611198906,
-      "warm_seconds": 0.11496602199986228
+      "warm_seconds": 0.10391022900148528
     },
     {
       "integrator": "overdamped",
@@ -2458,7 +2458,7 @@
       "temperature": 0.25,
       "budget": 40,
       "log_regret": 0.8428967921296834,
-      "warm_seconds": 0.12051461400187691
+      "warm_seconds": 0.09357802899830858
     },
     {
       "integrator": "overdamped",
@@ -2469,7 +2469,7 @@
       "temperature": 0.25,
       "budget": 40,
       "log_regret": 0.8284876652937194,
-      "warm_seconds": 0.12383398900055909
+      "warm_seconds": 0.09585799900014536
     },
     {
       "integrator": "overdamped",
@@ -2480,7 +2480,7 @@
       "temperature": 0.25,
       "budget": 120,
       "log_regret": 0.5626319300798462,
-      "warm_seconds": 0.14902144799998496
+      "warm_seconds": 0.1410249920008937
     },
     {
       "integrator": "overdamped",
@@ -2491,7 +2491,7 @@
       "temperature": 0.25,
       "budget": 120,
       "log_regret": 0.6018348599387434,
-      "warm_seconds": 0.23098491900236695
+      "warm_seconds": 0.1512954770005308
     },
     {
       "integrator": "overdamped",
@@ -2502,7 +2502,7 @@
       "temperature": 1.0,
       "budget": 40,
       "log_regret": 1.2228293319785069,
-      "warm_seconds": 0.20296432900067884
+      "warm_seconds": 0.10206431400001748
     },
     {
       "integrator": "overdamped",
@@ -2513,7 +2513,7 @@
       "temperature": 1.0,
       "budget": 40,
       "log_regret": 1.2228293319785069,
-      "warm_seconds": 0.11054126400267705
+      "warm_seconds": 0.14797657700182754
     },
     {
       "integrator": "overdamped",
@@ -2524,7 +2524,7 @@
       "temperature": 1.0,
       "budget": 120,
       "log_regret": 1.2228293319785069,
-      "warm_seconds": 0.2959076079969236
+      "warm_seconds": 0.24399548600194976
     },
     {
       "integrator": "overdamped",
@@ -2535,7 +2535,7 @@
       "temperature": 1.0,
       "budget": 120,
       "log_regret": 1.2228293319785069,
-      "warm_seconds": 0.13302911500068149
+      "warm_seconds": 0.17494316999727744
     },
     {
       "integrator": "underdamped",
@@ -2545,8 +2545,8 @@
       "dimension": 3,
       "temperature": 0.25,
       "budget": 40,
-      "log_regret": 1.3469466581685168,
-      "warm_seconds": 0.0729329690002487
+      "log_regret": 1.3922233858635868,
+      "warm_seconds": 0.08507493299839552
     },
     {
       "integrator": "underdamped",
@@ -2557,7 +2557,7 @@
       "temperature": 0.25,
       "budget": 40,
       "log_regret": 1.5542760688967694,
-      "warm_seconds": 0.06463697900107945
+      "warm_seconds": 0.07237610300217057
     },
     {
       "integrator": "underdamped",
@@ -2567,8 +2567,8 @@
       "dimension": 3,
       "temperature": 0.25,
       "budget": 120,
-      "log_regret": 1.0819452375185763,
-      "warm_seconds": 0.10882929199942737
+      "log_regret": 0.8650435641436369,
+      "warm_seconds": 0.10142053699746612
     },
     {
       "integrator": "underdamped",
@@ -2579,7 +2579,7 @@
       "temperature": 0.25,
       "budget": 120,
       "log_regret": 1.0485286006027528,
-      "warm_seconds": 0.1091325980014517
+      "warm_seconds": 0.16132775300138746
     },
     {
       "integrator": "underdamped",
@@ -2589,8 +2589,8 @@
       "dimension": 3,
       "temperature": 1.0,
       "budget": 40,
-      "log_regret": 1.2821329412676286,
-      "warm_seconds": 0.07708396299858578
+      "log_regret": 1.3299466904956845,
+      "warm_seconds": 0.06663046099856729
     },
     {
       "integrator": "underdamped",
@@ -2601,7 +2601,7 @@
       "temperature": 1.0,
       "budget": 40,
       "log_regret": 1.4972026232922138,
-      "warm_seconds": 0.08105567100210465
+      "warm_seconds": 0.07159066300300765
     },
     {
       "integrator": "underdamped",
@@ -2611,8 +2611,8 @@
       "dimension": 3,
       "temperature": 1.0,
       "budget": 120,
-      "log_regret": 1.1136240819882135,
-      "warm_seconds": 0.11103942399859079
+      "log_regret": 0.9278735718516002,
+      "warm_seconds": 0.1026654490015062
     },
     {
       "integrator": "underdamped",
@@ -2623,7 +2623,7 @@
       "temperature": 1.0,
       "budget": 120,
       "log_regret": 1.0229987441348494,
-      "warm_seconds": 0.14043335899987142
+      "warm_seconds": 0.11609579899959499
     },
     {
       "integrator": "underdamped",
@@ -2633,8 +2633,8 @@
       "dimension": 5,
       "temperature": 0.25,
       "budget": 40,
-      "log_regret": 1.9754819852018104,
-      "warm_seconds": 0.05615413899795385
+      "log_regret": 3.51853408291713,
+      "warm_seconds": 0.05826376600089134
     },
     {
       "integrator": "underdamped",
@@ -2645,7 +2645,7 @@
       "temperature": 0.25,
       "budget": 40,
       "log_regret": 4.839524284249959,
-      "warm_seconds": 0.053648491000785725
+      "warm_seconds": 0.11961213799804682
     },
     {
       "integrator": "underdamped",
@@ -2655,8 +2655,8 @@
       "dimension": 5,
       "temperature": 0.25,
       "budget": 120,
-      "log_regret": 1.9754358882770326,
-      "warm_seconds": 0.1503698689994053
+      "log_regret": 3.5187433693681225,
+      "warm_seconds": 0.09486585299964645
     },
     {
       "integrator": "underdamped",
@@ -2667,7 +2667,7 @@
       "temperature": 0.25,
       "budget": 120,
       "log_regret": 1.9463650844446285,
-      "warm_seconds": 0.14742832999763777
+      "warm_seconds": 0.07420977399669937
     },
     {
       "integrator": "underdamped",
@@ -2677,8 +2677,8 @@
       "dimension": 5,
       "temperature": 1.0,
       "budget": 40,
-      "log_regret": 1.9990678542507498,
-      "warm_seconds": 0.0907135589986865
+      "log_regret": 3.6040341075487454,
+      "warm_seconds": 0.09801245500057121
     },
     {
       "integrator": "underdamped",
@@ -2689,7 +2689,7 @@
       "temperature": 1.0,
       "budget": 40,
       "log_regret": 4.84723838948565,
-      "warm_seconds": 0.059789810999063775
+      "warm_seconds": 0.049953131998336175
     },
     {
       "integrator": "underdamped",
@@ -2699,8 +2699,8 @@
       "dimension": 5,
       "temperature": 1.0,
       "budget": 120,
-      "log_regret": 1.9990768972402175,
-      "warm_seconds": 0.09949671399954241
+      "log_regret": 3.604230708328142,
+      "warm_seconds": 0.08663101699858089
     },
     {
       "integrator": "underdamped",
@@ -2711,7 +2711,7 @@
       "temperature": 1.0,
       "budget": 120,
       "log_regret": 2.056811338861602,
-      "warm_seconds": 0.10437402500247117
+      "warm_seconds": 0.1115747050025675
     },
     {
       "integrator": "underdamped",
@@ -2722,7 +2722,7 @@
       "temperature": 0.25,
       "budget": 40,
       "log_regret": 1.3862943611198906,
-      "warm_seconds": 0.06782649500019033
+      "warm_seconds": 0.0616042789988569
     },
     {
       "integrator": "underdamped",
@@ -2733,7 +2733,7 @@
       "temperature": 0.25,
       "budget": 40,
       "log_regret": 1.3862943611198906,
-      "warm_seconds": 0.06344535400057794
+      "warm_seconds": 0.0607880749994365
     },
     {
       "integrator": "underdamped",
@@ -2743,8 +2743,8 @@
       "dimension": 4,
       "temperature": 0.25,
       "budget": 120,
-      "log_regret": 1.3282833075888327,
-      "warm_seconds": 0.09710513300160528
+      "log_regret": 1.3281341015924963,
+      "warm_seconds": 0.14221777399870916
     },
     {
       "integrator": "underdamped",
@@ -2755,7 +2755,7 @@
       "temperature": 0.25,
       "budget": 120,
       "log_regret": 1.3194795007818396,
-      "warm_seconds": 0.09595011100100237
+      "warm_seconds": 0.10293884100246942
     },
     {
       "integrator": "underdamped",
@@ -2766,7 +2766,7 @@
       "temperature": 1.0,
       "budget": 40,
       "log_regret": 1.3862943611198906,
-      "warm_seconds": 0.05941504400107078
+      "warm_seconds": 0.06407584499902441
     },
     {
       "integrator": "underdamped",
@@ -2777,7 +2777,7 @@
       "temperature": 1.0,
       "budget": 40,
       "log_regret": 1.3862943611198906,
-      "warm_seconds": 0.06434982300197589
+      "warm_seconds": 0.06736317100148881
     },
     {
       "integrator": "underdamped",
@@ -2787,8 +2787,8 @@
       "dimension": 4,
       "temperature": 1.0,
       "budget": 120,
-      "log_regret": 1.3432808398507081,
-      "warm_seconds": 0.09443344199826242
+      "log_regret": 1.3397509120700914,
+      "warm_seconds": 0.09947431599721313
     },
     {
       "integrator": "underdamped",
@@ -2799,7 +2799,7 @@
       "temperature": 1.0,
       "budget": 120,
       "log_regret": 1.3495261730019672,
-      "warm_seconds": 0.104596502998902
+      "warm_seconds": 0.10047453800143558
     },
     {
       "integrator": "underdamped",
@@ -2809,8 +2809,8 @@
       "dimension": 6,
       "temperature": 0.25,
       "budget": 40,
-      "log_regret": 1.045705950968429,
-      "warm_seconds": 0.09192960500149638
+      "log_regret": 1.0446080255814443,
+      "warm_seconds": 0.10123141799704172
     },
     {
       "integrator": "underdamped",
@@ -2821,7 +2821,7 @@
       "temperature": 0.25,
       "budget": 40,
       "log_regret": 1.0690875860598066,
-      "warm_seconds": 0.09254894699915894
+      "warm_seconds": 0.09419802599950344
     },
     {
       "integrator": "underdamped",
@@ -2831,8 +2831,8 @@
       "dimension": 6,
       "temperature": 0.25,
       "budget": 120,
-      "log_regret": 0.45095453791248136,
-      "warm_seconds": 0.10632239099868457
+      "log_regret": 0.4310513870546844,
+      "warm_seconds": 0.11141209899869864
     },
     {
       "integrator": "underdamped",
@@ -2843,7 +2843,7 @@
       "temperature": 0.25,
       "budget": 120,
       "log_regret": 0.5285154833788267,
-      "warm_seconds": 0.1262544439996418
+      "warm_seconds": 0.12357038199843373
     },
     {
       "integrator": "underdamped",
@@ -2853,8 +2853,8 @@
       "dimension": 6,
       "temperature": 1.0,
       "budget": 40,
-      "log_regret": 1.1397622933519926,
-      "warm_seconds": 0.08248943400030839
+      "log_regret": 1.1393918628550415,
+      "warm_seconds": 0.09279108699774952
     },
     {
       "integrator": "underdamped",
@@ -2865,7 +2865,7 @@
       "temperature": 1.0,
       "budget": 40,
       "log_regret": 1.1583530061502672,
-      "warm_seconds": 0.08161603000189643
+      "warm_seconds": 0.0807978449993243
     },
     {
       "integrator": "underdamped",
@@ -2875,8 +2875,8 @@
       "dimension": 6,
       "temperature": 1.0,
       "budget": 120,
-      "log_regret": 1.1397622933519926,
-      "warm_seconds": 0.1245223049991182
+      "log_regret": 1.1393924732323095,
+      "warm_seconds": 0.12112348000300699
     },
     {
       "integrator": "underdamped",
@@ -2887,7 +2887,7 @@
       "temperature": 1.0,
       "budget": 120,
       "log_regret": 1.1518824225539592,
-      "warm_seconds": 0.14554253599999356
+      "warm_seconds": 0.12121513600141043
     }
   ]
 }
