@@ -13,6 +13,14 @@ import numpy as np
 from .certification import Certificate, Expr, certify
 from .features import gradient_to_normalized, parameter_features
 from .hamiltonian import DEFAULT_HAMILTONIAN_CONFIG, HamiltonianConfig, hamiltonian_proposal
+from .langevin import (
+    DEFAULT_OVERDAMPED_CONFIG,
+    DEFAULT_UNDERDAMPED_CONFIG,
+    OverdampedConfig,
+    UnderdampedConfig,
+    overdamped_transition,
+    underdamped_transition,
+)
 from .model import (
     DEFAULT_CONFIG,
     ModelConfig,
@@ -67,9 +75,11 @@ def minimize(
     absolute_gap: float = 1e-6,
     record_diagnostics: bool = False,
     model_kind: Literal["transformer", "mlp"] = "transformer",
-    candidate_method: Literal["direct", "hamiltonian"] = "direct",
+    candidate_method: Literal["direct", "hamiltonian", "langevin", "underdamped"] = "direct",
     hamiltonian_config: HamiltonianConfig = DEFAULT_HAMILTONIAN_CONFIG,
     hamiltonian_metric: Literal["identity", "learned"] = "learned",
+    overdamped_config: OverdampedConfig = DEFAULT_OVERDAMPED_CONFIG,
+    underdamped_config: UnderdampedConfig = DEFAULT_UNDERDAMPED_CONFIG,
 ) -> OptimizationResult:
     """Minimize a bounded objective with learned actions or rigorous certification."""
     budget = max_evaluations or problem.max_evaluations
@@ -101,12 +111,14 @@ def minimize(
         raise ValueError("mode must be 'learned' or 'certified'")
     if model_kind not in {"transformer", "mlp"}:
         raise ValueError("model_kind must be 'transformer' or 'mlp'")
-    if candidate_method not in {"direct", "hamiltonian"}:
-        raise ValueError("candidate_method must be 'direct' or 'hamiltonian'")
+    if candidate_method not in {"direct", "hamiltonian", "langevin", "underdamped"}:
+        raise ValueError(
+            "candidate_method must be 'direct', 'hamiltonian', 'langevin', or 'underdamped'"
+        )
     if hamiltonian_metric not in {"identity", "learned"}:
         raise ValueError("hamiltonian_metric must be 'identity' or 'learned'")
-    if candidate_method == "hamiltonian" and problem.constraints:
-        raise ValueError("Hamiltonian proposals currently support box constraints only")
+    if candidate_method != "direct" and problem.constraints:
+        raise ValueError("stochastic proposals currently support box constraints only")
     checkpoint_name = "caller-provided"
     if params is None:
         if model_kind != "transformer":
@@ -139,12 +151,21 @@ def minimize(
     hmc_transitions = 0
     hmc_accepted = 0
     leapfrog_steps = 0
+    stochastic_integration_steps = 0
     hmc_unconstrained_state: Any | None = None
+    stochastic_momentum: Any | None = None
     records: list[dict[str, Any]] = []
     key = jax.random.PRNGKey(seed)
     while evaluations < budget:
-        hmc_cost = hamiltonian_config.leapfrog_steps + 4
-        if candidate_method == "hamiltonian" and evaluations + hmc_cost > budget:
+        if candidate_method == "hamiltonian":
+            proposal_cost = hamiltonian_config.leapfrog_steps + 4
+        elif candidate_method == "langevin":
+            proposal_cost = overdamped_config.steps + 1
+        elif candidate_method == "underdamped":
+            proposal_cost = 2 * underdamped_config.steps + 1
+        else:
+            proposal_cost = 1
+        if evaluations + proposal_cost > budget:
             break
         x_before, value_before = x, value
         try:
@@ -160,7 +181,7 @@ def minimize(
         direction = precondition(raw_direction, out["diag"], out["lowrank"])
         energy_error = None
         divergent = False
-        if candidate_method == "hamiltonian":
+        if candidate_method in {"hamiltonian", "langevin", "underdamped"}:
             key, proposal_key = jax.random.split(key)
             mass_diag = (
                 jnp.ones_like(out["diag"]) if hamiltonian_metric == "identity" else out["diag"]
@@ -170,35 +191,81 @@ def minimize(
                 if hamiltonian_metric == "identity"
                 else out["lowrank"]
             )
+            proposal: Any
             try:
-                proposal = hamiltonian_proposal(
-                    proposal_key,
-                    x,
-                    problem.objective,
-                    lo,
-                    hi,
-                    mass_diag,
-                    mass_lowrank,
-                    hamiltonian_config,
-                    unconstrained_state=hmc_unconstrained_state,
-                )
+                if candidate_method == "hamiltonian":
+                    proposal = hamiltonian_proposal(
+                        proposal_key,
+                        x,
+                        problem.objective,
+                        lo,
+                        hi,
+                        mass_diag,
+                        mass_lowrank,
+                        hamiltonian_config,
+                        unconstrained_state=hmc_unconstrained_state,
+                    )
+                elif candidate_method == "langevin":
+                    proposal = overdamped_transition(
+                        proposal_key,
+                        x,
+                        problem.objective,
+                        lo,
+                        hi,
+                        mass_diag,
+                        mass_lowrank,
+                        overdamped_config,
+                        unconstrained_state=hmc_unconstrained_state,
+                    )
+                else:
+                    proposal = underdamped_transition(
+                        proposal_key,
+                        x,
+                        problem.objective,
+                        lo,
+                        hi,
+                        mass_diag,
+                        mass_lowrank,
+                        underdamped_config,
+                        unconstrained_state=hmc_unconstrained_state,
+                        momentum=stochastic_momentum,
+                    )
             except Exception as exc:
                 raise ValueError(
-                    "Hamiltonian proposals require a JAX-differentiable objective"
+                    "stochastic proposals require a JAX-differentiable objective"
                 ) from exc
-            candidate = proposal.candidate
-            hmc_unconstrained_state = proposal.unconstrained_state
+            candidate = proposal.candidate if candidate_method == "hamiltonian" else proposal.state
             unprojected = candidate
             candidate_value = float(proposal.candidate_value)
-            accepted = bool(proposal.accepted)
-            energy_error = float(proposal.energy_error)
-            divergent = bool(proposal.divergent)
-            candidate_kind = "hamiltonian"
+            accepted = (
+                bool(proposal.accepted)
+                if candidate_method == "hamiltonian"
+                else bool(proposal.finite)
+            )
+            energy_error = (
+                float(proposal.energy_error) if candidate_method == "hamiltonian" else None
+            )
+            divergent = (
+                bool(proposal.divergent)
+                if candidate_method == "hamiltonian"
+                else not bool(proposal.finite)
+            )
+            # Never poison a stochastic trajectory with a nonfinite internal
+            # position or momentum. HMC already returns the prior chain state
+            # after rejection, so its internal state is always safe to retain.
+            if candidate_method == "hamiltonian" or accepted:
+                hmc_unconstrained_state = proposal.unconstrained_state
+                if candidate_method == "underdamped":
+                    stochastic_momentum = proposal.momentum
+            candidate_kind = candidate_method
             evaluations += proposal.objective_evaluations
             gradient_evaluations += proposal.gradient_evaluations
-            leapfrog_steps += proposal.leapfrog_steps
-            hmc_transitions += 1
-            hmc_accepted += int(accepted)
+            if candidate_method == "hamiltonian":
+                leapfrog_steps += proposal.leapfrog_steps
+                hmc_transitions += 1
+                hmc_accepted += int(accepted)
+            else:
+                stochastic_integration_steps += proposal.integration_steps
         else:
             scale = 0.25 * out["step"] * width
             unprojected = x + scale * direction / (jnp.linalg.norm(direction) + 1e-8)
@@ -310,10 +377,12 @@ def minimize(
             "seed": seed,
             "candidate_method": candidate_method,
             "hamiltonian_metric": hamiltonian_metric if hmc_transitions else None,
+            "stochastic_geometry": hamiltonian_metric if candidate_method != "direct" else None,
             "candidate_proposals": len(history) - 1,
             "objective_evaluations": evaluations,
             "gradient_evaluations": gradient_evaluations,
             "leapfrog_steps": leapfrog_steps,
+            "stochastic_integration_steps": stochastic_integration_steps,
             "hmc_transitions": hmc_transitions,
             "hmc_transition_acceptance": hmc_accepted / hmc_transitions
             if hmc_transitions
