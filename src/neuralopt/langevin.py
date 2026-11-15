@@ -8,6 +8,7 @@ and BAOAB discretizations have finite-step bias and are not exact samplers.
 
 from __future__ import annotations
 
+import importlib
 from dataclasses import dataclass
 from typing import Any, NamedTuple
 
@@ -239,7 +240,7 @@ def diffrax_overdamped_reference(
 ) -> Any:
     """Optional unbounded identity-mobility Euler reference using Diffrax."""
     try:
-        import diffrax
+        diffrax = importlib.import_module("diffrax")
     except ImportError as exc:
         raise ImportError("install neuralopt[sde] for Diffrax references") from exc
     if step_size <= 0 or steps < 1 or temperature <= 0:
