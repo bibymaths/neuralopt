@@ -27,6 +27,10 @@ is
 The Jacobian term is required for the transformed target. Exact boundary points
 are not represented by finite `z`; the optimization incumbent is therefore a
 separate feasible archive that retains and can return boundary points.
+The bounded-to-unconstrained conversion, including its numerical clipping, is
+performed only when a chain is initialized. Every subsequent transition threads
+the exact accepted unconstrained state; reconstructing and clipping it from the
+bounded coordinate would change the Markov state and invalidate the kernel.
 
 ## Optimization versus sampling
 

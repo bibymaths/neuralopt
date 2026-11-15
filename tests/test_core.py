@@ -16,6 +16,7 @@ from neuralopt.features import (
 )
 from neuralopt.model import apply_mlp_model, apply_model, init_mlp_model, precondition
 from neuralopt.optimizer import _cosine_alignment
+from neuralopt.tasks import quadratic_task
 
 
 def test_problem_validation():
@@ -102,6 +103,14 @@ def test_policy_architecture_parameter_validation():
         )
     with pytest.raises(ValueError, match="model_kind must be"):
         minimize(problem, params={}, model_kind="unknown")  # type: ignore[arg-type]
+
+
+def test_unrotated_quadratic_keeps_linear_storage():
+    dimension = 10_000
+    problem = quadratic_task(jax.random.PRNGKey(3), dimension, condition=1e3, rotated=False)
+    captured = [cell.cell_contents for cell in problem.objective.__closure__ or ()]
+    assert not any(getattr(value, "ndim", 0) == 2 for value in captured)
+    assert np.isfinite(problem.objective(jnp.zeros(dimension)))
 
 
 def test_certified_quadratic_and_replay():

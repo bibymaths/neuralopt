@@ -139,6 +139,7 @@ def minimize(
     hmc_transitions = 0
     hmc_accepted = 0
     leapfrog_steps = 0
+    hmc_unconstrained_state: Any | None = None
     records: list[dict[str, Any]] = []
     key = jax.random.PRNGKey(seed)
     while evaluations < budget:
@@ -179,12 +180,14 @@ def minimize(
                     mass_diag,
                     mass_lowrank,
                     hamiltonian_config,
+                    unconstrained_state=hmc_unconstrained_state,
                 )
             except Exception as exc:
                 raise ValueError(
                     "Hamiltonian proposals require a JAX-differentiable objective"
                 ) from exc
             candidate = proposal.candidate
+            hmc_unconstrained_state = proposal.unconstrained_state
             unprojected = candidate
             candidate_value = float(proposal.candidate_value)
             accepted = bool(proposal.accepted)

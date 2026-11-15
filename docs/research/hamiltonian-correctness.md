@@ -8,6 +8,8 @@
 - Leapfrog uses `lax.scan`, explicit keys, momentum reversal, and log-space
   Metropolis correction.
 - Box constraints use a differentiable interior transform with its Jacobian.
+- The unconstrained chain coordinate is retained exactly between transitions;
+  transform clipping is initialization-only.
 - Nonfinite energy and excessive energy error mark a divergent proposal.
 - General nonlinear constraints and host-only objectives fail closed.
 - Adaptive learned metrics have no stationary-HMC claim.
@@ -29,9 +31,9 @@ objective evaluations, and 64 gradient evaluations. Results are in
 
 | Variant | Transition acceptance | Objective improvement | Incumbent update | Warm runtime |
 |---|---:|---:|---:|---:|
-| Direct NeuralOpt | 1.01% | 1.01% | 1.01% | 0.202 s |
-| Identity HMC | 93.75% | 50.0% | 31.25% | 0.083 s |
-| Learned-metric HMC | 93.75% | 56.25% | 18.75% | 0.077 s |
+| Direct NeuralOpt | 1.01% | 1.01% | 1.01% | 0.245 s |
+| Identity HMC | 93.75% | 50.0% | 31.25% | 0.092 s |
+| Learned-metric HMC | 93.75% | 56.25% | 18.75% | 0.083 s |
 
 Identity HMC beats direct final objective on 8/15 paired cases; learned metric
 beats direct on 9/15 and identity on only 7/15. Median objective ratios versus
@@ -41,7 +43,7 @@ quadratics, Rastrigin, and Ackley in this smoke sample, but is substantially
 worse on isotropic and ill-conditioned quadratics.
 
 Median absolute energy error is 0.114 for identity and 0.162 for learned metric.
-The first identity-HMC call is about 0.79 s because it compiles the transition;
+The first identity-HMC call is about 1.06 s because it compiles the transition;
 warm timings reuse compilation. High HMC acceptance therefore does not establish
 better optimization or end-to-end cold-start efficiency.
 

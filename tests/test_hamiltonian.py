@@ -128,6 +128,7 @@ def test_fixed_hmc_recovers_gaussian_moments():
     lo, hi = -8.0 * jnp.ones(2), 8.0 * jnp.ones(2)
     state = jnp.zeros(2)
     key = jax.random.PRNGKey(9)
+    unconstrained_state = None
     samples = []
     accepted = 0
     config = HamiltonianConfig(step_size=0.12, leapfrog_steps=5)
@@ -142,8 +143,10 @@ def test_fixed_hmc_recovers_gaussian_moments():
             jnp.ones(2),
             jnp.zeros((2, 0)),
             config,
+            unconstrained_state=unconstrained_state,
         )
         state = proposal.state
+        unconstrained_state = proposal.unconstrained_state
         accepted += int(proposal.accepted)
         if iteration >= 200:
             samples.append(np.asarray(state))
@@ -151,3 +154,40 @@ def test_fixed_hmc_recovers_gaussian_moments():
     np.testing.assert_allclose(draws.mean(axis=0), np.zeros(2), atol=0.15)
     np.testing.assert_allclose(np.cov(draws, rowvar=False), np.eye(2), atol=0.2)
     assert accepted / 1_200 > 0.8
+
+
+def test_unconstrained_chain_does_not_reclip_near_boundaries():
+    def constant_objective(x):
+        return jnp.asarray(0.0, dtype=x.dtype)
+
+    lo, hi = jnp.zeros(1), jnp.ones(1)
+    state = jnp.array([0.5])
+    unconstrained_state = None
+    key = jax.random.PRNGKey(12)
+    samples = []
+    config = HamiltonianConfig(
+        step_size=0.2,
+        leapfrog_steps=5,
+        transform_epsilon=0.1,
+    )
+    for iteration in range(1_500):
+        key, proposal_key = jax.random.split(key)
+        proposal = hamiltonian_proposal(
+            proposal_key,
+            state,
+            constant_objective,
+            lo,
+            hi,
+            jnp.ones(1),
+            jnp.zeros((1, 0)),
+            config,
+            unconstrained_state=unconstrained_state,
+        )
+        state = proposal.state
+        unconstrained_state = proposal.unconstrained_state
+        if iteration >= 300:
+            samples.append(float(state[0]))
+    draws = np.asarray(samples)
+    assert np.mean(draws < 0.1) > 0.04
+    assert np.mean(draws > 0.9) > 0.04
+    np.testing.assert_allclose(draws.mean(), 0.5, atol=0.08)

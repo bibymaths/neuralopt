@@ -40,6 +40,7 @@ DEFAULT_HAMILTONIAN_CONFIG = HamiltonianConfig()
 
 class HamiltonianProposal(NamedTuple):
     state: Any
+    unconstrained_state: Any
     candidate: Any
     candidate_value: Any
     accepted: Any
@@ -138,7 +139,7 @@ def make_bounded_potential(objective: Any, lo: Any, hi: Any, inverse_temperature
 
 def _transition(
     key: Any,
-    state: Any,
+    unconstrained_state: Any,
     objective: Any,
     lo: Any,
     hi: Any,
@@ -147,7 +148,8 @@ def _transition(
     config: HamiltonianConfig,
 ) -> tuple[Any, ...]:
     momentum_key, accept_key = jax.random.split(key)
-    z = to_unconstrained(state, lo, hi, config.transform_epsilon)
+    z = unconstrained_state
+    state = from_unconstrained(z, lo, hi)
     momentum = sample_momentum(momentum_key, mass_diag, mass_lowrank)
     potential = make_bounded_potential(objective, lo, hi, config.inverse_temperature)
     initial_energy = potential(z) + kinetic_energy(momentum, mass_diag, mass_lowrank)
@@ -171,10 +173,12 @@ def _transition(
     log_acceptance = jnp.minimum(0.0, -energy_error)
     accepted = (~divergent) & (jnp.log(jax.random.uniform(accept_key)) < log_acceptance)
     candidate = from_unconstrained(proposed_z, lo, hi)
-    next_state = jnp.where(accepted, candidate, state)
+    next_z = jnp.where(accepted, proposed_z, z)
+    next_state = from_unconstrained(next_z, lo, hi)
     candidate_value = objective(candidate)
     return (
         next_state,
+        next_z,
         candidate,
         candidate_value,
         accepted,
@@ -197,12 +201,20 @@ def hamiltonian_proposal(
     mass_diag: Any,
     mass_lowrank: Any,
     config: HamiltonianConfig = DEFAULT_HAMILTONIAN_CONFIG,
+    unconstrained_state: Any | None = None,
 ) -> HamiltonianProposal:
-    """Generate one Metropolis-corrected fixed-metric HMC transition."""
+    """Generate one Metropolis-corrected fixed-metric HMC transition.
+
+    Callers running a chain must pass the returned ``unconstrained_state`` into
+    the next call. Conversion from the bounded state is only initialization.
+    """
     validate_metric(mass_diag, mass_lowrank)
-    transition = _compiled_transition(
-        key, state, objective, lo, hi, mass_diag, mass_lowrank, config
+    z = (
+        to_unconstrained(state, lo, hi, config.transform_epsilon)
+        if unconstrained_state is None
+        else unconstrained_state
     )
+    transition = _compiled_transition(key, z, objective, lo, hi, mass_diag, mass_lowrank, config)
     return HamiltonianProposal(
         transition[0],
         transition[1],
@@ -212,6 +224,7 @@ def hamiltonian_proposal(
         transition[5],
         transition[6],
         transition[7],
+        transition[8],
         config.leapfrog_steps + 4,
         config.leapfrog_steps + 1,
         config.leapfrog_steps,

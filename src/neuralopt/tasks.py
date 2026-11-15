@@ -29,11 +29,18 @@ def quadratic_task(
     weights = weights[perm]
     if rotated:
         q, _ = jnp.linalg.qr(jax.random.normal(k3, (dimension, dimension)))
+        matrix = q.T @ jnp.diag(weights) @ q
+
+        def objective(x: Any) -> Any:
+            return (x - center) @ matrix @ (x - center)
+
     else:
-        q = jnp.eye(dimension)
-    matrix = q.T @ jnp.diag(weights) @ q
+
+        def objective(x: Any) -> Any:
+            return jnp.sum(weights * (x - center) ** 2)
+
     return Problem(
-        lambda x: (x - center) @ matrix @ (x - center),
+        objective,
         (-5.0, 5.0),
         dimension,
         identifier="rotated_quadratic" if rotated else "quadratic",
