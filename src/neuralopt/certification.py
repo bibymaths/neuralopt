@@ -183,7 +183,7 @@ class Certificate:
     arithmetic: str
     precision: str
     status: str
-    software_version: str = "0.2.0"
+    software_version: str = "0.3.0"
     environment: str = platform.platform()
 
     def to_json(self) -> str:

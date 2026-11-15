@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.3.0 - In development
+
+- Add opt-in overdamped Euler--Maruyama and underdamped BAOAB candidate
+  trajectories with identity or learned diagonal-plus-low-rank geometry.
+- Add exact small-dimensional Itô mobility divergence, weak Fokker--Planck
+  diagnostics, and an analytic Gaussian free-energy reference.
+- Add a periodic Gaussian reference and mesh-normalized Fourier reconstruction
+  experiment across four resolutions.
+- Add an optional Diffrax reference extra and retain negative learned-geometry
+  smoke results with explicit objective, gradient, integration, and timing costs.
+- Record the blocked distributional-training, learned function-space transfer,
+  and certification-injection gates without changing certification lower bounds.
+
 ## 0.2.0 - In development
 
 - Add evaluation-neutral trajectory diagnostics and correct stale state after rejection.
