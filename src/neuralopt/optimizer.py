@@ -12,7 +12,14 @@ import numpy as np
 
 from .certification import Certificate, Expr, certify
 from .features import parameter_features
-from .model import DEFAULT_CONFIG, ModelConfig, Params, apply_mlp_model, apply_model, precondition
+from .model import (
+    DEFAULT_CONFIG,
+    ModelConfig,
+    Params,
+    apply_mlp_model_jit,
+    apply_model_jit,
+    precondition,
+)
 from .problem import Problem
 
 
@@ -78,14 +85,19 @@ def minimize(
         checkpoint_name = "bundled-demo-v0.1.0"
     lo, hi = problem.bounds
     width = hi - lo
+    objective_fn = jax.jit(problem.objective)
     x, best_x = problem.x0, problem.x0
     assert x is not None and best_x is not None  # Guaranteed by Problem validation.
-    value = float(problem.objective(x))
+    value = float(objective_fn(x))
     evaluations = 1
     if not np.isfinite(value):
         raise FloatingPointError("objective returned a nonfinite initial value")
     best, history = value, [value]
-    grad_fn = problem.gradient or jax.grad(problem.objective)
+    grad_fn = (
+        jax.jit(problem.gradient)
+        if problem.gradient is not None
+        else jax.jit(jax.grad(problem.objective))
+    )
     proposals = 0
     records: list[dict[str, Any]] = []
     while evaluations < budget:
@@ -94,7 +106,7 @@ def minimize(
             grad = grad_fn(x)
         except Exception as exc:
             raise ValueError("objective is not differentiable; provide a gradient") from exc
-        apply = apply_model if model_kind == "transformer" else apply_mlp_model
+        apply = apply_model_jit if model_kind == "transformer" else apply_mlp_model_jit
         out = apply(
             params, parameter_features(x, grad, lo, hi, best_x), 1 - evaluations / budget, config
         )
@@ -110,7 +122,7 @@ def minimize(
             candidate = jnp.clip(unprojected, lo, hi)
             proposals += 1
             candidate_kind = "proposal"
-        candidate_value = float(problem.objective(candidate))
+        candidate_value = float(objective_fn(candidate))
         evaluations += 1
         finite = bool(np.isfinite(candidate_value))
         accepted = finite and candidate_value < value

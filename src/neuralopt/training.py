@@ -11,7 +11,7 @@ import jax
 import jax.numpy as jnp
 import numpy as np
 
-from .features import parameter_features, safe_l2_norm
+from .features import gradient_to_normalized, parameter_features, safe_l2_norm
 from .model import (
     DEFAULT_CONFIG,
     ModelConfig,
@@ -91,7 +91,8 @@ def unrolled_regret_loss(
         candidate = jnp.clip(x + 0.25 * out["step"] * (hi - lo) * unit, lo, hi)
         value = problem.objective(candidate)
         new_best = jnp.minimum(best, value)
-        alignment = jnp.sum(unit * grad) / safe_l2_norm(grad)
+        normalized_grad = gradient_to_normalized(grad, lo, hi)
+        alignment = jnp.sum(unit * normalized_grad) / safe_l2_norm(normalized_grad)
         regularizer = (
             unroll.stability_weight * jnp.mean((candidate - x) ** 2 / ((hi - lo) ** 2))
             + unroll.direction_weight * jax.nn.relu(alignment)
@@ -127,25 +128,32 @@ def train(
     items = list(problems)
     if not items:
         raise ValueError("at least one training problem is required")
+    if objective not in {"imitation", "regret"}:
+        raise ValueError("objective must be 'imitation' or 'regret'")
     key = jax.random.PRNGKey(seed)
     if model_kind not in {"transformer", "mlp"}:
         raise ValueError("model_kind must be 'transformer' or 'mlp'")
     params = init_model(key, config) if model_kind == "transformer" else init_mlp_model(key, config)
     optimizer = optax.chain(optax.clip_by_global_norm(1.0), optax.adam(learning_rate))
     state = optimizer.init(params)
+
+    def compiled_loss(problem: Problem) -> Any:
+        if objective == "imitation":
+
+            def task_loss(p: Params, k: Any) -> Any:
+                return imitation_loss(p, problem, k, config, model_kind)
+        else:
+
+            def task_loss(p: Params, k: Any) -> Any:
+                return unrolled_regret_loss(p, problem, k, config, unroll, model_kind)
+
+        return jax.jit(jax.value_and_grad(task_loss))
+
+    loss_and_grad = [compiled_loss(problem) for problem in items]
     losses: list[float] = []
     for step in range(steps):
         key, sub = jax.random.split(key)
-        problem = items[step % len(items)]
-        loss_fn = imitation_loss if objective == "imitation" else unrolled_regret_loss
-        if objective not in {"imitation", "regret"}:
-            raise ValueError("objective must be 'imitation' or 'regret'")
-        args = (
-            (params, problem, sub, config, model_kind)
-            if objective == "imitation"
-            else (params, problem, sub, config, unroll, model_kind)
-        )
-        loss, grads = jax.value_and_grad(loss_fn)(*args)
+        loss, grads = loss_and_grad[step % len(items)](params, sub)
         if not bool(jnp.isfinite(loss)):
             raise FloatingPointError(f"nonfinite training loss at step {step}")
         gradients_finite = all(

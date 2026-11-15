@@ -4,6 +4,7 @@ import numpy as np
 import pytest
 
 from neuralopt import Problem
+from neuralopt.features import gradient_to_normalized
 from neuralopt.model import ModelConfig
 from neuralopt.tasks import task_split
 from neuralopt.training import (
@@ -118,3 +119,15 @@ def test_stationary_unroll_has_finite_meta_gradient(monkeypatch):
     )
     leaves = jax.tree_util.tree_leaves(grad)
     assert np.isfinite(loss) and all(np.isfinite(np.asarray(leaf)).all() for leaf in leaves)
+
+
+def test_direction_alignment_uses_normalized_coordinates():
+    lo = jnp.array([0.0, 0.0])
+    hi = jnp.array([100.0, 1.0])
+    gradient = jnp.array([1.0, 1.0])
+    normalized_direction = jnp.array([0.1, -0.995])
+    # Mixing coordinate systems incorrectly labels this direction as descent.
+    assert float(normalized_direction @ gradient) < 0
+    normalized_gradient = gradient_to_normalized(gradient, lo, hi)
+    # The actual physical update scales by box width and is ascent.
+    assert float(normalized_direction @ normalized_gradient) > 0

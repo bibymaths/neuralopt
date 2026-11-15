@@ -18,3 +18,20 @@ control beats v0.1.0 on every recorded family; for example, its final values are
 superiority claim. SciPy, Adam, Optimistix, differential evolution, quasi-random
 search, trained MLP, and BBOB performance profiles remain an uncompleted M4
 milestone.
+
+## Development performance profile
+
+Single-run CPU timings from the development environment (November 2026) are
+diagnostic, not publication benchmarks. Compiling the policy, objective, and
+gradient once per run reduced warm learned-inference cost as follows:
+
+| Dimension | Before | Current | Evaluations |
+|---:|---:|---:|---:|
+| 4 | 7.80 ms/eval | 1.18 ms/eval | 100 |
+| 32 | 8.32 ms/eval | 1.70 ms/eval | 100 |
+
+Cold 100-evaluation runs remain about 1.1--1.2 seconds because JAX compilation
+dominates. Warm execution still synchronizes once per candidate and uses a
+Python optimization loop; batching or a compiled loop is the next runtime
+bottleneck. Independently, the measured 0--4.1% v0.1 acceptance rate remains a
+larger algorithmic efficiency problem than kernel dispatch.

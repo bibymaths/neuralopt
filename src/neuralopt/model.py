@@ -132,6 +132,12 @@ def apply_mlp_model(
     }
 
 
+# Inference repeatedly applies an unchanged policy. Compiling the complete
+# policy avoids dispatching every matrix operation as a separate eager kernel.
+apply_model_jit = jax.jit(apply_model, static_argnames=("config",))
+apply_mlp_model_jit = jax.jit(apply_mlp_model, static_argnames=("config",))
+
+
 def precondition(direction: Any, diag: Any, lowrank: Any) -> Any:
     """Compute ``(diag(D) + U U.T) direction`` without a dense matrix."""
     return diag * direction + lowrank @ (lowrank.T @ direction)

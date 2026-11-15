@@ -267,6 +267,8 @@ def _is_binary_partition(
     def visit(indices: np.ndarray, lo: np.ndarray, hi: np.ndarray) -> bool:
         if indices.size == 1:
             i = int(indices[0])
+            if tolerance == 0.0:
+                return bool(np.array_equal(lower[i], lo) and np.array_equal(upper[i], hi))
             return bool(
                 np.allclose(lower[i], lo, rtol=0.0, atol=tolerance)
                 and np.allclose(upper[i], hi, rtol=0.0, atol=tolerance)

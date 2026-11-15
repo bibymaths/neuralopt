@@ -16,5 +16,12 @@ gap. Partition replay follows shared bisection boundaries recursively, avoiding
 quadratic all-pairs overlap checks. This closes the v0.1.0 verifier's
 domain-accounting omission while remaining practical for thousands of leaves.
 
+On the dependency-stress expression `x[0] - x[0]`, 8,191 processed nodes and
+8,192 retained leaves took about 0.89 seconds for search and 0.68 seconds for
+replay after the current fixes. Scaling from 2,048 to 16,384 leaves was close to
+linear. Search time is dominated by interval-expression evaluation and `Interval`
+object validation; replay is dominated by recursive partition reconstruction,
+followed by re-evaluating every retained interval bound.
+
 No learned certification policy has yet been trained or benchmarked. Therefore
 there is no supported node-count or wall-time speedup claim.
