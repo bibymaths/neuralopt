@@ -89,6 +89,21 @@ def test_explicit_numpy_callbacks_remain_eager():
     assert len(result.diagnostics["records"]) == 4
 
 
+def test_policy_architecture_parameter_validation():
+    problem = Problem(lambda x: jnp.sum(x**2), (-1.0, 1.0), 2)
+    with pytest.raises(ValueError, match="caller-provided MLP"):
+        minimize(problem, max_evaluations=1, model_kind="mlp")
+    with pytest.raises(ValueError, match="mlp parameters are missing keys: hidden"):
+        minimize(
+            problem,
+            max_evaluations=2,
+            params=init_model(jax.random.PRNGKey(0)),
+            model_kind="mlp",
+        )
+    with pytest.raises(ValueError, match="model_kind must be"):
+        minimize(problem, params={}, model_kind="unknown")  # type: ignore[arg-type]
+
+
 def test_certified_quadratic_and_replay():
     x = Variable()
     expr = (x[0] - 0.25) ** 2 + (x[1] + 0.5) ** 2

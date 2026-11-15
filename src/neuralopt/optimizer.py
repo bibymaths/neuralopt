@@ -42,6 +42,20 @@ def _cosine_alignment(direction: np.ndarray, gradient: np.ndarray) -> float:
     return 0.0 if denominator <= 1e-12 else float(direction @ (-gradient) / denominator)
 
 
+def _validate_policy_params(params: Params, model_kind: str, config: ModelConfig) -> None:
+    common = {"direction", "proposal", "diag", "lowrank", "global"}
+    if model_kind == "mlp":
+        required = common | {"hidden"}
+    else:
+        attention = {
+            f"{name}{layer}" for layer in range(config.layers) for name in ("q", "k", "v", "o")
+        }
+        required = common | {"embed", "task"} | attention
+    missing = sorted(required - params.keys())
+    if missing:
+        raise ValueError(f"{model_kind} parameters are missing keys: {', '.join(missing)}")
+
+
 def minimize(
     problem: Problem,
     mode: Literal["learned", "certified"] = "learned",
@@ -81,14 +95,19 @@ def minimize(
         )
     if mode != "learned":
         raise ValueError("mode must be 'learned' or 'certified'")
+    if model_kind not in {"transformer", "mlp"}:
+        raise ValueError("model_kind must be 'transformer' or 'mlp'")
     checkpoint_name = "caller-provided"
     if params is None:
+        if model_kind != "transformer":
+            raise ValueError("model_kind='mlp' requires caller-provided MLP parameters")
         from .training import load_checkpoint
 
         resource = files("neuralopt").joinpath("checkpoints/demo-v0.1.0.npz")
         with as_file(resource) as checkpoint_path:
             params, config = load_checkpoint(checkpoint_path)
         checkpoint_name = "bundled-demo-v0.1.0"
+    _validate_policy_params(params, model_kind, config)
     lo, hi = problem.bounds
     width = hi - lo
     if problem.gradient is None:

@@ -9,6 +9,9 @@ counts independent of objective dimension. The MLP consumes the same coordinate
 features plus budget and dimension signals, but has no attention; it is smaller
 than the configured transformer and provides an executable architecture
 ablation.
+The bundled checkpoint is transformer-specific. MLP inference therefore
+requires caller-provided MLP parameters; architecture-specific parameter keys
+are validated before optimization begins.
 
 Only one unseen-dimension smoke result is currently executed: the 12-update
 regret model worsened an unseen 8D rotated, condition-100 quadratic (164.71
