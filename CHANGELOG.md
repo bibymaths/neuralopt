@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.4.0 - In development
+
+- Train transformer diagonal-plus-low-rank mobility and mass heads through
+  differentiable overdamped and BAOAB trajectories.
+- Add multi-horizon stochastic regret, stability, fixed compute-cost, robust
+  weak-generator, and optional Gaussian free-energy-surrogate losses.
+- Add identity, fixed-diagonal, untrained, regret-trained, and
+  regret-plus-Fokker--Planck ablations with held-out paired confidence intervals.
+- Preserve negative results: learned BAOAB geometry does not beat the fixed
+  diagonal baseline, and Fokker--Planck transfer to BAOAB is inconclusive.
+
 ## 0.3.0 - In development
 
 - Add opt-in overdamped Euler--Maruyama and underdamped BAOAB candidate

@@ -169,6 +169,28 @@ def test_stochastic_optimizer_preserves_boundary_incumbent(method):
     assert result.diagnostics["gradient_evaluations"] > 0
 
 
+def test_stochastic_optimizer_accepts_valid_fixed_diagonal_geometry():
+    problem = Problem(lambda x: jnp.sum(x**2), (-2.0, 2.0), 2)
+    params = init_model(jax.random.PRNGKey(0))
+    result = minimize(
+        problem,
+        max_evaluations=12,
+        params=params,
+        candidate_method="langevin",
+        hamiltonian_metric="fixed",
+        fixed_metric_diag=jnp.array([0.5, 2.0]),
+    )
+    assert np.isfinite(result.fun)
+    with pytest.raises(ValueError, match="fixed_metric_diag"):
+        minimize(
+            problem,
+            max_evaluations=12,
+            params=params,
+            candidate_method="langevin",
+            hamiltonian_metric="fixed",
+        )
+
+
 def test_optional_diffrax_reference_executes_reproducibly():
     pytest.importorskip("diffrax")
 

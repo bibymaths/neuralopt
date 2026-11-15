@@ -6,6 +6,7 @@ from .langevin import OverdampedConfig, UnderdampedConfig
 from .model import ModelConfig, init_model
 from .optimizer import OptimizationResult, minimize
 from .problem import Problem
+from .training import StochasticTrainingConfig
 
 __all__ = [
     "Certificate",
@@ -15,10 +16,11 @@ __all__ = [
     "OptimizationResult",
     "OverdampedConfig",
     "Problem",
+    "StochasticTrainingConfig",
     "Variable",
     "UnderdampedConfig",
     "init_model",
     "minimize",
     "verify_certificate",
 ]
-__version__ = "0.3.0"
+__version__ = "0.4.0"
