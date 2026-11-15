@@ -135,7 +135,7 @@ def minimize(
     if hamiltonian_metric == "fixed":
         if fixed_metric_diag is None:
             raise ValueError("fixed_metric_diag is required when hamiltonian_metric='fixed'")
-        fixed_metric_diag = jnp.asarray(fixed_metric_diag)
+        fixed_metric_diag = jnp.asarray(fixed_metric_diag, dtype=lo.dtype)
         if fixed_metric_diag.shape != (problem.dimension,) or not bool(
             jnp.all(jnp.isfinite(fixed_metric_diag) & (fixed_metric_diag > 0))
         ):
