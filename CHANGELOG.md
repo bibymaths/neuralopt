@@ -8,6 +8,9 @@
 - Add deterministic certification scheduling controls and strengthen independent replay
   with pruned-leaf domain coverage and non-overlap checks.
 - Preserve a negative outcome-training smoke checkpoint without promoting it.
+- Add opt-in native JAX Hamiltonian proposals with transformed box constraints,
+  fixed or learned mass geometry, separate exploration/incumbent state, explicit
+  cost accounting, correctness tests, and matched-budget smoke evidence.
 
 ## 0.1.0 - Unreleased
 

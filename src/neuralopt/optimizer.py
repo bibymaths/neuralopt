@@ -12,6 +12,7 @@ import numpy as np
 
 from .certification import Certificate, Expr, certify
 from .features import gradient_to_normalized, parameter_features
+from .hamiltonian import DEFAULT_HAMILTONIAN_CONFIG, HamiltonianConfig, hamiltonian_proposal
 from .model import (
     DEFAULT_CONFIG,
     ModelConfig,
@@ -66,6 +67,9 @@ def minimize(
     absolute_gap: float = 1e-6,
     record_diagnostics: bool = False,
     model_kind: Literal["transformer", "mlp"] = "transformer",
+    candidate_method: Literal["direct", "hamiltonian"] = "direct",
+    hamiltonian_config: HamiltonianConfig = DEFAULT_HAMILTONIAN_CONFIG,
+    hamiltonian_metric: Literal["identity", "learned"] = "learned",
 ) -> OptimizationResult:
     """Minimize a bounded objective with learned actions or rigorous certification."""
     budget = max_evaluations or problem.max_evaluations
@@ -97,6 +101,12 @@ def minimize(
         raise ValueError("mode must be 'learned' or 'certified'")
     if model_kind not in {"transformer", "mlp"}:
         raise ValueError("model_kind must be 'transformer' or 'mlp'")
+    if candidate_method not in {"direct", "hamiltonian"}:
+        raise ValueError("candidate_method must be 'direct' or 'hamiltonian'")
+    if hamiltonian_metric not in {"identity", "learned"}:
+        raise ValueError("hamiltonian_metric must be 'identity' or 'learned'")
+    if candidate_method == "hamiltonian" and problem.constraints:
+        raise ValueError("Hamiltonian proposals currently support box constraints only")
     checkpoint_name = "caller-provided"
     if params is None:
         if model_kind != "transformer":
@@ -125,11 +135,20 @@ def minimize(
         raise FloatingPointError("objective returned a nonfinite initial value")
     best, history = value, [value]
     proposals = 0
+    gradient_evaluations = 0
+    hmc_transitions = 0
+    hmc_accepted = 0
+    leapfrog_steps = 0
     records: list[dict[str, Any]] = []
+    key = jax.random.PRNGKey(seed)
     while evaluations < budget:
+        hmc_cost = hamiltonian_config.leapfrog_steps + 4
+        if candidate_method == "hamiltonian" and evaluations + hmc_cost > budget:
+            break
         x_before, value_before = x, value
         try:
             grad = grad_fn(x)
+            gradient_evaluations += 1
         except Exception as exc:
             raise ValueError("objective is not differentiable; provide a gradient") from exc
         apply = apply_model_jit if model_kind == "transformer" else apply_mlp_model_jit
@@ -138,25 +157,73 @@ def minimize(
         )
         raw_direction = out["direction"]
         direction = precondition(raw_direction, out["diag"], out["lowrank"])
-        scale = 0.25 * out["step"] * width
-        unprojected = x + scale * direction / (jnp.linalg.norm(direction) + 1e-8)
-        candidate = jnp.clip(unprojected, lo, hi)
-        candidate_kind = "update"
-        # The proposal head is independently evaluated on alternating iterations.
-        if evaluations % 2 == 0:
-            unprojected = (lo + hi) / 2 + 0.5 * width * out["proposal"]
+        energy_error = None
+        divergent = False
+        if candidate_method == "hamiltonian":
+            key, proposal_key = jax.random.split(key)
+            mass_diag = (
+                jnp.ones_like(out["diag"]) if hamiltonian_metric == "identity" else out["diag"]
+            )
+            mass_lowrank = (
+                jnp.zeros_like(out["lowrank"])
+                if hamiltonian_metric == "identity"
+                else out["lowrank"]
+            )
+            try:
+                proposal = hamiltonian_proposal(
+                    proposal_key,
+                    x,
+                    problem.objective,
+                    lo,
+                    hi,
+                    mass_diag,
+                    mass_lowrank,
+                    hamiltonian_config,
+                )
+            except Exception as exc:
+                raise ValueError(
+                    "Hamiltonian proposals require a JAX-differentiable objective"
+                ) from exc
+            candidate = proposal.candidate
+            unprojected = candidate
+            candidate_value = float(proposal.candidate_value)
+            accepted = bool(proposal.accepted)
+            energy_error = float(proposal.energy_error)
+            divergent = bool(proposal.divergent)
+            candidate_kind = "hamiltonian"
+            evaluations += proposal.objective_evaluations
+            gradient_evaluations += proposal.gradient_evaluations
+            leapfrog_steps += proposal.leapfrog_steps
+            hmc_transitions += 1
+            hmc_accepted += int(accepted)
+        else:
+            scale = 0.25 * out["step"] * width
+            unprojected = x + scale * direction / (jnp.linalg.norm(direction) + 1e-8)
             candidate = jnp.clip(unprojected, lo, hi)
-            proposals += 1
-            candidate_kind = "proposal"
-        candidate_value = float(objective_fn(candidate))
-        evaluations += 1
+            candidate_kind = "update"
+            # The proposal head is independently evaluated on alternating iterations.
+            if evaluations % 2 == 0:
+                unprojected = (lo + hi) / 2 + 0.5 * width * out["proposal"]
+                candidate = jnp.clip(unprojected, lo, hi)
+                proposals += 1
+                candidate_kind = "proposal"
+            candidate_value = float(objective_fn(candidate))
+            evaluations += 1
+            accepted = bool(np.isfinite(candidate_value) and candidate_value < value)
         finite = bool(np.isfinite(candidate_value))
-        accepted = finite and candidate_value < value
+        feasible = bool(
+            np.all(np.asarray(candidate) >= np.asarray(lo))
+            and np.all(np.asarray(candidate) <= np.asarray(hi))
+        )
+        normalized_distance = float(
+            np.linalg.norm(np.asarray((candidate - x_before) / width, dtype=float))
+        )
+        duplicate = normalized_distance <= 1e-8
+        objective_improved = finite and candidate_value < value_before
         improved_best = finite and candidate_value < best
         if improved_best:
-            x, best_x, best = candidate, candidate, candidate_value
-            value = candidate_value
-        elif accepted:
+            best_x, best = candidate, candidate_value
+        if accepted:
             x, value = candidate, candidate_value
         # Rejected candidates leave x and its corresponding value unchanged.
         if record_diagnostics:
@@ -180,12 +247,23 @@ def minimize(
                     "candidate_objective": candidate_value,
                     "best_objective": float(best),
                     "accepted": bool(accepted),
+                    "feasible": feasible,
+                    "duplicate": duplicate,
+                    "objective_improved": bool(objective_improved),
                     "improved_best": bool(improved_best),
-                    "reason": "nonfinite"
-                    if not finite
-                    else "improved"
-                    if accepted
-                    else "no_improvement",
+                    "reason": (
+                        "nonfinite"
+                        if not finite
+                        else "infeasible"
+                        if not feasible
+                        else "divergent"
+                        if divergent
+                        else "accepted"
+                        if accepted
+                        else "acceptance_threshold"
+                        if candidate_method == "hamiltonian"
+                        else "objective_worsening"
+                    ),
                     "gradient_norm": gnorm,
                     "raw_alignment": _cosine_alignment(raw, normalized_g),
                     "preconditioned_alignment": _cosine_alignment(pre, normalized_g),
@@ -193,6 +271,7 @@ def minimize(
                     "directional_derivative": float(normalized_g @ pre),
                     "step_length": float(np.linalg.norm(np.asarray(unprojected - x_before))),
                     "effective_displacement": float(np.linalg.norm(displacement)),
+                    "normalized_candidate_distance": normalized_distance,
                     "projection_norm": float(np.linalg.norm(np.asarray(unprojected - candidate))),
                     "projected_fraction": float(np.mean(np.asarray(unprojected != candidate))),
                     "boundary_fraction": float(
@@ -211,6 +290,7 @@ def minimize(
                     "diag_max": float(diag.max()),
                     "lowrank_frobenius": float(np.linalg.norm(lowrank)),
                     "candidate": np.asarray(candidate).tolist(),
+                    "energy_error": energy_error,
                 }
             )
         history.append(best)
@@ -225,8 +305,30 @@ def minimize(
             "parameter_count": sum(v.size for v in jax.tree_util.tree_leaves(params)),
             "checkpoint": checkpoint_name,
             "seed": seed,
+            "candidate_method": candidate_method,
+            "hamiltonian_metric": hamiltonian_metric if hmc_transitions else None,
+            "candidate_proposals": len(history) - 1,
+            "objective_evaluations": evaluations,
+            "gradient_evaluations": gradient_evaluations,
+            "leapfrog_steps": leapfrog_steps,
+            "hmc_transitions": hmc_transitions,
+            "hmc_transition_acceptance": hmc_accepted / hmc_transitions
+            if hmc_transitions
+            else None,
             "records": records if record_diagnostics else None,
             "acceptance_rate": float(np.mean([r["accepted"] for r in records]))
+            if records
+            else None,
+            "objective_improvement_rate": float(np.mean([r["objective_improved"] for r in records]))
+            if records
+            else None,
+            "incumbent_update_rate": float(np.mean([r["improved_best"] for r in records]))
+            if records
+            else None,
+            "feasible_candidate_rate": float(np.mean([r["feasible"] for r in records]))
+            if records
+            else None,
+            "duplicate_candidate_rate": float(np.mean([r["duplicate"] for r in records]))
             if records
             else None,
         },
