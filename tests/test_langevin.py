@@ -122,6 +122,32 @@ def test_langevin_invalid_configuration_and_nonfinite_status():
     assert not transition.finite
 
 
+@pytest.mark.parametrize("method", ["overdamped", "underdamped"])
+def test_langevin_rejects_nonfinite_unconstrained_position(method):
+    def steep_objective(x):
+        return 1e20 * jnp.sum((x - 0.5) ** 2)
+
+    common = (
+        jax.random.PRNGKey(0),
+        jnp.zeros(1),
+        steep_objective,
+        -jnp.ones(1),
+        jnp.ones(1),
+        jnp.ones(1),
+        jnp.zeros((1, 0)),
+    )
+    if method == "overdamped":
+        transition = overdamped_transition(
+            *common, config=OverdampedConfig(step_size=1e20)
+        )
+    else:
+        transition = underdamped_transition(
+            *common, config=UnderdampedConfig(step_size=1e20)
+        )
+    assert not transition.finite
+    assert not np.isfinite(transition.unconstrained_state).all()
+
+
 @pytest.mark.parametrize("method", ["langevin", "underdamped"])
 def test_stochastic_optimizer_preserves_boundary_incumbent(method):
     lo, hi = -jnp.ones(2), 2.0 * jnp.ones(2)

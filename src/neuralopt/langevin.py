@@ -146,7 +146,9 @@ def overdamped_transition(
         None,
         value,
         jnp.linalg.norm(next_state - state),
-        jnp.all(jnp.isfinite(next_state)) & jnp.isfinite(value),
+        jnp.all(jnp.isfinite(next_z))
+        & jnp.all(jnp.isfinite(next_state))
+        & jnp.isfinite(value),
         config.steps + 1,
         config.steps,
         config.steps,
@@ -221,7 +223,8 @@ def underdamped_transition(
         next_momentum,
         value,
         jnp.linalg.norm(next_state - state),
-        jnp.all(jnp.isfinite(next_state))
+        jnp.all(jnp.isfinite(next_z))
+        & jnp.all(jnp.isfinite(next_state))
         & jnp.all(jnp.isfinite(next_momentum))
         & jnp.isfinite(value),
         2 * config.steps + 1,
