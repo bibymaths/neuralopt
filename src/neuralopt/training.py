@@ -38,7 +38,8 @@ def imitation_loss(
     grad = jax.grad(problem.objective)(x)
     apply = apply_model if model_kind == "transformer" else apply_mlp_model
     out = apply(params, parameter_features(x, grad, lo, hi, problem.x0), 1.0, config)
-    target = -grad / safe_l2_norm(grad)
+    normalized_grad = gradient_to_normalized(grad, lo, hi)
+    target = -normalized_grad / safe_l2_norm(normalized_grad)
     return jnp.mean((out["direction"] - target) ** 2) + 1e-4 * jnp.mean(out["lowrank"] ** 2)
 
 

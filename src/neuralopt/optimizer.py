@@ -11,7 +11,7 @@ import jax.numpy as jnp
 import numpy as np
 
 from .certification import Certificate, Expr, certify
-from .features import parameter_features
+from .features import gradient_to_normalized, parameter_features
 from .model import (
     DEFAULT_CONFIG,
     ModelConfig,
@@ -34,6 +34,12 @@ class OptimizationResult:
     upper_bound: float | None = None
     certificate: Certificate | None = None
     diagnostics: dict[str, Any] | None = None
+
+
+def _cosine_alignment(direction: np.ndarray, gradient: np.ndarray) -> float:
+    """Cosine with negative gradient for vectors in the same coordinates."""
+    denominator = float(np.linalg.norm(direction) * np.linalg.norm(gradient))
+    return 0.0 if denominator <= 1e-12 else float(direction @ (-gradient) / denominator)
 
 
 def minimize(
@@ -85,7 +91,13 @@ def minimize(
         checkpoint_name = "bundled-demo-v0.1.0"
     lo, hi = problem.bounds
     width = hi - lo
-    objective_fn = jax.jit(problem.objective)
+    if problem.gradient is None:
+        objective_fn = jax.jit(problem.objective)
+        grad_fn = jax.jit(jax.grad(problem.objective))
+    else:
+        # Explicit gradients support host/NumPy objectives that cannot be traced.
+        objective_fn = problem.objective
+        grad_fn = problem.gradient
     x, best_x = problem.x0, problem.x0
     assert x is not None and best_x is not None  # Guaranteed by Problem validation.
     value = float(objective_fn(x))
@@ -93,11 +105,6 @@ def minimize(
     if not np.isfinite(value):
         raise FloatingPointError("objective returned a nonfinite initial value")
     best, history = value, [value]
-    grad_fn = (
-        jax.jit(problem.gradient)
-        if problem.gradient is not None
-        else jax.jit(jax.grad(problem.objective))
-    )
     proposals = 0
     records: list[dict[str, Any]] = []
     while evaluations < budget:
@@ -135,16 +142,11 @@ def minimize(
         # Rejected candidates leave x and its corresponding value unchanged.
         if record_diagnostics:
             g = np.asarray(grad, dtype=float)
+            normalized_g = np.asarray(gradient_to_normalized(grad, lo, hi), dtype=float)
             raw = np.asarray(raw_direction, dtype=float)
             pre = np.asarray(direction, dtype=float)
             applied = np.asarray(candidate - x_before, dtype=float)
             gnorm = float(np.linalg.norm(g))
-
-            def alignment(
-                v: np.ndarray, gradient: np.ndarray = g, gradient_norm: float = gnorm
-            ) -> float:
-                denom = float(np.linalg.norm(v) * gradient_norm)
-                return 0.0 if denom <= 1e-12 else float(v @ (-gradient) / denom)
 
             diag = np.asarray(out["diag"], dtype=float)
             lowrank = np.asarray(out["lowrank"], dtype=float)
@@ -166,10 +168,10 @@ def minimize(
                     if accepted
                     else "no_improvement",
                     "gradient_norm": gnorm,
-                    "raw_alignment": alignment(raw),
-                    "preconditioned_alignment": alignment(pre),
-                    "applied_alignment": alignment(applied),
-                    "directional_derivative": float(g @ pre),
+                    "raw_alignment": _cosine_alignment(raw, normalized_g),
+                    "preconditioned_alignment": _cosine_alignment(pre, normalized_g),
+                    "applied_alignment": _cosine_alignment(applied, g),
+                    "directional_derivative": float(normalized_g @ pre),
                     "step_length": float(np.linalg.norm(np.asarray(unprojected - x_before))),
                     "effective_displacement": float(np.linalg.norm(displacement)),
                     "projection_norm": float(np.linalg.norm(np.asarray(unprojected - candidate))),

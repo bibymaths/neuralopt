@@ -10,10 +10,12 @@ from neuralopt.benchmark import run_baseline
 from neuralopt.certification import certify
 from neuralopt.features import (
     denormalize_coordinates,
+    gradient_to_normalized,
     normalize_coordinates,
     parameter_features,
 )
 from neuralopt.model import apply_mlp_model, apply_model, init_mlp_model, precondition
+from neuralopt.optimizer import _cosine_alignment
 
 
 def test_problem_validation():
@@ -62,6 +64,29 @@ def test_coordinate_roundtrip_and_diagnostics():
     assert all(np.isfinite(r["raw_alignment"]) for r in records)
     assert all(r["preconditioner_min_eigenvalue"] > 0 for r in records)
     assert 0.0 <= result.diagnostics["acceptance_rate"] <= 1.0
+
+
+def test_diagnostic_alignment_respects_coordinate_systems():
+    lo, hi = jnp.array([0.0, 0.0]), jnp.array([100.0, 1.0])
+    physical_gradient = jnp.array([1.0, 1.0])
+    normalized_direction = np.array([0.1, -0.995])
+    normalized_gradient = np.asarray(gradient_to_normalized(physical_gradient, lo, hi))
+    assert _cosine_alignment(normalized_direction, np.asarray(physical_gradient)) > 0
+    assert _cosine_alignment(normalized_direction, normalized_gradient) < 0
+
+
+def test_explicit_numpy_callbacks_remain_eager():
+    def objective(x):
+        z = np.asarray(x)
+        return np.sum((z - 0.2) ** 2)
+
+    def gradient(x):
+        return 2.0 * (np.asarray(x) - 0.2)
+
+    problem = Problem(objective, (-1.0, 1.0), 2, gradient=gradient)
+    result = minimize(problem, max_evaluations=5, record_diagnostics=True)
+    assert np.isfinite(result.fun)
+    assert len(result.diagnostics["records"]) == 4
 
 
 def test_certified_quadratic_and_replay():

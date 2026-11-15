@@ -4,6 +4,10 @@ The v0.2 diagnostic mode records one row per objective evaluation and does not
 perform extra objective calls. It distinguishes raw, preconditioned, projected,
 and accepted directions; objective and incumbent state; projection; boundary
 saturation; and exact small-dimensional preconditioner eigenvalues.
+Raw and preconditioned directions are compared with gradients transformed into
+normalized box coordinates. Applied physical displacements are compared with
+physical gradients, preventing unequal parameter widths from reversing reported
+ascent and descent.
 
 ## Reproduction and dominant failure
 

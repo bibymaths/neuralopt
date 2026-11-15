@@ -11,6 +11,7 @@ import jax
 import numpy as np
 
 from neuralopt import Problem, minimize
+from neuralopt.features import gradient_to_normalized
 from neuralopt.model import DEFAULT_CONFIG, init_model
 from neuralopt.tasks import analytic_task, quadratic_task, task_split
 from neuralopt.training import UnrollConfig, load_checkpoint, save_checkpoint, train
@@ -23,7 +24,9 @@ def controls(problem: Problem, budget: int) -> float:
     best = float(problem.objective(x))
     for _ in range(budget - 1):
         g = grad(x)
-        x = np.asarray(x - 0.05 * (hi - lo) * g / (np.linalg.norm(g) + 1e-8))
+        normalized_g = gradient_to_normalized(g, lo, hi)
+        direction = normalized_g / (np.linalg.norm(normalized_g) + 1e-8)
+        x = np.asarray(x - 0.05 * (hi - lo) * direction)
         x = np.clip(x, lo, hi)
         best = min(best, float(problem.objective(x)))
     return best

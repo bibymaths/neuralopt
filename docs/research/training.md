@@ -12,6 +12,9 @@ stationary points.
 Directional regularization transforms physical gradients into normalized box
 coordinates before comparing them with the learned direction, so anisotropic
 parameter widths cannot reverse the ascent/descent label.
+The imitation target uses the same normalized-coordinate gradient; no training
+objective now compares policy directions with gradients from a different
+coordinate system.
 
 Training uses explicit PRNG keys, Optax global-norm clipping, nonfinite loss
 detection, and portable checkpoints. The test suite verifies finite, nonzero
