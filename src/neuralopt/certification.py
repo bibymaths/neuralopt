@@ -10,9 +10,9 @@ from __future__ import annotations
 import heapq
 import json
 import platform
+from collections.abc import Callable
 from dataclasses import asdict, dataclass
-from fractions import Fraction
-from typing import Any
+from typing import Any, Literal
 
 import numpy as np
 
@@ -183,7 +183,7 @@ class Certificate:
     arithmetic: str
     precision: str
     status: str
-    software_version: str = "0.1.0"
+    software_version: str = "0.2.0"
     environment: str = platform.platform()
 
     def to_json(self) -> str:
@@ -238,7 +238,7 @@ def verify_certificate(cert: Certificate, tolerance: float = 0.0) -> bool:
         if not np.isfinite(r["lower_bound"]) or float(iv.lo) + tolerance < r["lower_bound"]:
             return False
         boxes.append((lo, hi))
-    if not _boxes_cover_domain(boxes, domain_lo, domain_hi):
+    if not _is_binary_partition(boxes, domain_lo, domain_hi, 0.0):
         return False
     point = expr.interval(incumbent, incumbent)
     return (
@@ -248,44 +248,123 @@ def verify_certificate(cert: Certificate, tolerance: float = 0.0) -> bool:
     )
 
 
-def _boxes_cover_domain(
-    boxes: list[tuple[np.ndarray, np.ndarray]], domain_lo: np.ndarray, domain_hi: np.ndarray
+def _is_binary_partition(
+    boxes: list[tuple[np.ndarray, np.ndarray]],
+    domain_lo: np.ndarray,
+    domain_hi: np.ndarray,
+    tolerance: float,
 ) -> bool:
-    """Verify exact volume equality and pairwise interior disjointness."""
-    for i, (lo_i, hi_i) in enumerate(boxes):
-        for lo_j, hi_j in boxes[i + 1 :]:
-            if np.all(np.maximum(lo_i, lo_j) < np.minimum(hi_i, hi_j)):
-                return False
+    """Verify a guillotine box partition without all-pairs overlap tests.
 
-    def volume(lo: np.ndarray, hi: np.ndarray) -> Fraction:
-        result = Fraction(1)
-        for lower, upper in zip(lo, hi, strict=True):
-            result *= Fraction.from_float(float(upper)) - Fraction.from_float(float(lower))
-        return result
+    Branch-and-bound creates leaves by recursively bisecting a parent box. At
+    each recursion this routine finds a shared endpoint crossed by no leaf and
+    chooses the most balanced valid split. Valid replay is typically
+    ``O(n log² n)`` rather than ``O(n²)`` in the number of leaves.
+    """
+    lower = np.stack([box[0] for box in boxes])
+    upper = np.stack([box[1] for box in boxes])
 
-    covered = sum((volume(lo, hi) for lo, hi in boxes), Fraction(0))
-    return covered == volume(domain_lo, domain_hi)
+    def visit(indices: np.ndarray, lo: np.ndarray, hi: np.ndarray) -> bool:
+        if indices.size == 1:
+            i = int(indices[0])
+            if tolerance == 0.0:
+                return bool(np.array_equal(lower[i], lo) and np.array_equal(upper[i], hi))
+            return bool(
+                np.allclose(lower[i], lo, rtol=0.0, atol=tolerance)
+                and np.allclose(upper[i], hi, rtol=0.0, atol=tolerance)
+            )
+
+        best: tuple[int, int, float, np.ndarray, np.ndarray] | None = None
+        for dimension in range(lo.size):
+            starts = np.sort(lower[indices, dimension])
+            ends = np.sort(upper[indices, dimension])
+            candidates = np.unique(np.concatenate((starts, ends)))
+            candidates = candidates[(candidates > lo[dimension]) & (candidates < hi[dimension])]
+            if not candidates.size:
+                continue
+            left_counts = np.searchsorted(ends, candidates, side="right")
+            right_counts = indices.size - np.searchsorted(starts, candidates, side="left")
+            valid = (left_counts > 0) & (right_counts > 0)
+            valid &= left_counts + right_counts == indices.size
+            if not np.any(valid):
+                continue
+            positions = np.flatnonzero(valid)
+            position = int(
+                positions[np.argmax(np.minimum(left_counts[valid], right_counts[valid]))]
+            )
+            split = float(candidates[position])
+            left = indices[upper[indices, dimension] <= split]
+            right = indices[lower[indices, dimension] >= split]
+            balance = min(left.size, right.size)
+            if best is None or balance > best[0]:
+                best = (balance, dimension, split, left, right)
+        if best is None:
+            return False
+        _, dimension, split, left, right = best
+        left_hi, right_lo = hi.copy(), lo.copy()
+        left_hi[dimension] = split
+        right_lo[dimension] = split
+        return visit(left, lo, left_hi) and visit(right, right_lo, hi)
+
+    return visit(np.arange(len(boxes)), domain_lo, domain_hi)
 
 
 def certify(
-    expr: Expr, lo: Any, hi: Any, gap: float, max_nodes: int, problem_id: str
+    expr: Expr,
+    lo: Any,
+    hi: Any,
+    gap: float,
+    max_nodes: int,
+    problem_id: str,
+    priority: Literal["lower_bound", "widest"] = "lower_bound",
+    split: Literal["widest", "round_robin"] = "widest",
+    region_score: Callable[[np.ndarray, np.ndarray, float, float], float] | None = None,
+    split_selector: Callable[[np.ndarray, np.ndarray], int] | None = None,
 ) -> Certificate:
     """Interval branch-and-bound with midpoint incumbents and widest splits."""
     lo, hi = np.asarray(lo, float), np.asarray(hi, float)
     mid = (lo + hi) / 2
     best_x, upper = mid, float(expr.interval(mid, mid).hi)
     counter, processed, pruned = 0, 0, 0
-    terminal: list[tuple[float, np.ndarray, np.ndarray]] = []
     lower = float(expr.interval(lo, hi).lo)
-    heap: list[tuple[float, int, np.ndarray, np.ndarray]] = [(lower, counter, lo, hi)]
-    while heap and upper - heap[0][0] > gap and processed < max_nodes:
-        lb, _, a, b = heapq.heappop(heap)
+
+    def score(a: np.ndarray, b: np.ndarray, lb: float) -> float:
+        if region_score is not None:
+            return float(region_score(a, b, lb, upper))
+        return lb if priority == "lower_bound" else -float(np.max(b - a))
+
+    heap: list[tuple[float, int, float, np.ndarray, np.ndarray]] = [
+        (score(lo, hi, lower), counter, lower, lo, hi)
+    ]
+    separate_lower_bounds = region_score is not None or priority != "lower_bound"
+    lower_heap: list[tuple[float, int]] = [(lower, counter)] if separate_lower_bounds else []
+    active_ids = {counter} if separate_lower_bounds else set()
+    terminal: list[tuple[float, np.ndarray, np.ndarray]] = []
+
+    def active_lower_bound() -> float:
+        if not separate_lower_bounds:
+            return heap[0][2]
+        while lower_heap and lower_heap[0][1] not in active_ids:
+            heapq.heappop(lower_heap)
+        return lower_heap[0][0]
+
+    while heap and upper - active_lower_bound() > gap and processed < max_nodes:
+        _, node_id, lb, a, b = heapq.heappop(heap)
+        if separate_lower_bounds:
+            active_ids.remove(node_id)
         processed += 1
         if lb >= upper:
             pruned += 1
             terminal.append((lb, a, b))
             continue
-        d = int(np.argmax(b - a))
+        if split_selector is not None:
+            d = int(split_selector(a, b))
+        elif split == "round_robin":
+            d = (processed - 1) % len(a)
+        else:
+            d = int(np.argmax(b - a))
+        if d < 0 or d >= len(a) or not b[d] > a[d]:
+            raise ValueError("split policy selected an invalid dimension")
         m = (a[d] + b[d]) / 2
         children = [(a.copy(), b.copy()), (a.copy(), b.copy())]
         children[0][1][d], children[1][0][d] = m, m
@@ -297,12 +376,15 @@ def certify(
             cl = float(expr.interval(ca, cb).lo)
             if cl < upper:
                 counter += 1
-                heapq.heappush(heap, (cl, counter, ca, cb))
+                heapq.heappush(heap, (score(ca, cb, cl), counter, cl, ca, cb))
+                if separate_lower_bounds:
+                    active_ids.add(counter)
+                    heapq.heappush(lower_heap, (cl, counter))
             else:
                 pruned += 1
                 terminal.append((cl, ca, cb))
-    leaves = [{"lo": a.tolist(), "hi": b.tolist(), "lower_bound": lb} for lb, _, a, b in heap]
-    leaves.extend({"lo": a.tolist(), "hi": b.tolist(), "lower_bound": lb} for lb, a, b in terminal)
+    retained = [(lb, a, b) for _, _, lb, a, b in heap] + terminal
+    leaves = [{"lo": a.tolist(), "hi": b.tolist(), "lower_bound": lb} for lb, a, b in retained]
     global_lb = min((r["lower_bound"] for r in leaves), default=upper)
     status = "certified_gap" if upper - global_lb <= gap else "budget_exhausted"
     rel = (upper - global_lb) / max(1.0, abs(upper))

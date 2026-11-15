@@ -6,8 +6,17 @@ import numpy as np
 import pytest
 
 from neuralopt import ModelConfig, Problem, Variable, init_model, minimize, verify_certificate
-from neuralopt.features import parameter_features
-from neuralopt.model import apply_model, precondition
+from neuralopt.benchmark import run_baseline
+from neuralopt.certification import certify
+from neuralopt.features import (
+    denormalize_coordinates,
+    gradient_to_normalized,
+    normalize_coordinates,
+    parameter_features,
+)
+from neuralopt.model import apply_mlp_model, apply_model, init_mlp_model, precondition
+from neuralopt.optimizer import _cosine_alignment
+from neuralopt.tasks import quadratic_task
 
 
 def test_problem_validation():
@@ -27,6 +36,12 @@ def test_model_shapes_and_positive_preconditioner():
     v = jnp.arange(7.0)
     pv = precondition(v, out["diag"], out["lowrank"])
     assert float(v @ pv) > 0
+    mlp = init_mlp_model(jax.random.PRNGKey(1), c)
+    mlp_out = apply_mlp_model(mlp, f, 1.0, c)
+    assert mlp_out["direction"].shape == (7,)
+    assert sum(x.size for x in jax.tree_util.tree_leaves(mlp)) < sum(
+        x.size for x in jax.tree_util.tree_leaves(p)
+    )
 
 
 def test_deterministic_learned_minimize_and_bounds():
@@ -37,6 +52,65 @@ def test_deterministic_learned_minimize_and_bounds():
     assert a.fun == b.fun
     assert np.all(np.asarray(a.x) >= -1) and np.all(np.asarray(a.x) <= 1)
     assert len(a.trajectory) == 12 and np.all(np.diff(a.trajectory) <= 0)
+
+
+def test_coordinate_roundtrip_and_diagnostics():
+    lo, hi = jnp.array([-2.0, 1.0]), jnp.array([4.0, 9.0])
+    x = jnp.array([0.5, 3.0])
+    np.testing.assert_allclose(denormalize_coordinates(normalize_coordinates(x, lo, hi), lo, hi), x)
+    problem = Problem(lambda z: jnp.sum((z - 0.2) ** 2), (lo, hi), 2, x0=x)
+    result = minimize(problem, max_evaluations=6, record_diagnostics=True)
+    records = result.diagnostics["records"]
+    assert len(records) == 5
+    assert all(np.isfinite(r["raw_alignment"]) for r in records)
+    assert all(r["preconditioner_min_eigenvalue"] > 0 for r in records)
+    assert 0.0 <= result.diagnostics["acceptance_rate"] <= 1.0
+
+
+def test_diagnostic_alignment_respects_coordinate_systems():
+    lo, hi = jnp.array([0.0, 0.0]), jnp.array([100.0, 1.0])
+    physical_gradient = jnp.array([1.0, 1.0])
+    normalized_direction = np.array([0.1, -0.995])
+    normalized_gradient = np.asarray(gradient_to_normalized(physical_gradient, lo, hi))
+    assert _cosine_alignment(normalized_direction, np.asarray(physical_gradient)) > 0
+    assert _cosine_alignment(normalized_direction, normalized_gradient) < 0
+
+
+def test_explicit_numpy_callbacks_remain_eager():
+    def objective(x):
+        z = np.asarray(x)
+        return np.sum((z - 0.2) ** 2)
+
+    def gradient(x):
+        return 2.0 * (np.asarray(x) - 0.2)
+
+    problem = Problem(objective, (-1.0, 1.0), 2, gradient=gradient)
+    result = minimize(problem, max_evaluations=5, record_diagnostics=True)
+    assert np.isfinite(result.fun)
+    assert len(result.diagnostics["records"]) == 4
+
+
+def test_policy_architecture_parameter_validation():
+    problem = Problem(lambda x: jnp.sum(x**2), (-1.0, 1.0), 2)
+    with pytest.raises(ValueError, match="caller-provided MLP"):
+        minimize(problem, max_evaluations=1, model_kind="mlp")
+    with pytest.raises(ValueError, match="mlp parameters are missing keys: hidden"):
+        minimize(
+            problem,
+            max_evaluations=2,
+            params=init_model(jax.random.PRNGKey(0)),
+            model_kind="mlp",
+        )
+    with pytest.raises(ValueError, match="model_kind must be"):
+        minimize(problem, params={}, model_kind="unknown")  # type: ignore[arg-type]
+
+
+def test_unrotated_quadratic_keeps_linear_storage():
+    dimension = 10_000
+    problem = quadratic_task(jax.random.PRNGKey(3), dimension, condition=1e3, rotated=False)
+    captured = [cell.cell_contents for cell in problem.objective.__closure__ or ()]
+    assert not any(getattr(value, "ndim", 0) == 2 for value in captured)
+    assert np.isfinite(problem.objective(jnp.zeros(dimension)))
 
 
 def test_certified_quadratic_and_replay():
@@ -99,3 +173,91 @@ def test_arbitrary_jax_fails_closed():
     p = Problem(lambda x: jnp.sin(x[0]), (-1.0, 1.0), 1)
     with pytest.raises(ValueError, match="requires a neuralopt Expr"):
         minimize(p, mode="certified")
+
+
+def test_baseline_accounting_and_certificate_coverage_tamper():
+    p = Problem(
+        lambda x: jnp.sum((x - 0.1) ** 2),
+        (-1.0, 1.0),
+        2,
+        metadata={"known_optimum": 0.0},
+    )
+    row = run_baseline(p, "adam", 6)
+    assert row["objective_evaluations"] == 6
+    assert row["gradient_evaluations"] == 5
+
+    unknown = Problem(lambda x: jnp.sum((x - 0.2) ** 2), (-1.0, 1.0), 2)
+    unknown_row = run_baseline(unknown, "random", 3)
+    assert unknown_row["known_optimum"] is None
+    assert unknown_row["regret"] is None
+
+    partial_domain = Problem(
+        lambda x: jnp.log(x[0]),
+        (-1.0, 1.0),
+        1,
+        x0=jnp.array([0.5]),
+    )
+    finite_row = run_baseline(partial_domain, "random", 8, seed=0)
+    assert np.isfinite(finite_row["best_objective"])
+    assert np.asarray(finite_row["final_solution"])[0] > 0
+    all_nonfinite = Problem(lambda x: jnp.asarray(jnp.nan), (-1.0, 1.0), 1)
+    with pytest.raises(FloatingPointError, match="no finite"):
+        run_baseline(all_nonfinite, "random", 3)
+
+    pytest.importorskip("scipy")
+    limited = run_baseline(p, "scipy-lbfgsb", 1)
+    assert limited["objective_evaluations"] == 1
+    assert limited["status"] == "budget_exhausted"
+
+    x = Variable()
+    cp = Problem(
+        lambda z: (z[0] - 0.1) ** 2,
+        (-1.0, 1.0),
+        1,
+        certified_expression=(x[0] - 0.1) ** 2,
+    )
+    cert = minimize(cp, mode="certified", absolute_gap=0.1, max_evaluations=100).certificate
+    assert cert is not None and verify_certificate(cert)
+    cert.active_regions.pop()
+    assert not verify_certificate(cert)
+
+
+def test_alternative_certification_priority_tracks_true_lower_bound():
+    x = Variable()
+    expr = (x[0] - 0.2) ** 2 + (x[1] + 0.3) ** 2
+    cert = certify(
+        expr,
+        np.array([-1.0, -1.0]),
+        np.array([1.0, 1.0]),
+        gap=0.05,
+        max_nodes=500,
+        problem_id="alternate-priority",
+        priority="widest",
+        split="round_robin",
+    )
+    assert cert.status == "certified_gap"
+    assert verify_certificate(cert)
+
+
+@pytest.mark.parametrize("algorithm", ["random", "adam", "scipy-lbfgsb"])
+def test_baselines_preserve_jax_objective_inputs(algorithm):
+    if algorithm == "scipy-lbfgsb":
+        pytest.importorskip("scipy")
+
+    def objective(x):
+        return jnp.sum(x.at[0].set(0.0) ** 2)
+
+    def gradient(x):
+        return jnp.zeros_like(x).at[1].set(2.0 * x[1])
+
+    problem = Problem(
+        objective,
+        (-1.0, 1.0),
+        2,
+        x0=jnp.array([0.5, 0.5]),
+        gradient=gradient,
+        metadata={"known_optimum": 0.0},
+    )
+    row = run_baseline(problem, algorithm, budget=4, seed=2)
+    assert 1 <= row["objective_evaluations"] <= 4
+    assert np.isfinite(row["best_objective"])
