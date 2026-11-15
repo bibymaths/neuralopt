@@ -77,7 +77,8 @@ def minimize(
     model_kind: Literal["transformer", "mlp"] = "transformer",
     candidate_method: Literal["direct", "hamiltonian", "langevin", "underdamped"] = "direct",
     hamiltonian_config: HamiltonianConfig = DEFAULT_HAMILTONIAN_CONFIG,
-    hamiltonian_metric: Literal["identity", "learned"] = "learned",
+    hamiltonian_metric: Literal["identity", "fixed", "learned"] = "learned",
+    fixed_metric_diag: Any | None = None,
     overdamped_config: OverdampedConfig = DEFAULT_OVERDAMPED_CONFIG,
     underdamped_config: UnderdampedConfig = DEFAULT_UNDERDAMPED_CONFIG,
 ) -> OptimizationResult:
@@ -115,8 +116,8 @@ def minimize(
         raise ValueError(
             "candidate_method must be 'direct', 'hamiltonian', 'langevin', or 'underdamped'"
         )
-    if hamiltonian_metric not in {"identity", "learned"}:
-        raise ValueError("hamiltonian_metric must be 'identity' or 'learned'")
+    if hamiltonian_metric not in {"identity", "fixed", "learned"}:
+        raise ValueError("hamiltonian_metric must be 'identity', 'fixed', or 'learned'")
     if candidate_method != "direct" and problem.constraints:
         raise ValueError("stochastic proposals currently support box constraints only")
     checkpoint_name = "caller-provided"
@@ -131,6 +132,16 @@ def minimize(
         checkpoint_name = "bundled-demo-v0.1.0"
     _validate_policy_params(params, model_kind, config)
     lo, hi = problem.bounds
+    if hamiltonian_metric == "fixed":
+        if fixed_metric_diag is None:
+            raise ValueError("fixed_metric_diag is required when hamiltonian_metric='fixed'")
+        fixed_metric_diag = jnp.asarray(fixed_metric_diag, dtype=lo.dtype)
+        if fixed_metric_diag.shape != (problem.dimension,) or not bool(
+            jnp.all(jnp.isfinite(fixed_metric_diag) & (fixed_metric_diag > 0))
+        ):
+            raise ValueError(
+                "fixed_metric_diag must be a finite positive vector of problem dimension"
+            )
     width = hi - lo
     if problem.gradient is None:
         objective_fn = jax.jit(problem.objective)
@@ -183,14 +194,14 @@ def minimize(
         divergent = False
         if candidate_method in {"hamiltonian", "langevin", "underdamped"}:
             key, proposal_key = jax.random.split(key)
-            mass_diag = (
-                jnp.ones_like(out["diag"]) if hamiltonian_metric == "identity" else out["diag"]
-            )
-            mass_lowrank = (
-                jnp.zeros_like(out["lowrank"])
-                if hamiltonian_metric == "identity"
-                else out["lowrank"]
-            )
+            if hamiltonian_metric == "identity":
+                mass_diag = jnp.ones_like(out["diag"])
+                mass_lowrank = jnp.zeros_like(out["lowrank"])
+            elif hamiltonian_metric == "fixed":
+                mass_diag = fixed_metric_diag
+                mass_lowrank = jnp.zeros_like(out["lowrank"])
+            else:
+                mass_diag, mass_lowrank = out["diag"], out["lowrank"]
             proposal: Any
             try:
                 if candidate_method == "hamiltonian":

@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "neuralopt"
-version = "0.3.0"
+version = "0.4.0"
 description = "A compact learned optimizer with native restricted-domain certification"
 readme = "README.md"
 requires-python = ">=3.11"
