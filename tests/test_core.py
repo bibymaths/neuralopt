@@ -188,3 +188,27 @@ def test_alternative_certification_priority_tracks_true_lower_bound():
     )
     assert cert.status == "certified_gap"
     assert verify_certificate(cert)
+
+
+@pytest.mark.parametrize("algorithm", ["random", "adam", "scipy-lbfgsb"])
+def test_baselines_preserve_jax_objective_inputs(algorithm):
+    if algorithm == "scipy-lbfgsb":
+        pytest.importorskip("scipy")
+
+    def objective(x):
+        return jnp.sum(x.at[0].set(0.0) ** 2)
+
+    def gradient(x):
+        return jnp.zeros_like(x).at[1].set(2.0 * x[1])
+
+    problem = Problem(
+        objective,
+        (-1.0, 1.0),
+        2,
+        x0=jnp.array([0.5, 0.5]),
+        gradient=gradient,
+        metadata={"known_optimum": 0.0},
+    )
+    row = run_baseline(problem, algorithm, budget=4, seed=2)
+    assert 1 <= row["objective_evaluations"] <= 4
+    assert np.isfinite(row["best_objective"])

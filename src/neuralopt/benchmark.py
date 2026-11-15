@@ -8,6 +8,7 @@ import time
 from typing import Any
 
 import jax
+import jax.numpy as jnp
 import numpy as np
 
 from .optimizer import minimize
@@ -65,7 +66,7 @@ def run_baseline(problem: Problem, algorithm: str, budget: int, seed: int = 0) -
             raise ObjectiveBudgetExhausted
         objective_calls += 1
         point = np.asarray(x, dtype=float)
-        value = float(problem.objective(point))
+        value = float(problem.objective(jnp.asarray(point, dtype=problem.dtype)))
         if np.isfinite(value) and value < best_value:
             best_x, best_value = point.copy(), value
         return value
@@ -75,7 +76,8 @@ def run_baseline(problem: Problem, algorithm: str, budget: int, seed: int = 0) -
     def gradient(x: Any) -> np.ndarray:
         nonlocal gradient_calls
         gradient_calls += 1
-        return np.asarray(grad_fn(x), dtype=float)
+        point = jnp.asarray(x, dtype=problem.dtype)
+        return np.asarray(grad_fn(point), dtype=float)
 
     start = time.perf_counter()
     if algorithm == "random":

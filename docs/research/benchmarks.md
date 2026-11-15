@@ -10,6 +10,9 @@ a task has no known optimum.
 All baselines return the tracked best finite in-budget observation. Nonfinite
 samples cannot replace a valid incumbent; a run with no finite observation fails
 explicitly instead of emitting a misleading NaN result.
+Solver state remains NumPy-compatible, but objective and gradient callbacks
+receive JAX arrays in the problem's declared dtype. Benchmarks therefore support
+the same array-specific objective operations as native NeuralOpt inference.
 
 The current v0.2 artifact is only a smoke experiment. A fixed normalized-gradient
 control beats v0.1.0 on every recorded family; for example, its final values are
