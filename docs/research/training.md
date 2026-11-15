@@ -55,15 +55,17 @@ nondifferentiable at ties and use JAX subgradients. Hard inference validity
 checks, certification branches, and benchmark timing do not lie on the training
 gradient path.
 
-For overdamped training, an antithetic quadratic test function estimates the
-conditional weak generator identity for each episode-frozen mobility. The
-squared residual is passed through `log1p` before weighting because raw residual
-scales differed by orders of magnitude across task families. This checks the
-implemented Euler generator; it neither removes finite-step bias nor makes the
-history-adaptive policy stationary. The optional entropy term fits a Gaussian
-to trajectory states and is explicitly a free-energy surrogate, not exact
-differential entropy or thermodynamic free energy. It was disabled in the v0.4
-reported experiment.
+For overdamped training, a quadratic test function estimates the conditional
+weak generator identity for each episode-frozen mobility. Its Gaussian noise
+contribution is integrated analytically; sampling its square would add variance
+that spuriously rewards collapsing the mobility. The squared residual is passed
+through `log1p` before weighting because raw residual scales differ by orders of
+magnitude across task families. This checks the implemented Euler generator; it
+neither removes finite-step bias nor makes the history-adaptive policy
+stationary. The optional entropy term fits a Gaussian to trajectory states and
+is explicitly a free-energy surrogate, not exact differential entropy or
+thermodynamic free energy. It was disabled in the v0.4 reported experiment, and
+its dense covariance/log-determinant path is skipped completely when disabled.
 
 The reproducible configuration and checkpoints are described in
 `distribution-aware-training.md`.

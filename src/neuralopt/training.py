@@ -93,6 +93,17 @@ class StochasticTrainingConfig:
             raise ValueError("weak Fokker--Planck training currently supports overdamped dynamics")
 
 
+def _quadratic_euler_weak_residual(
+    position: Any, drift: Any, covariance_trace: Any, step_size: float
+) -> Any:
+    """Conditional Euler weak residual for ``phi(z) = mean(z**2)``."""
+    drifted = position + step_size * drift
+    observed = jnp.mean(drifted**2) - jnp.mean(position**2)
+    observed += step_size * covariance_trace / position.size
+    generator = 2.0 * jnp.mean(position * drift) + covariance_trace / position.size
+    return observed / step_size - generator
+
+
 def stochastic_geometry_loss(
     params: Params,
     problem: Problem,
@@ -149,17 +160,15 @@ def stochastic_geometry_loss(
                 noise = sample_mobility_noise(noise_key, diag, lowrank)
                 diffusion = jnp.sqrt(2.0 * stochastic.temperature * stochastic.step_size) * noise
                 next_position = position + stochastic.step_size * drift + diffusion
-                # Antithetic quadratic weak identity. Linear noise cancels, leaving
-                # the finite-step generator truncation error differentiable in A.
-                antithetic = position + stochastic.step_size * drift - diffusion
-                observed = (
-                    jnp.mean(next_position**2) + jnp.mean(antithetic**2)
-                ) / 2.0 - jnp.mean(position**2)
                 covariance_trace = 2.0 * stochastic.temperature * (
                     jnp.sum(diag) + jnp.sum(lowrank**2)
                 )
-                generator = 2.0 * jnp.mean(position * drift) + covariance_trace / position.size
-                residual = observed / stochastic.step_size - generator
+                # For the quadratic test function, integrate the Euler noise
+                # contribution exactly. A sampled squared noise term has nonzero
+                # variance that would otherwise reward collapsing the mobility.
+                residual = _quadratic_euler_weak_residual(
+                    position, drift, covariance_trace, stochastic.step_size
+                )
                 return next_position, residual**2
 
             next_z, residuals = jax.lax.scan(overdamped_step, z, step_keys)
@@ -212,13 +221,16 @@ def stochastic_geometry_loss(
     if stochastic.integrator == "underdamped":
         gradient_cost *= 2
     compute_loss = jnp.asarray(gradient_cost / max(stochastic.horizons), dtype=f0.dtype)
-    # Optional Gaussian entropy approximation over trajectory states. This is a
-    # regularizer, not exact free energy for the nonstationary particle law.
-    centered = candidates - jnp.mean(candidates, axis=0)
-    covariance = centered.T @ centered / stochastic.episodes
-    covariance += 1e-4 * jnp.eye(problem.dimension, dtype=f0.dtype)
-    _, logdet = jnp.linalg.slogdet(covariance)
-    free_energy_surrogate = jnp.mean(values) - 0.5 * stochastic.temperature * logdet
+    if stochastic.free_energy_weight:
+        # Optional Gaussian entropy approximation over trajectory states. This
+        # is a regularizer, not exact free energy for the nonstationary law.
+        centered = candidates - jnp.mean(candidates, axis=0)
+        covariance = centered.T @ centered / stochastic.episodes
+        covariance += 1e-4 * jnp.eye(problem.dimension, dtype=f0.dtype)
+        _, logdet = jnp.linalg.slogdet(covariance)
+        free_energy_surrogate = jnp.mean(values) - 0.5 * stochastic.temperature * logdet
+    else:
+        free_energy_surrogate = jnp.asarray(0.0, dtype=f0.dtype)
     return (
         regret_loss
         + stochastic.stability_weight * jnp.mean(displacements)

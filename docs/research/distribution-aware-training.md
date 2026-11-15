@@ -14,8 +14,8 @@ and exact Ornstein--Uhlenbeck momentum covariance
 pathwise differentiation carries gradients through both drift geometry and
 noise scale.
 
-The weak Fokker--Planck term compares the antithetic one-step change of
-`phi(z)=mean(z^2)` with
+The weak Fokker--Planck term compares the conditional expected one-step change
+of `phi(z)=mean(z^2)` with
 
 \[L\phi=b^T\nabla\phi+\tfrac12\operatorname{tr}(a\nabla^2\phi),
 \qquad a=2TA.\]
@@ -23,6 +23,8 @@ The weak Fokker--Planck term compares the antithetic one-step change of
 Mobility is frozen only within an episode. Updating it from trajectory history
 makes the optimizer nonstationary. Euler and BAOAB retain finite-step bias; the
 experiment makes no exact Gibbs or finite-step stationarity claim.
+The quadratic Gaussian noise contribution is evaluated analytically rather
+than sampled, avoiding a variance term that would reward shrinking mobility.
 
 ## Protocol
 
@@ -57,27 +59,27 @@ gradient evaluations and 52 integration steps; BAOAB used 75 and 30.
 | Overdamped identity | 2.854 | 0.000 | -- |
 | Overdamped fixed diagonal | 2.804 | -0.050 [-0.282, 0.143] | 3 |
 | Overdamped untrained transformer | 2.661 | -0.193 [-0.553, 0.075] | 5 |
-| Overdamped regret trained | 2.723 | -0.132 [-0.427, 0.112] | 5 |
-| Overdamped regret + FP | 2.634 | -0.220 [-0.574, 0.025] | 5 |
+| Overdamped regret trained | 2.678 | -0.177 [-0.452, 0.056] | 6 |
+| Overdamped regret + FP | 2.630 | -0.224 [-0.552, 0.039] | 6 |
 | BAOAB identity | 1.712 | 0.000 | -- |
 | BAOAB fixed diagonal | 1.272 | -0.441 [-0.878, -0.078] | 6 |
 | BAOAB untrained transformer | 1.460 | -0.253 [-0.790, 0.091] | 4 |
 | BAOAB regret trained | 1.532 | -0.181 [-0.716, 0.197] | 4 |
-| BAOAB transferred regret + FP | 1.648 | -0.064 [-0.312, 0.149] | 3 |
+| BAOAB transferred regret + FP | 1.465 | -0.247 [-0.752, 0.072] | 4 |
 
-The direct paired FP-minus-regret comparison is `-0.089` with 95% interval
-`[-0.181, -0.008]` for overdamped dynamics (6/10 wins). This is evidence on the
+The direct paired FP-minus-regret comparison is `-0.048` with 95% interval
+`[-0.105, -0.006]` for overdamped dynamics (5/10 wins). This is evidence on the
 small prespecified held-out set, not a universal advantage. For BAOAB transfer
-the difference is `+0.116 [-0.323, 0.771]`, so no improvement is established.
+the difference is `-0.067 [-0.186, 0.017]`, so no improvement is established.
 
 At unseen temperatures and budgets the overdamped FP-minus-regret point estimate
 remained negative in all four settings, but every four-instance interval touched
 or crossed zero. At budget 40, transferred FP geometry was worse for BAOAB at
-both temperatures (`+0.885` at 0.25 and `+0.871` at 1.0). The simple fixed
+both temperatures (`+0.774` at 0.25 and `+0.770` at 1.0). The simple fixed
 diagonal remains the strongest supported BAOAB result.
 
-Training took 27.9 seconds for overdamped regret, 26.3 seconds for BAOAB regret,
-and 24.2 seconds for regret plus FP on the recorded CPU run. Median warm
+Training took 23.9 seconds for overdamped regret, 24.4 seconds for BAOAB regret,
+and 18.8 seconds for regret plus FP on the recorded CPU run. Median warm
 inference was about 0.08--0.12 seconds. First-call timings in the shared process
 are cache- and order-sensitive and are retained in the artifact rather than
 interpreted as isolated compilation measurements.

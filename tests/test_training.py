@@ -10,6 +10,7 @@ from neuralopt.tasks import task_split
 from neuralopt.training import (
     StochasticTrainingConfig,
     UnrollConfig,
+    _quadratic_euler_weak_residual,
     load_checkpoint,
     save_checkpoint,
     stochastic_geometry_loss,
@@ -180,3 +181,12 @@ def test_stochastic_fp_configuration_and_training():
     )
     assert np.isfinite(losses).all()
     assert all(np.isfinite(np.asarray(x)).all() for x in jax.tree_util.tree_leaves(params))
+
+
+def test_quadratic_weak_residual_integrates_noise_variance_exactly():
+    position = jnp.array([-0.7, 0.4, 1.2])
+    for covariance_trace in (0.1, 10.0, 1_000.0):
+        residual = _quadratic_euler_weak_residual(
+            position, jnp.zeros_like(position), covariance_trace, 0.01
+        )
+        np.testing.assert_allclose(residual, 0.0, atol=2e-5)
