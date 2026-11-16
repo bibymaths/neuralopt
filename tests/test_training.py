@@ -5,7 +5,7 @@ import pytest
 
 from neuralopt import Problem
 from neuralopt.features import gradient_to_normalized
-from neuralopt.model import ModelConfig
+from neuralopt.model import ModelConfig, init_model
 from neuralopt.tasks import task_split
 from neuralopt.training import (
     StochasticTrainingConfig,
@@ -45,11 +45,25 @@ def test_split_checkpoint_and_training(tmp_path):
         np.testing.assert_array_equal(a, b)
 
 
+def test_extended_model_configuration_checkpoint_roundtrip(tmp_path):
+    config = ModelConfig(
+        width=8,
+        heads=2,
+        rank=1,
+        layers=1,
+        scale_aware=True,
+        geometry_bound=4.0,
+        lowrank_scale=0.5,
+    )
+    path = tmp_path / "scale-aware.npz"
+    save_checkpoint(path, init_model(jax.random.PRNGKey(2), config), config)
+    _, loaded = load_checkpoint(path)
+    assert loaded == config
+
+
 def test_unrolled_loss_has_finite_nonzero_meta_gradient():
     problem = task_split(5, 5, 2)[0].problem
     config = ModelConfig(width=8, heads=2, rank=1, layers=1)
-    from neuralopt.model import init_model
-
     params = init_model(jax.random.PRNGKey(0), config)
     loss, grad = jax.value_and_grad(unrolled_regret_loss)(
         params,
@@ -150,15 +164,14 @@ def test_stochastic_geometry_loss_propagates_finite_geometry_gradients(integrato
         horizons=(1, 3),
         fp_weight=0.1 if integrator == "overdamped" else 0.0,
     )
+
     def loss_fn(p):
         return stochastic_geometry_loss(p, problem, jax.random.PRNGKey(2), config, stochastic)
 
     first, gradients = jax.value_and_grad(loss_fn)(params)
     second = loss_fn(params)
     np.testing.assert_allclose(first, second, rtol=1e-6)
-    geometry = np.concatenate(
-        [np.asarray(gradients[name]).ravel() for name in ("diag", "lowrank")]
-    )
+    geometry = np.concatenate([np.asarray(gradients[name]).ravel() for name in ("diag", "lowrank")])
     assert np.isfinite(first) and np.isfinite(geometry).all()
     assert np.linalg.norm(geometry) > 0
 
@@ -190,3 +203,24 @@ def test_quadratic_weak_residual_integrates_noise_variance_exactly():
             position, jnp.zeros_like(position), covariance_trace, 0.01
         )
         np.testing.assert_allclose(residual, 0.0, atol=2e-5)
+
+
+def test_disabled_fp_loss_skips_overflowing_residual():
+    problem = Problem(
+        lambda x: 1e12 * jnp.sum((x - 0.5) ** 2),
+        (-1.0, 1.0),
+        2,
+        metadata={"known_optimum": 0.0},
+    )
+    config = ModelConfig(width=8, heads=2, rank=1, layers=1)
+    from neuralopt.model import init_model
+
+    params = init_model(jax.random.PRNGKey(0), config)
+    loss = stochastic_geometry_loss(
+        params,
+        problem,
+        jax.random.PRNGKey(1),
+        config,
+        StochasticTrainingConfig(episodes=2, integration_steps=1, horizons=(1, 2), fp_weight=0.0),
+    )
+    assert np.isfinite(loss)

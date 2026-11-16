@@ -28,10 +28,17 @@ def gradient_to_normalized(grad_x: Any, lo: Any, hi: Any) -> Any:
     return 0.5 * grad_x * (hi - lo)
 
 
-def parameter_features(x: Any, grad: Any, lo: Any, hi: Any, best_x: Any) -> Any:
+def parameter_features(
+    x: Any, grad: Any, lo: Any, hi: Any, best_x: Any, scale_aware: bool = False
+) -> Any:
     """Return one token per coordinate with translation/scale normalization."""
     xn = normalize_coordinates(x, lo, hi)
     bn = normalize_coordinates(best_x, lo, hi)
     gs = gradient_to_normalized(grad, lo, hi)
     gn = gs / safe_l2_norm(gs)
-    return jnp.stack((xn, bn, gn, jnp.abs(gn), jnp.ones_like(xn)), axis=-1)
+    if scale_aware:
+        scale = jnp.tanh(jnp.log1p(safe_l2_norm(gs)) / 5.0)
+        scale_feature = jnp.full_like(xn, scale)
+    else:
+        scale_feature = jnp.ones_like(xn)
+    return jnp.stack((xn, bn, gn, jnp.abs(gn), scale_feature), axis=-1)

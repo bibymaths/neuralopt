@@ -44,6 +44,32 @@ def test_model_shapes_and_positive_preconditioner():
     )
 
 
+def test_scale_aware_bounded_geometry_responds_to_gradient_scale():
+    config = ModelConfig(
+        width=16,
+        heads=4,
+        rank=2,
+        layers=1,
+        scale_aware=True,
+        geometry_bound=4.0,
+        lowrank_scale=0.5,
+    )
+    params = init_model(jax.random.PRNGKey(4), config)
+    x = jnp.array([0.1, -0.2, 0.3])
+    bounds = (-jnp.ones(3), jnp.ones(3))
+    small = parameter_features(x, jnp.ones(3), *bounds, x, scale_aware=True)
+    large = parameter_features(x, 1e3 * jnp.ones(3), *bounds, x, scale_aware=True)
+    small_output = apply_model(params, small, 1.0, config)
+    large_output = apply_model(params, large, 1.0, config)
+    assert not np.allclose(small_output["diag"], large_output["diag"])
+    for output in (small_output, large_output):
+        dense = np.diag(np.asarray(output["diag"]))
+        lowrank = np.asarray(output["lowrank"])
+        eigenvalues = np.linalg.eigvalsh(dense + lowrank @ lowrank.T)
+        assert eigenvalues[0] >= 1 / config.geometry_bound - 1e-6
+        assert eigenvalues[-1] <= config.geometry_bound + config.lowrank_scale**2 + 1e-6
+
+
 def test_deterministic_learned_minimize_and_bounds():
     problem = Problem(lambda x: jnp.sum((x - 0.3) ** 2), (-1.0, 1.0), 3, max_evaluations=12)
     a = minimize(problem, seed=4)
