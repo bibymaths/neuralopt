@@ -56,7 +56,10 @@ def confidence_interval(values: list[float], seed: int = 0) -> list[float]:
     return [float(np.quantile(draws, 0.025)), float(np.quantile(draws, 0.975))]
 
 
-def main(reuse_checkpoints: bool = False) -> None:
+def main(
+    reuse_checkpoints: bool = False,
+    output_name: str = "geometry-training-v0.4.0.json",
+) -> None:
     root = Path(__file__).resolve().parents[1]
     model_config = ModelConfig(width=16, heads=4, rank=2, layers=1)
     base = StochasticTrainingConfig(
@@ -185,9 +188,7 @@ def main(reuse_checkpoints: bool = False) -> None:
                         "improvement_rate": diagnostics["objective_improvement_rate"],
                         "finite_rate": 1.0
                         - float(
-                            np.mean(
-                                [r["reason"] == "nonfinite" for r in diagnostics["records"]]
-                            )
+                            np.mean([r["reason"] == "nonfinite" for r in diagnostics["records"]])
                         ),
                         "first_seconds": first_seconds,
                         "warm_seconds": warm_seconds,
@@ -283,9 +284,7 @@ def main(reuse_checkpoints: bool = False) -> None:
                                 "dimension": problem.dimension,
                                 "temperature": temperature,
                                 "budget": budget,
-                                "log_regret": float(
-                                    np.log1p(max(result.fun - optimum, 0.0))
-                                ),
+                                "log_regret": float(np.log1p(max(result.fun - optimum, 0.0))),
                                 "warm_seconds": warm,
                             }
                         )
@@ -340,7 +339,7 @@ def main(reuse_checkpoints: bool = False) -> None:
         "rows": rows,
         "generalization_rows": generalization_rows,
     }
-    output = root / "results/geometry-training-v0.4.0.json"
+    output = root / "results" / output_name
     output.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
     print(json.dumps({"training": training, "summary": summary}, indent=2))
 
@@ -348,4 +347,6 @@ def main(reuse_checkpoints: bool = False) -> None:
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--reuse-checkpoints", action="store_true")
-    main(parser.parse_args().reuse_checkpoints)
+    parser.add_argument("--output-name", default="geometry-training-v0.4.0.json")
+    arguments = parser.parse_args()
+    main(arguments.reuse_checkpoints, arguments.output_name)

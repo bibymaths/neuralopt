@@ -79,6 +79,7 @@ def minimize(
     hamiltonian_config: HamiltonianConfig = DEFAULT_HAMILTONIAN_CONFIG,
     hamiltonian_metric: Literal["identity", "fixed", "learned"] = "learned",
     fixed_metric_diag: Any | None = None,
+    learned_metric_structure: Literal["diagonal", "lowrank", "full"] = "full",
     overdamped_config: OverdampedConfig = DEFAULT_OVERDAMPED_CONFIG,
     underdamped_config: UnderdampedConfig = DEFAULT_UNDERDAMPED_CONFIG,
 ) -> OptimizationResult:
@@ -118,6 +119,8 @@ def minimize(
         )
     if hamiltonian_metric not in {"identity", "fixed", "learned"}:
         raise ValueError("hamiltonian_metric must be 'identity', 'fixed', or 'learned'")
+    if learned_metric_structure not in {"diagonal", "lowrank", "full"}:
+        raise ValueError("learned_metric_structure must be 'diagonal', 'lowrank', or 'full'")
     if candidate_method != "direct" and problem.constraints:
         raise ValueError("stochastic proposals currently support box constraints only")
     checkpoint_name = "caller-provided"
@@ -186,12 +189,16 @@ def minimize(
             raise ValueError("objective is not differentiable; provide a gradient") from exc
         apply = apply_model_jit if model_kind == "transformer" else apply_mlp_model_jit
         out = apply(
-            params, parameter_features(x, grad, lo, hi, best_x), 1 - evaluations / budget, config
+            params,
+            parameter_features(x, grad, lo, hi, best_x, config.scale_aware),
+            1 - evaluations / budget,
+            config,
         )
         raw_direction = out["direction"]
         direction = precondition(raw_direction, out["diag"], out["lowrank"])
         energy_error = None
         divergent = False
+        applied_diag, applied_lowrank = out["diag"], out["lowrank"]
         if candidate_method in {"hamiltonian", "langevin", "underdamped"}:
             key, proposal_key = jax.random.split(key)
             if hamiltonian_metric == "identity":
@@ -202,6 +209,11 @@ def minimize(
                 mass_lowrank = jnp.zeros_like(out["lowrank"])
             else:
                 mass_diag, mass_lowrank = out["diag"], out["lowrank"]
+                if learned_metric_structure == "diagonal":
+                    mass_lowrank = jnp.zeros_like(mass_lowrank)
+                elif learned_metric_structure == "lowrank":
+                    mass_diag = jnp.ones_like(mass_diag)
+            applied_diag, applied_lowrank = mass_diag, mass_lowrank
             proposal: Any
             try:
                 if candidate_method == "hamiltonian":
@@ -315,8 +327,8 @@ def minimize(
             applied = np.asarray(candidate - x_before, dtype=float)
             gnorm = float(np.linalg.norm(g))
 
-            diag = np.asarray(out["diag"], dtype=float)
-            lowrank = np.asarray(out["lowrank"], dtype=float)
+            diag = np.asarray(applied_diag, dtype=float)
+            lowrank = np.asarray(applied_lowrank, dtype=float)
             dense = np.diag(diag) + lowrank @ lowrank.T
             eig = np.linalg.eigvalsh(dense)
             displacement = np.asarray(candidate - np.asarray(x_before), dtype=float)
@@ -369,7 +381,11 @@ def minimize(
                     "preconditioner_condition": float(eig[-1] / eig[0]),
                     "diag_min": float(diag.min()),
                     "diag_max": float(diag.max()),
+                    "diag_mean": float(diag.mean()),
                     "lowrank_frobenius": float(np.linalg.norm(lowrank)),
+                    "lowrank_trace_fraction": float(
+                        np.linalg.norm(lowrank) ** 2 / (diag.sum() + np.linalg.norm(lowrank) ** 2)
+                    ),
                     "candidate": np.asarray(candidate).tolist(),
                     "energy_error": energy_error,
                 }

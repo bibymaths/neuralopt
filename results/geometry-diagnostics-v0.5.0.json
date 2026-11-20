@@ -1,0 +1,71 @@
+{
+  "schema": "neuralopt.geometry-diagnostics.v0.5",
+  "v0.4_reproduction_max_absolute_error": {
+    "best_objective": 0.0,
+    "log_regret": 0.0,
+    "anytime_log_regret_auc": 0.0,
+    "objective_evaluations": 0.0,
+    "gradient_evaluations": 0.0,
+    "integration_steps": 0.0,
+    "improvement_rate": 0.0,
+    "finite_rate": 0.0
+  },
+  "v0.4_discrepancy": {
+    "pre_review_commit": "c9ee283",
+    "pre_review_fp_minus_regret": -0.08895028920757624,
+    "pre_review_95_percent_ci": [
+      -0.18076421836224646,
+      -0.008140756169652973
+    ],
+    "corrected_commit": "0ecc22f",
+    "corrected_fp_minus_regret": -0.04783354580204937,
+    "corrected_95_percent_ci": [
+      -0.10450351940155676,
+      -0.005610932720011475
+    ],
+    "population_each": 10,
+    "explanation": "The population was unchanged. Review fixes removed quadratic-noise variance from the FP loss and matched BAOAB initial momentum, then retrained checkpoints."
+  },
+  "objective_scale_diag_response": {
+    "v0.4_max_delta_for_1000x_gradient": 1.1920928955078125e-07,
+    "v0.5_max_delta_for_1000x_gradient": 0.13120651245117188
+  },
+  "meta_gradient_variance": {
+    "one_sample": {
+      "mean_norm": 1.6167573928833008,
+      "norm_coefficient_of_variation": 1.781718373298645
+    },
+    "four_sample": {
+      "mean_norm": 2.202162981033325,
+      "norm_coefficient_of_variation": 2.3881685733795166
+    }
+  },
+  "split_regret": {
+    "overdamped:train": {
+      "fixed_mean_log_regret": 3.0864300381730083,
+      "learned_mean_log_regret": 3.0631081004067084,
+      "learned_minus_fixed": -0.023321937766299726
+    },
+    "overdamped:validation": {
+      "fixed_mean_log_regret": 2.6232694536070342,
+      "learned_mean_log_regret": 2.613433007617598,
+      "learned_minus_fixed": -0.00983644598943607
+    },
+    "underdamped:train": {
+      "fixed_mean_log_regret": 2.299285772409408,
+      "learned_mean_log_regret": 2.3886298657678102,
+      "learned_minus_fixed": 0.08934409335840232
+    },
+    "underdamped:validation": {
+      "fixed_mean_log_regret": 1.7783970004096161,
+      "learned_mean_log_regret": 2.272796676441754,
+      "learned_minus_fixed": 0.49439967603213797
+    }
+  },
+  "learned_geometry": {
+    "median_condition": 1.2315619884402995,
+    "max_condition": 3.085536321666772,
+    "median_lowrank_norm": 0.16726045368101777,
+    "median_displacement": 0.05521894760986017
+  }
+}

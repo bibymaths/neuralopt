@@ -39,7 +39,12 @@ def imitation_loss(
     x = jax.random.uniform(key, (problem.dimension,), minval=lo, maxval=hi)
     grad = jax.grad(problem.objective)(x)
     apply = apply_model if model_kind == "transformer" else apply_mlp_model
-    out = apply(params, parameter_features(x, grad, lo, hi, problem.x0), 1.0, config)
+    out = apply(
+        params,
+        parameter_features(x, grad, lo, hi, problem.x0, config.scale_aware),
+        1.0,
+        config,
+    )
     normalized_grad = gradient_to_normalized(grad, lo, hi)
     target = -normalized_grad / safe_l2_norm(normalized_grad)
     return jnp.mean((out["direction"] - target) ** 2) + 1e-4 * jnp.mean(out["lowrank"] ** 2)
@@ -72,25 +77,42 @@ class StochasticTrainingConfig:
     fp_weight: float = 0.0
     free_energy_weight: float = 0.0
     transform_epsilon: float = 1e-6
+    geometry_structure: Literal["diagonal", "lowrank", "full"] = "full"
+    gradient_samples: int = 1
+    temperature_range: tuple[float, float] | None = None
+    friction_range: tuple[float, float] | None = None
 
     def __post_init__(self) -> None:
         if self.integrator not in {"overdamped", "underdamped"}:
             raise ValueError("integrator must be 'overdamped' or 'underdamped'")
         if self.episodes < 1 or self.integration_steps < 1:
             raise ValueError("episodes and integration_steps must be positive")
+        if self.geometry_structure not in {"diagonal", "lowrank", "full"}:
+            raise ValueError("geometry_structure must be 'diagonal', 'lowrank', or 'full'")
+        if self.gradient_samples < 1:
+            raise ValueError("gradient_samples must be positive")
         if not self.horizons or any(h < 1 or h > self.episodes for h in self.horizons):
             raise ValueError("horizons must lie in [1, episodes]")
         if self.step_size <= 0 or self.temperature <= 0 or self.friction <= 0:
             raise ValueError("step_size, temperature, and friction must be positive")
-        if min(
-            self.stability_weight,
-            self.compute_weight,
-            self.fp_weight,
-            self.free_energy_weight,
-        ) < 0:
+        if (
+            min(
+                self.stability_weight,
+                self.compute_weight,
+                self.fp_weight,
+                self.free_energy_weight,
+            )
+            < 0
+        ):
             raise ValueError("loss weights must be nonnegative")
         if self.integrator != "overdamped" and self.fp_weight:
             raise ValueError("weak Fokker--Planck training currently supports overdamped dynamics")
+        for name, interval in (
+            ("temperature_range", self.temperature_range),
+            ("friction_range", self.friction_range),
+        ):
+            if interval is not None and not (0 < interval[0] <= interval[1]):
+                raise ValueError(f"{name} must contain positive ordered endpoints")
 
 
 def _quadratic_euler_weak_residual(
@@ -104,7 +126,7 @@ def _quadratic_euler_weak_residual(
     return observed / step_size - generator
 
 
-def stochastic_geometry_loss(
+def _single_stochastic_geometry_loss(
     params: Params,
     problem: Problem,
     key: Any,
@@ -121,7 +143,20 @@ def stochastic_geometry_loss(
     if "known_optimum" not in problem.metadata:
         raise ValueError("stochastic training requires problem.metadata['known_optimum']")
     lo, hi = problem.bounds
-    start_key, trajectory_key = jax.random.split(key)
+    start_key, trajectory_key, hyper_key = jax.random.split(key, 3)
+    temperature_key, friction_key = jax.random.split(hyper_key)
+    temperature = jnp.asarray(stochastic.temperature)
+    if stochastic.temperature_range is not None:
+        low, high = stochastic.temperature_range
+        temperature = jnp.exp(
+            jax.random.uniform(temperature_key, (), minval=jnp.log(low), maxval=jnp.log(high))
+        )
+    friction = jnp.asarray(stochastic.friction)
+    if stochastic.friction_range is not None:
+        low, high = stochastic.friction_range
+        friction = jnp.exp(
+            jax.random.uniform(friction_key, (), minval=jnp.log(low), maxval=jnp.log(high))
+        )
     x0 = jax.random.uniform(start_key, (problem.dimension,), minval=lo, maxval=hi)
     z0 = to_unconstrained(x0, lo, hi, stochastic.transform_epsilon)
     f0 = problem.objective(x0)
@@ -132,21 +167,27 @@ def stochastic_geometry_loss(
         initial_gradient = jax.grad(problem.objective)(x0)
         initial_geometry = apply_model(
             params,
-            parameter_features(x0, initial_gradient, lo, hi, x0),
+            parameter_features(x0, initial_gradient, lo, hi, x0, config.scale_aware),
             1.0,
             config,
         )
-        momentum0 = jnp.sqrt(stochastic.temperature) * sample_mobility_noise(
-            momentum_key, initial_geometry["diag"], initial_geometry["lowrank"]
+        initial_lowrank = initial_geometry["lowrank"]
+        initial_diag = initial_geometry["diag"]
+        if stochastic.geometry_structure == "diagonal":
+            initial_lowrank = jnp.zeros_like(initial_lowrank)
+        elif stochastic.geometry_structure == "lowrank":
+            initial_diag = jnp.ones_like(initial_diag)
+        momentum0 = jnp.sqrt(temperature) * sample_mobility_noise(
+            momentum_key, initial_diag, initial_lowrank
         )
     else:
         momentum0 = jnp.zeros_like(z0)
     episode_keys = jax.random.split(trajectory_key, stochastic.episodes)
-    damping = jnp.exp(-stochastic.friction * stochastic.step_size)
+    damping = jnp.exp(-friction * stochastic.step_size)
 
     def potential(z: Any) -> Any:
         x = from_unconstrained(z, lo, hi)
-        return problem.objective(x) - stochastic.temperature * log_abs_det_jacobian(z, lo, hi)
+        return problem.objective(x) - temperature * log_abs_det_jacobian(z, lo, hi)
 
     def episode(
         carry: tuple[Any, Any, Any, Any], inputs: tuple[Any, Any]
@@ -157,11 +198,15 @@ def stochastic_geometry_loss(
         gradient = jax.grad(problem.objective)(x)
         out = apply_model(
             params,
-            parameter_features(x, gradient, lo, hi, best_x),
+            parameter_features(x, gradient, lo, hi, best_x, config.scale_aware),
             1.0 - episode_index / stochastic.episodes,
             config,
         )
         diag, lowrank = out["diag"], out["lowrank"]
+        if stochastic.geometry_structure == "diagonal":
+            lowrank = jnp.zeros_like(lowrank)
+        elif stochastic.geometry_structure == "lowrank":
+            diag = jnp.ones_like(diag)
         step_keys = jax.random.split(episode_key, stochastic.integration_steps)
         fp_residual = jnp.asarray(0.0, dtype=f0.dtype)
 
@@ -171,17 +216,18 @@ def stochastic_geometry_loss(
                 potential_gradient = jax.grad(potential)(position)
                 drift = -mobility_apply(potential_gradient, diag, lowrank)
                 noise = sample_mobility_noise(noise_key, diag, lowrank)
-                diffusion = jnp.sqrt(2.0 * stochastic.temperature * stochastic.step_size) * noise
+                diffusion = jnp.sqrt(2.0 * temperature * stochastic.step_size) * noise
                 next_position = position + stochastic.step_size * drift + diffusion
-                covariance_trace = 2.0 * stochastic.temperature * (
-                    jnp.sum(diag) + jnp.sum(lowrank**2)
-                )
-                # For the quadratic test function, integrate the Euler noise
-                # contribution exactly. A sampled squared noise term has nonzero
-                # variance that would otherwise reward collapsing the mobility.
-                residual = _quadratic_euler_weak_residual(
-                    position, drift, covariance_trace, stochastic.step_size
-                )
+                if stochastic.fp_weight:
+                    covariance_trace = 2.0 * temperature * (jnp.sum(diag) + jnp.sum(lowrank**2))
+                    # For the quadratic test function, integrate the Euler noise
+                    # contribution exactly. A sampled squared noise term has nonzero
+                    # variance that would otherwise reward collapsing the mobility.
+                    residual = _quadratic_euler_weak_residual(
+                        position, drift, covariance_trace, stochastic.step_size
+                    )
+                else:
+                    residual = jnp.asarray(0.0, dtype=f0.dtype)
                 return next_position, residual**2
 
             next_z, residuals = jax.lax.scan(overdamped_step, z, step_keys)
@@ -192,14 +238,10 @@ def stochastic_geometry_loss(
             def baoab_step(state: tuple[Any, Any], noise_key: Any) -> tuple[tuple[Any, Any], None]:
                 position, p = state
                 p = p - 0.5 * stochastic.step_size * jax.grad(potential)(position)
-                position = position + 0.5 * stochastic.step_size * mass_solve(
-                    p, diag, lowrank
-                )
-                noise_scale = jnp.sqrt(stochastic.temperature * (1.0 - damping**2))
+                position = position + 0.5 * stochastic.step_size * mass_solve(p, diag, lowrank)
+                noise_scale = jnp.sqrt(temperature * (1.0 - damping**2))
                 p = damping * p + noise_scale * sample_mobility_noise(noise_key, diag, lowrank)
-                position = position + 0.5 * stochastic.step_size * mass_solve(
-                    p, diag, lowrank
-                )
+                position = position + 0.5 * stochastic.step_size * mass_solve(p, diag, lowrank)
                 p = p - 0.5 * stochastic.step_size * jax.grad(potential)(position)
                 return (position, p), None
 
@@ -241,7 +283,7 @@ def stochastic_geometry_loss(
         covariance = centered.T @ centered / stochastic.episodes
         covariance += 1e-4 * jnp.eye(problem.dimension, dtype=f0.dtype)
         _, logdet = jnp.linalg.slogdet(covariance)
-        free_energy_surrogate = jnp.mean(values) - 0.5 * stochastic.temperature * logdet
+        free_energy_surrogate = jnp.mean(values) - 0.5 * temperature * logdet
     else:
         free_energy_surrogate = jnp.asarray(0.0, dtype=f0.dtype)
     return (
@@ -251,6 +293,25 @@ def stochastic_geometry_loss(
         + stochastic.fp_weight * jnp.mean(jnp.log1p(fp_residuals))
         + stochastic.free_energy_weight * free_energy_surrogate
     )
+
+
+def stochastic_geometry_loss(
+    params: Params,
+    problem: Problem,
+    key: Any,
+    config: ModelConfig,
+    stochastic: StochasticTrainingConfig = StochasticTrainingConfig(),
+) -> Any:
+    """Average pathwise stochastic-geometry losses over explicit trajectory keys."""
+    if stochastic.gradient_samples == 1:
+        return _single_stochastic_geometry_loss(params, problem, key, config, stochastic)
+    keys = jax.random.split(key, stochastic.gradient_samples)
+    losses = jax.vmap(
+        lambda sample_key: _single_stochastic_geometry_loss(
+            params, problem, sample_key, config, stochastic
+        )
+    )(keys)
+    return jnp.mean(losses)
 
 
 def unrolled_regret_loss(
@@ -281,7 +342,7 @@ def unrolled_regret_loss(
         apply = apply_model if model_kind == "transformer" else apply_mlp_model
         out = apply(
             params,
-            parameter_features(x, grad, lo, hi, x),
+            parameter_features(x, grad, lo, hi, x, config.scale_aware),
             1.0 - t / unroll.steps,
             config,
         )
@@ -381,7 +442,17 @@ def save_checkpoint(
     arrays = {f"param__{k}": np.asarray(v) for k, v in params.items()}
     arrays.update(
         {
-            "config": np.array([config.width, config.heads, config.rank, config.layers]),
+            "config": np.array(
+                [
+                    config.width,
+                    config.heads,
+                    config.rank,
+                    config.layers,
+                    float(config.scale_aware),
+                    config.geometry_bound,
+                    config.lowrank_scale,
+                ]
+            ),
             "metadata": np.array([repr(metadata or {})]),
         }
     )
@@ -392,7 +463,15 @@ def save_checkpoint(
 def load_checkpoint(path: str | Path) -> tuple[Params, ModelConfig]:
     with np.load(path, allow_pickle=False) as data:
         c = data["config"].tolist()
-        config = ModelConfig(*c)
+        config = ModelConfig(
+            width=int(c[0]),
+            heads=int(c[1]),
+            rank=int(c[2]),
+            layers=int(c[3]),
+            scale_aware=bool(c[4]) if len(c) > 4 else False,
+            geometry_bound=float(c[5]) if len(c) > 5 else 0.0,
+            lowrank_scale=float(c[6]) if len(c) > 6 else 1.0,
+        )
         params = {
             k.removeprefix("param__"): jnp.asarray(data[k])
             for k in data.files

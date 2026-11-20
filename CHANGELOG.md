@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.5.0 - In development
+
+- Add scale-aware, bounded diagonal-plus-low-rank geometry while preserving
+  legacy checkpoint behavior.
+- Add diagonal, low-rank, full, FP, and training-budget ablations with disjoint
+  validation tuning and a 30-instance held-out comparison.
+- Reproduce v0.4 exactly and reconcile its pre-review and corrected FP results.
+- Retain the negative result that learned geometry did not beat tuned fixed
+  geometry overall, with family-level failure analysis.
+
 ## 0.4.0 - In development
 
 - Train transformer diagonal-plus-low-rank mobility and mass heads through

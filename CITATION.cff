@@ -1,7 +1,7 @@
 cff-version: 1.2.0
 message: "If you use this research software, please cite it."
 title: "neuralopt"
-version: 0.4.0
+version: 0.5.0
 type: software
 authors:
   - family-names: Mishra

@@ -17,6 +17,19 @@ class ModelConfig:
     heads: int = 4
     rank: int = 2
     layers: int = 2
+    scale_aware: bool = False
+    geometry_bound: float = 0.0
+    lowrank_scale: float = 1.0
+
+    def __post_init__(self) -> None:
+        if self.width % self.heads:
+            raise ValueError("width must be divisible by heads")
+        if self.rank < 0 or self.layers < 1:
+            raise ValueError("rank must be nonnegative and layers must be positive")
+        if self.geometry_bound and self.geometry_bound <= 1.0:
+            raise ValueError("geometry_bound must be zero or greater than one")
+        if self.lowrank_scale < 0:
+            raise ValueError("lowrank_scale must be nonnegative")
 
 
 DEFAULT_CONFIG = ModelConfig()
@@ -24,8 +37,6 @@ DEFAULT_CONFIG = ModelConfig()
 
 def init_model(key: Any, config: ModelConfig = DEFAULT_CONFIG) -> Params:
     """Initialize policy parameters deterministically from a JAX key."""
-    if config.width % config.heads:
-        raise ValueError("width must be divisible by heads")
     keys = iter(jax.random.split(key, 8 + 4 * config.layers))
 
     def w(a: int, b: int, scale: float | None = None) -> Any:
@@ -95,11 +106,22 @@ def apply_model(
         z = jax.nn.gelu(_attention(_layer_norm(z), params, i, config.heads))
     coord, pooled = z[2:], jnp.mean(z[:2], axis=0)
     g = pooled @ params["global"]
+    diagonal_logits = (coord @ params["diag"])[:, 0]
+    if config.geometry_bound > 1.0:
+        diag = jnp.exp(jnp.log(config.geometry_bound) * jnp.tanh(diagonal_logits))
+        lowrank = (
+            config.lowrank_scale
+            * jnp.tanh(coord @ params["lowrank"])
+            / jnp.sqrt(coord.shape[0] * max(config.rank, 1))
+        )
+    else:
+        diag = jax.nn.softplus(diagonal_logits) + 1e-4
+        lowrank = coord @ params["lowrank"] / jnp.sqrt(coord.shape[0])
     return {
         "direction": jnp.tanh((coord @ params["direction"])[:, 0]),
         "proposal": jnp.tanh((coord @ params["proposal"])[:, 0]),
-        "diag": jax.nn.softplus((coord @ params["diag"])[:, 0]) + 1e-4,
-        "lowrank": coord @ params["lowrank"] / jnp.sqrt(coord.shape[0]),
+        "diag": diag,
+        "lowrank": lowrank,
         "step": jax.nn.sigmoid(g[0]),
         "exploration": jax.nn.sigmoid(g[1]),
         "region_priority": g[2],
@@ -118,11 +140,22 @@ def apply_mlp_model(
     coord = jax.nn.gelu(jnp.concatenate((features, budget, dimension), axis=-1) @ params["hidden"])
     pooled = jnp.mean(coord, axis=0)
     g = pooled @ params["global"]
+    diagonal_logits = (coord @ params["diag"])[:, 0]
+    if config.geometry_bound > 1.0:
+        diag = jnp.exp(jnp.log(config.geometry_bound) * jnp.tanh(diagonal_logits))
+        lowrank = (
+            config.lowrank_scale
+            * jnp.tanh(coord @ params["lowrank"])
+            / jnp.sqrt(coord.shape[0] * max(config.rank, 1))
+        )
+    else:
+        diag = jax.nn.softplus(diagonal_logits) + 1e-4
+        lowrank = coord @ params["lowrank"] / jnp.sqrt(coord.shape[0])
     return {
         "direction": jnp.tanh((coord @ params["direction"])[:, 0]),
         "proposal": jnp.tanh((coord @ params["proposal"])[:, 0]),
-        "diag": jax.nn.softplus((coord @ params["diag"])[:, 0]) + 1e-4,
-        "lowrank": coord @ params["lowrank"] / jnp.sqrt(coord.shape[0]),
+        "diag": diag,
+        "lowrank": lowrank,
         "step": jax.nn.sigmoid(g[0]),
         "exploration": jax.nn.sigmoid(g[1]),
         "region_priority": g[2],
