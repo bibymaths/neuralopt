@@ -1,6 +1,6 @@
 # NeuralOpt v0.6 onward — trajectory-aware curvature plan
 
-**Status:** research proposal / Claude Code handoff; not implemented by this kit. Repo `main` inspected 2026-11-21, version 0.5.0. Frozen v0.5 negative result remains canonical.
+**Status (2026-11-21):** G0–G2 implemented (opt-in `history-v1`, shared `preconditioned` loop); first pre-registered round run: H1 supported, H2 and H3 not supported, so G3 attention, G5 and G6 are not started — see `docs/research/trajectory-curvature-v0.6.md`. Original status: research proposal / Claude Code handoff. Repo `main` inspected 2026-11-21, version 0.5.0. Frozen v0.5 negative result remains canonical.
 
 ## Objective and novelty test
 Can a small sequence-aware learned optimizer infer useful **cross-coordinate curvature** from past evaluated states and transfer that geometry to unseen rotated, ill-conditioned, noisy and higher-dimensional landscapes, beating a **validation-tuned fixed-diagonal** baseline on best-feasible regret per objective/gradient cost and time?

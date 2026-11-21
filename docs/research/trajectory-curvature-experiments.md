@@ -1,5 +1,7 @@
 # Prespecified trajectory-curvature experiment protocol (draft — approve before runs)
 
+> **Status (2026-11-21):** the first round was frozen in `docs/superpowers/specs/2026-11-21-trajectory-curvature-v06-design.md` and executed; results and deviations are in `trajectory-curvature-v0.6.md`.
+
 ## Primary contrasts
 1. v0.5 single observation vs. no-attention history summary.
 2. No-attention history summary vs. matched-parameter tiny trajectory transformer.
