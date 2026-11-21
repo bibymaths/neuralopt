@@ -403,9 +403,10 @@ class HistoryUnrollConfig:
             raise ValueError("candidate_weight must be nonnegative and regret_floor positive")
 
 
-def history_unroll(
+def history_unroll_core(
     params: Params,
-    problem: Problem,
+    objective: Any,
+    bounds: tuple[Any, Any],
     key: Any,
     config: ModelConfig,
     unroll: HistoryUnrollConfig = HistoryUnrollConfig(),
@@ -422,15 +423,16 @@ def history_unroll(
     through positions and through ``∇f`` at earlier candidates (the normalized gradient
     direction), i.e. it uses second-order derivatives of the objective in training.
     """
-    lo, hi = problem.bounds
+    lo, hi = bounds
+    dimension = lo.shape[-1]
     budget = 2 + 2 * unroll.steps
     if x0 is None:
-        x0 = jax.random.uniform(key, (problem.dimension,), minval=lo, maxval=hi)
-    grad_fn = jax.grad(problem.objective)
-    f0 = problem.objective(x0)
+        x0 = jax.random.uniform(key, (dimension,), minval=lo, maxval=hi)
+    grad_fn = jax.grad(objective)
+    f0 = objective(x0)
     g0 = grad_fn(x0)
     history_on = config.feature_set != "legacy"
-    history = empty_history(config.history_length, problem.dimension, f0.dtype)
+    history = empty_history(config.history_length, dimension, f0.dtype)
     if history_on:
         history = push_history(
             history, normalize_coordinates(x0, lo, hi), gradient_to_normalized(g0, lo, hi), f0
@@ -451,7 +453,7 @@ def history_unroll(
             0.5 * out["step"], shrink,
         )
         candidate = jnp.clip(denormalize_coordinates(u_new, lo, hi), lo, hi)
-        candidate_value = problem.objective(candidate)
+        candidate_value = objective(candidate)
         candidate_grad = grad_fn(candidate)
         accepted = (
             jnp.isfinite(candidate_value)
@@ -488,6 +490,21 @@ def history_unroll(
     return outputs
 
 
+def history_unroll(
+    params: Params,
+    problem: Problem,
+    key: Any,
+    config: ModelConfig,
+    unroll: HistoryUnrollConfig = HistoryUnrollConfig(),
+    model_kind: str = "transformer",
+    x0: Any | None = None,
+) -> dict[str, Any]:
+    """:func:`history_unroll_core` for a :class:`Problem` (single-argument objective)."""
+    return history_unroll_core(
+        params, problem.objective, problem.bounds, key, config, unroll, model_kind, x0
+    )
+
+
 def history_regret_loss(
     params: Params,
     problem: Problem,
@@ -503,8 +520,14 @@ def history_regret_loss(
     if "known_optimum" not in problem.metadata:
         raise ValueError("history training requires problem.metadata['known_optimum']")
     rolled = history_unroll(params, problem, key, config, unroll, model_kind)
+    return history_regret_from_rollout(rolled, problem.metadata["known_optimum"], unroll)
+
+
+def history_regret_from_rollout(rolled: dict[str, Any], optimum: Any,
+                                unroll: HistoryUnrollConfig) -> Any:
+    """Loss of :func:`history_regret_loss` given a rollout and the known optimum."""
     f0 = rolled["initial_value"]
-    optimum = jnp.asarray(problem.metadata["known_optimum"], dtype=f0.dtype)
+    optimum = jnp.asarray(optimum, dtype=f0.dtype)
     scale = jnp.abs(f0 - optimum) + 1e-12
 
     def log_regret(values: Any) -> Any:
