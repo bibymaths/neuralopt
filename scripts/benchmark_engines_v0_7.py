@@ -83,6 +83,18 @@ def run_arm(arm: str) -> dict[str, Any]:
         for c, t in zip(closures, ts, strict=True)
     ]
     counts: list[tuple[int, int]] = []
+    # Per task: (units after each iteration, incumbent value after each iteration).
+    traces: dict[int, tuple[list[int], list[float]]] = {}
+    iterations: dict[int, int] = {}
+
+    def loop_trace(i: int, values: list[float]) -> None:
+        """NeuralOpt loop: start costs 2; a candidate costs 1, plus 1 if it improved."""
+        units, used = [], 2
+        for prev, value in zip(values[:-1], values[1:], strict=True):
+            used += 1 + int(value < prev)
+            units.append(used)
+        traces[i] = (units, list(values[1:]))
+        iterations[i] = len(values) - 1
 
     if arm in ("tf-h8-python", "tf-h8-compiled", "fixed-compiled"):
         learned = arm.startswith("tf-h8")
@@ -98,6 +110,7 @@ def run_arm(arm: str) -> dict[str, Any]:
                 )
                 d = r.diagnostics or {}
                 counts.append((d["objective_evaluations"], d["gradient_evaluations"]))
+                loop_trace(i, list(r.trajectory))
                 return r.fun
             # Parametric objective: one compilation for every task of this family/dimension.
             out = preconditioned_solve(
@@ -107,6 +120,7 @@ def run_arm(arm: str) -> dict[str, Any]:
                 fixed_metric_diag=np.ones(DIMENSION), preconditioned_step=FIXED_STEP,
             )
             counts.append((int(out["objective_evaluations"]), int(out["gradient_evaluations"])))
+            loop_trace(i, [float(v) for v in out["trajectory"][: int(out["iteration"]) + 1]])
             return float(out["value"])
 
         batch: Any = None
@@ -130,6 +144,7 @@ def run_arm(arm: str) -> dict[str, Any]:
         def solve(i: int) -> float:
             theta = ts[i].theta
             calls, best = 0, np.inf
+            bests: list[float] = []
 
             class Exhausted(Exception):
                 pass
@@ -142,6 +157,7 @@ def run_arm(arm: str) -> dict[str, Any]:
                 v, g = value_and_grad(x, theta)
                 v = float(v)
                 best = min(best, v)
+                bests.append(best)
                 return v, np.asarray(g, dtype=float)
 
             t = ts[i]
@@ -154,6 +170,8 @@ def run_arm(arm: str) -> dict[str, Any]:
             except Exhausted:
                 pass
             counts.append((calls, calls))
+            traces[i] = ([2 * (k + 1) for k in range(calls)], bests)
+            iterations[i] = calls
             return best
 
     else:
@@ -178,7 +196,38 @@ def run_arm(arm: str) -> dict[str, Any]:
         def solve(i: int) -> float:
             value, steps = single(ts[i].theta, ts[i].x0)
             counts.append((int(steps), int(steps)))
+            iterations[i] = int(steps)
             return float(value)
+
+        def optimistix_traces() -> None:
+            """Incumbent after k steps for k = 1..50, via max_steps = k (measurement only;
+            the extra fn(sol.value) used for reporting is not part of the solve)."""
+            per_k = []
+            for k in range(1, BUDGET // 2 + 1):
+                def run_k(theta: Any, x0: Any, k: int = k) -> Any:
+                    sol = optx.minimise(fn, solver, x0, args=theta, max_steps=k, throw=False)
+                    return fn(sol.value, theta)
+                per_k.append(np.asarray(jax.jit(jax.vmap(run_k))(thetas, x0s)))
+            values_k = np.minimum.accumulate(np.stack(per_k), axis=0)  # best so far
+            for i in range(TASKS):
+                traces[i] = ([2 * k for k in range(1, BUDGET // 2 + 1)], values_k[:, i].tolist())
+
+        def count_evaluations() -> bool:
+            """Untimed check: fn is called exactly once per step (line-search trials too)."""
+            calls = {"n": 0}
+
+            def counting_fn(y: Any, theta: Any) -> Any:
+                jax.debug.callback(lambda: calls.__setitem__("n", calls["n"] + 1))
+                return quadratic_objective(y, theta)
+
+            ok = True
+            for i in range(2):
+                calls["n"] = 0
+                sol = optx.minimise(counting_fn, solver, ts[i].x0, args=ts[i].theta,
+                                    max_steps=BUDGET // 2, throw=False)
+                jax.block_until_ready(sol.value)
+                ok &= calls["n"] == int(sol.stats["num_steps"])
+            return ok
 
         def batch() -> Any:
             values, _ = batched(thetas, x0s)
@@ -205,6 +254,36 @@ def run_arm(arm: str) -> dict[str, Any]:
         batched_seconds = time.perf_counter() - start
         batch_mode = "sequential"
     regrets = [log_regret(v, f) for v, f in zip(values, f0, strict=True)]
+    extra: dict[str, Any] = {}
+    if arm.startswith("optimistix"):
+        optimistix_traces()
+        extra["optimistix_fn_calls_equal_steps_verified"] = count_evaluations()
+        extra["optimistix_budget_enforcement"] = (
+            "max_steps=50; each step makes exactly one fn evaluation with its linearization "
+            "(objective + gradient = 2 units), whether the line search accepts or rejects the "
+            "trial point; verified with a call counter"
+        )
+    time_per_iteration = float(np.median([
+        w / iterations[1 + r] for r, w in enumerate(warm) if iterations.get(1 + r)
+    ]))
+    targets = {}
+    for target in (1e-3, 1e-6):
+        units_hit, iters_hit = [], []
+        for i in range(TASKS):
+            units, vals = traces[i]
+            hit = next((k for k, v in enumerate(vals) if v / f0[i] <= target), None)
+            if hit is not None:
+                units_hit.append(units[hit])
+                iters_hit.append(hit + 1)
+        reached = len(units_hit)
+        targets[f"{target:g}"] = {
+            "reached": f"{reached}/{TASKS}",
+            "median_units_to_target": float(np.median(units_hit)) if reached else None,
+            "median_iterations_to_target": float(np.median(iters_hit)) if reached else None,
+            # Estimated as iterations-to-target x warm time per iteration.
+            "estimated_ms_to_target": float(np.median(iters_hit)) * time_per_iteration * 1e3
+            if reached else None,
+        }
     task_counts = counts[-TASKS:] if batch_mode == "vmap" else counts[-2 * TASKS : -TASKS]
     return {
         "arm": arm,
@@ -219,7 +298,109 @@ def run_arm(arm: str) -> dict[str, Any]:
         "mean_gradient_evaluations": float(np.mean([c[1] for c in task_counts])),
         "max_units": int(max(c[0] + c[1] for c in task_counts)),
         "first_value_finite": bool(np.isfinite(first)),
+        "mean_units_used": float(np.mean([c[0] + c[1] for c in task_counts])),
+        "mean_iterations": float(np.mean([iterations[i] for i in range(TASKS)])),
+        "warm_ms_per_iteration": time_per_iteration * 1e3,
+        "iteration_definition": "one candidate (1 unit, +1 if improved)"
+        if arm in ("tf-h8-python", "tf-h8-compiled", "fixed-compiled")
+        else "one objective+gradient call (2 units)",
+        "targets": targets,
+        **extra,
     }
+
+
+def profile_compiled(repeats: int = 2000) -> dict[str, Any]:
+    """Split a warm compiled tf-h8 solve into fixed overhead, model forward and f/grad.
+
+    fixed overhead = median budget-2 solve (initial f, gradient, history push, dispatch,
+    host transfer; zero iterations). Per-iteration cost = (full - fixed) / iterations.
+    Model forward and objective/gradient costs are measured inside one compiled
+    ``fori_loop`` of ``repeats`` evaluations (no dispatch), with a carried dependency
+    so XLA cannot hoist them.
+    """
+    from neuralopt.features import gradient_to_normalized, normalize_coordinates
+    from neuralopt.model import apply_model
+    from neuralopt.trajectory import empty_history, history_token_features, push_history
+
+    ts = tasks()
+    params, config = load_checkpoint(CHECKPOINT)
+    params = jax.tree_util.tree_map(lambda a: a.astype(jnp.float64), params)
+
+    def solve(i: int, budget: int, geometry: str = "learned") -> dict[str, Any]:
+        return preconditioned_solve(
+            quadratic_objective, ts[i].x0, (ts[i].lo, ts[i].hi), budget, theta=ts[i].theta,
+            params=params, config=config, geometry=geometry,
+            fixed_metric_diag=np.ones(DIMENSION), preconditioned_step=FIXED_STEP,
+        )
+
+    def timed(fn: Any) -> float:
+        start = time.perf_counter()
+        fn()
+        return time.perf_counter() - start
+
+    out: dict[str, Any] = {}
+    for geometry in ("learned", "fixed"):
+        solve(0, BUDGET, geometry), solve(0, 2, geometry)  # compile both budgets
+        full, iters = [], []
+        for i in range(1, 11):
+            full.append(timed(lambda i=i, g=geometry: solve(i, BUDGET, g)))
+            iters.append(int(solve(i, BUDGET, geometry)["iteration"]))
+        fixed = float(np.median([timed(lambda i=i, g=geometry: solve(i, 2, g))
+                                 for i in range(1, 11)]))
+        per_iteration = float(np.median([(f - fixed) / n for f, n in zip(full, iters,
+                                                                          strict=True)]))
+        out[geometry] = {
+            "median_solve_ms": float(np.median(full)) * 1e3,
+            "median_iterations": float(np.median(iters)),
+            "fixed_per_call_overhead_ms": fixed * 1e3,
+            "per_iteration_us": per_iteration * 1e6,
+        }
+    task = ts[0]
+    lo, hi, theta = task.lo, task.hi, task.theta
+    x = task.x0 + 0.1
+    grad = jax.grad(quadratic_objective)(x, theta)
+    hist = empty_history(config.history_length, DIMENSION, jnp.float64)
+    for k in range(config.history_length + 1):
+        xk = x + 0.01 * k
+        hist = push_history(hist, normalize_coordinates(xk, lo, hi), gradient_to_normalized(
+            jax.grad(quadratic_objective)(xk, theta), lo, hi), quadratic_objective(xk, theta))
+
+    @jax.jit
+    def model_loop(x: Any) -> Any:
+        def body(_: Any, carry: Any) -> Any:
+            tokens = history_token_features(carry, grad, lo, hi, hist)
+            o = apply_model(params, tokens, 0.5, config)
+            return carry + 1e-30 * (o["diag"] + o["step"])
+        return jax.lax.fori_loop(0, repeats, body, x)
+
+    @jax.jit
+    def objective_loop(x: Any) -> Any:
+        def body(_: Any, carry: Any) -> Any:
+            return carry + 1e-30 * quadratic_objective(carry, theta)
+        return jax.lax.fori_loop(0, repeats, body, x)
+
+    @jax.jit
+    def gradient_loop(x: Any) -> Any:
+        def body(_: Any, carry: Any) -> Any:
+            return carry + 1e-30 * jax.grad(quadratic_objective)(carry, theta)
+        return jax.lax.fori_loop(0, repeats, body, x)
+
+    for name, fn in (("model_forward", model_loop), ("objective", objective_loop),
+                     ("gradient", gradient_loop)):
+        jax.block_until_ready(fn(x))
+        seconds = np.median([timed(lambda fn=fn: jax.block_until_ready(fn(x))) for _ in range(5)])
+        out[f"{name}_us_compiled"] = float(seconds / repeats * 1e6)
+    learned = out["learned"]
+    accept_rate = 36.4375 / 62.75  # mean gradient/objective calls of the tf-h8 runs (A6)
+    model_us = out["model_forward_us_compiled"]
+    fg_us = out["objective_us_compiled"] + accept_rate * out["gradient_us_compiled"]
+    out["learned_per_iteration_split_us"] = {
+        "model_forward": model_us,
+        "objective_and_gradient": fg_us,
+        "loop_machinery_and_rest": learned["per_iteration_us"] - model_us - fg_us,
+        "model_floor_ms_per_solve": model_us * learned["median_iterations"] / 1e3,
+    }
+    return out
 
 
 TRAIN_VARIANTS = (("isotropic", 1.0), ("diagonal", 10.0), ("diagonal", 100.0),
@@ -346,6 +527,10 @@ def main() -> None:
                     "every call (A1)",
                 },
                 "rows": rows,
+                "profile_compiled": json.loads(
+                    subprocess.run([sys.executable, __file__, "--profile"], capture_output=True,
+                                   text=True, check=True).stdout.strip().splitlines()[-1]
+                ),
                 "training": json.loads(
                     subprocess.run([sys.executable, __file__, "--training"], capture_output=True,
                                    text=True, check=True).stdout.strip().splitlines()[-1]
@@ -360,8 +545,11 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--arm", choices=ARMS)
     parser.add_argument("--training", action="store_true")
+    parser.add_argument("--profile", action="store_true")
     args = parser.parse_args()
-    if args.training:
+    if args.profile:
+        print(json.dumps(profile_compiled()))
+    elif args.training:
         print(json.dumps(training_benchmark()))
     elif args.arm:
         print(json.dumps(run_arm(args.arm)))

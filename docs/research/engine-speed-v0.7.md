@@ -56,45 +56,112 @@ Host dispatch and per-call recompilation account for more than 99% of the wall t
   dropped silently. This is tested with `f(x) = Σ√(1+x)`, which is singular at the
   lower box edge.
 
-## A6. Benchmark (`results/engine-benchmark-v0.7.0.json`)
+## A6. Benchmark: equal work (`results/engine-benchmark-v0.7.0.json`)
 
-Conditions:
+### Conditions
 - Single process per arm, float64, CPU.
 - 32 rotated κ=100 quadratics, d=16, with interior optima.
-- Budget 100 objective+gradient units.
+- Every arm gets **100 units** (objective plus gradient calls).
+- An iteration is one candidate for the NeuralOpt loop: 1 unit, plus 1 if the candidate
+  improved and its gradient was taken. For L-BFGS-B and Optimistix it is one
+  objective+gradient call: 2 units.
 - **Cold** is the first solve in a fresh process, including compilation.
 - **Warm** is the median single solve on new tasks of the same family.
-- **Batched** is tasks per second over the 32 tasks.
+- **Batched** is tasks per second over all 32 tasks.
 
-| Arm | Cold s | Warm ms | Batched tasks/s | Median log10 regret | Obj / grad per solve |
-|---|---:|---:|---:|---:|---:|
-| tf-h8, Python loop | 2.13 | 297.8 | 4.1 (sequential) | −2.72 | 62.8 / 36.4 |
-| tf-h8, compiled | 0.83 | 4.08 | 453 (vmap) | −2.72 | 62.8 / 36.4 |
-| fixed step, compiled | 0.56 | 1.04 | 4,698 (vmap) | −2.88 | 54.6 / 44.7 |
-| SciPy L-BFGS-B (jitted value_and_grad) | 0.09 | 9.84 | 102 (sequential) | −11.19 | 50 / 50 |
-| Optimistix BFGS | 0.46 | 0.17 | 24,636 (vmap) | −1.21 | 50 / 50 |
-| Optimistix LBFGS | 0.71 | 0.22 | 12,031 (vmap) | −9.25 | 50 / 50 |
+### How each arm's budget is enforced
+- **NeuralOpt loop:** it proposes a candidate only while `used + 2 ≤ 100`.
+- **SciPy L-BFGS-B:** the objective function raises after 50 calls. Line-search calls
+  count, because every SciPy call passes through it.
+- **Optimistix:** `max_steps = 50`. Each step makes exactly one `fn` evaluation with its
+  linearization (2 units), whether the line search accepts or rejects the trial point.
+  - A call counter confirmed calls = steps for both BFGS and LBFGS.
+  - Optimistix's own convergence test can stop it early; it never did here.
+  - Reporting its final value requires one extra `fn(sol.value)`. That is measurement,
+    not part of the solve.
 
-Training on the 21 v0.6 training tasks (float64, history-v1 K=8, 24-step unroll):
+### Results
+
+| Arm | Units used | Iterations | ms / iteration | Warm ms | Cold s | Batched tasks/s | Median log10 regret |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| tf-h8, Python loop | 99.2 | 61.8 | 4.873 | 296.1 | 2.10 | 4.2 (sequential) | −2.72 |
+| tf-h8, compiled | 99.2 | 61.8 | 0.066 | 4.00 | 0.84 | 467 (vmap) | −2.72 |
+| fixed step, compiled | 99.3 | 53.6 | 0.021 | 1.08 | 0.57 | 4,385 (vmap) | −2.88 |
+| SciPy L-BFGS-B | 100 | 50 | 0.195 | 9.77 | 0.08 | 101 (sequential) | −11.19 |
+| Optimistix BFGS | 100 | 50 | 0.003 | 0.14 | 0.45 | 25,405 (vmap) | −1.21 |
+| Optimistix LBFGS | 100 | 50 | 0.004 | 0.22 | 0.72 | 11,997 (vmap) | −9.25 |
+
+### Time to target
+
+The estimated time to target is the median number of iterations to reach the target
+multiplied by the warm time per iteration.
+
+| Arm | Reached 1e-3 | Units | Iterations | Est. ms | Reached 1e-6 | Units | Iterations | Est. ms |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| tf-h8, Python loop | 10/32 | 83 | 51 | 248.5 | 0/32 | — | — | not reached |
+| tf-h8, compiled | 10/32 | 83 | 51 | 3.35 | 0/32 | — | — | not reached |
+| fixed step, compiled | 11/32 | 87 | 43 | 0.88 | 0/32 | — | — | not reached |
+| SciPy L-BFGS-B | 32/32 | 26 | 13 | 2.54 | 32/32 | 56 | 28 | 5.47 |
+| Optimistix BFGS | 0/32 | — | — | not reached | 0/32 | — | — | not reached |
+| Optimistix LBFGS | 32/32 | 39 | 19.5 | 0.085 | 32/32 | 70 | 35 | 0.153 |
+
+### Why Optimistix BFGS reaches only −1.21
+
+It is not a tolerance problem.
+- With `rtol = atol = 1e-14` (the A6 run) and again with `1e-8`, every one of the 32
+  tasks used all 50 steps and ended with result code 7, "maximum number of steps
+  reached". The median regret was −1.21 both times.
+- On task 0 the iterate moved on only 8 of the 50 steps. The other 42 were backtracking
+  line-search trials, each charged one evaluation.
+- Its default initial inverse Hessian is the identity, which overshoots badly on these
+  κ=100 problems. LBFGS scales its initial Hessian from the secant pair and reaches
+  −9.25.
+- Neither solver was tuned beyond these two tolerance settings.
+
+### Where the compiled tf-h8 time goes (warm solve ≈ 4.2 ms, 61 iterations)
+
+| Component | Time |
+|---|---:|
+| fixed per-call overhead (budget-2 solve: initial f, gradient, history, dispatch, host transfer) | 1.07 ms |
+| per iteration | ≈ 46–51 µs |
+| · model forward, features included (measured inside one compiled loop) | 27.9 µs |
+| · objective + gradient (gradient on 58% of iterations) | 0.18 µs |
+| · remaining loop machinery (history push, records, larger loop state) | ≈ 18–23 µs |
+| **model floor** (forward × iterations) | **1.70 ms per solve** |
+
+For comparison, the fixed-step compiled loop costs 0.76 µs per iteration plus about
+1.0 ms of per-call overhead. The learned arm is therefore limited by the model forward
+pass and the history-related loop state, not by objective work.
+
+### Training (21 v0.6 training tasks; float64; history-v1 K=8; 24-step unroll)
 
 | Trainer | Compilations | Compile s | Task-gradients/s after compile |
 |---|---:|---:|---:|
-| v0.6 `train()` (one closure per task) | 21 | 36.5 | 13.1 |
-| `train_batched`, batch 1 | 6 | ≈16 (first pass) | 122 |
-| `train_batched`, batch 8 | 6 | ≈8.5 (first pass) | 350 |
+| v0.6 `train()` (one closure per task) | 21 | ≈36 | ≈13 |
+| `train_batched`, batch 1 | 6 | ≈16 (first pass) | ≈120 |
+| `train_batched`, batch 8 | 6 | ≈8.5 (first pass) | ≈350 |
 
-How to read the tables:
-- **Speed.** The compiled engine is about 73× faster per warm solve than the Python
-  loop, and about 2.4× faster than SciPy L-BFGS-B. Batched, it solves about 110× more
-  tasks per second than the Python loop. It remains about 20× slower than Optimistix
-  per solve.
-- **Quality is unchanged.** Track A does not change what is computed: learned
-  geometry's regret is still far behind L-BFGS.
-- **Optimistix BFGS** used defaults with no tuning. It charges one value+gradient per
-  step, line-search trials included. It reached only −1.21 here and is reported as
-  measured.
-- **Optimistix has no box bounds.** Its solvers are unbounded; with interior optima the
-  box is inactive at the solution, but iterates may leave it. Optimistix is a benchmark
-  dependency only (`neuralopt[benchmark]`) and never runs inside NeuralOpt inference.
+### How to read these numbers
 
-Reproduce: `uv run python scripts/benchmark_engines_v0_7.py`.
+- **Speed.** The compiled engine makes the learned policy about 74× faster per solve
+  than the Python loop. Per solve it is about 2.4× faster than SciPy L-BFGS-B, and still
+  about 18× slower than Optimistix LBFGS.
+- **Quality is unchanged.** Track A does not change what is computed: under equal work,
+  learned geometry reaches 1e-3 on 10 of 32 tasks and 1e-6 on none, while L-BFGS-B and
+  Optimistix LBFGS reach 1e-6 on all 32.
+- **Optimistix is a benchmark dependency only** (`neuralopt[benchmark]`) and never runs
+  inside NeuralOpt inference. Its solvers have no box bounds; with interior optima the
+  box is inactive at the solution, but iterates may leave it.
+
+## Default engine and plan
+
+- `preconditioned_engine` stays `"python"` by default for now.
+- **At the v0.7 release the default will flip to `"compiled"`.** In the same change, the
+  v0.6 reproduction script (`scripts/run_trajectory_curvature_v0_6.py`) will be pinned
+  explicitly to `preconditioned_engine="python"`, so the frozen v0.6 results keep
+  reproducing exactly.
+- That edit changes the script's sha256. It will be recorded alongside the frozen
+  results rather than by rewriting them.
+
+Reproduce: `uv run python scripts/benchmark_engines_v0_7.py` (add `--profile` or
+`--training` for those sections alone).
