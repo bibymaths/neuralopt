@@ -2,28 +2,44 @@
 
 ## Result
 
-The study was pre-registered in
-`docs/superpowers/specs/2026-11-21-trajectory-curvature-v06-design.md`, written before any
-training (sha256 recorded in the results file). Its verdict:
+**This is a negative result.** The main finding has two parts:
 
-- **H1 (history value): supported.** On the curvature domain (diagonal κ=1000, rotated
-  κ=100 and rotated κ=1000 at unseen dimensions 7/10/16), the 8-pair history transformer
-  beat its matched no-history control by 0.54 decades of normalized regret.
+- **The best learned arm loses to an untrained secant step.** A Barzilai–Borwein (BB)
+  step-length rule uses the same loop, history and 100-unit budget, with no training.
+  It beats every learned arm by about one decade of normalized regret: the 8-pair
+  history transformer by +0.92 [+0.59, +1.25] on the curvature domain.
+- **Attention adds nothing over an MLP (H2).**
+
+Learned geometry does not beat the validation-tuned fixed step under the
+pre-registered rule. Nothing here supports a claim that learned curvature geometry is
+competitive with quasi-Newton methods: L-BFGS-B leads by about six decades. The v0.5
+negative result stands, and fixed geometry remains the default.
+
+The study was pre-registered in
+`docs/superpowers/specs/2026-11-21-trajectory-curvature-v06-design.md`, written before
+any training; its sha256 is recorded in the results file. Hypotheses are tested on
+the curvature domain (diagonal κ=1000, rotated κ=100 and rotated κ=1000 at unseen
+dimensions 7/10/16) at budget 100:
+
+- **H1: history plus a rejection signal helps. Supported.** The 8-pair history
+  transformer beat its matched no-history control by 0.54 decades.
+  - The no-history control drops both the secant features and the rejection counter.
+  - So this shows that the history *bundle* helps. It does not isolate the value of
+    secant pairs.
 - **H2 (attention value): not supported.** Cross-coordinate attention added nothing
   measurable over a no-attention MLP fed the same history features.
-- **H3 (beats tuned fixed geometry): not supported.** On the curvature domain the
-  learned geometry beat the validation-tuned fixed scalar step by 0.22 decades. It
-  failed the pre-registered reliability guard, however, because it regressed on
-  Rastrigin and Ackley. **Fixed geometry remains the default.**
-- An untrained secant step-length rule (Barzilai–Borwein), given the same loop,
-  history and budget, beat every learned arm by about one decade. L-BFGS-B beat every
-  arm by about six decades. Classical history methods remain far stronger.
+- **H3 (beats tuned fixed geometry): not supported, under the 3.5× anisotropy cap.**
+  - On the curvature domain the learned geometry beat the fixed scalar step by 0.22
+    decades.
+  - It failed the pre-registered reliability guard because it regressed on Rastrigin
+    and Ackley.
+  - The pre-registered parameterization caps off-axis anisotropy at about 3.5×
+    (limitation 1). Problems needing 100–1000× therefore did not test what learned
+    geometry could do without that cap.
 
-Learned geometry does not beat a validation-tuned fixed diagonal overall, and nothing
-here supports a claim that learned curvature geometry is competitive with
-quasi-Newton methods. The v0.5 negative result stands. v0.6 adds one positive,
-narrower finding: actually evaluated secant pairs are information a small learned
-policy can use.
+v0.6 adds one positive, narrower finding: a history of actually evaluated states,
+together with a rejection signal, carries information a small learned policy can use.
+Even with it, the policy does not reach an untrained secant step.
 
 ## What was built (opt-in; legacy defaults unchanged)
 
@@ -77,15 +93,26 @@ It is never inverted. The geometry `P = diag + UUᵀ` stays SPD.
     was selected on validation only (0.03 from {0.01, 0.03, 0.1, 0.3, 1}).
 - **Metric:** `D = log10(r_cand + 1e-10) − log10(r_ref + 1e-10)` with
   `r = (f − f*)/|f₀ − f*|`. Negative values favour the candidate.
-- **Confidence intervals:** two-level bootstrap (training seed, then task), 10,000 draws.
+- **Confidence intervals:** 95% percentile intervals from a two-level bootstrap with
+  10,000 draws.
+  - Each draw resamples **both** the three training seeds and the test problems, with
+    replacement and independently (crossed, not nested), then averages the paired
+    differences.
+  - When both arms are untrained references (fixed, BB, L-BFGS-B), there is no seed
+    level, so only problems are resampled.
+- **L-BFGS-B budget:** every SciPy objective call, line-search trials included, is
+  charged one objective plus one gradient unit against the same budget.
+  - Calls are hard-capped at budget/2, so it never exceeds 100 units at budget 100.
+  - It averaged 82.7 units, because L-BFGS-B sometimes stops early, after as few as 3
+    calls.
 
 ## Primary hypotheses (budget 100 units)
 
 | Hypothesis | Contrast (curvature domain, budget 100) | Mean D (95% CI) | Wins | Pre-registered outcome |
 |---|---|---:|---:|---|
-| H1 | tf-h8 − tf-h0 | -0.54 [-0.80, -0.32] | 103/108 | supported |
+| H1 (history + rejection signal) | tf-h8 − tf-h0 | -0.54 [-0.80, -0.32] | 103/108 | supported |
 | H2 | tf-h8 − mlp-h8 | -0.08 [-0.20, +0.06] | 63/108 | not supported |
-| H3 | tf-h8 − fixed | -0.22 [-0.43, -0.03] | 84/108 | not supported |
+| H3 (under 3.5× cap) | tf-h8 − fixed | -0.22 [-0.43, -0.03] | 84/108 | not supported |
 
 H3's curvature-domain interval excludes zero, but the pre-registered rule also
 requires that no test family regress by more than 0.5 decades with an interval above
@@ -184,6 +211,13 @@ Training cost:
 2. **Train/test mismatch.** Training used a 24-candidate unroll (budget feature over 50
    units), random starts and a 1e-6 regret floor. Evaluation used budgets 50/100/200,
    centred starts and a 1e-10 floor.
+   - The 50/100 budget mismatch is expected to bias H3 and the BB comparison against
+     the learned arms. The fixed step was tuned at budget 100 and BB has no budget
+     input, while learned arms read a remaining-budget feature stretched to twice the
+     horizon they were trained on.
+   - It does not bias H1 or H2, which compare learned arms that share the same
+     mismatch.
+   - The size of the bias was not measured.
 3. **float32 floor.** 701 of 6,300 runs reach exactly the optimum in float32, so the
    1e-10 floor shapes means, especially for isotropic, Rastrigin and Ackley.
    - A **post-hoc** recomputation with a 1e-6 floor (not pre-registered;
@@ -215,6 +249,16 @@ Training cost:
    approximate. Win counts pair three seeds against one deterministic reference.
 10. **Context arm.** The frozen v0.5 checkpoint was trained on Rastrigin and Ackley and
     for a different loop. It is context only.
+
+11. **Training/inference equivalence coverage.**
+    `test_training_unroll_matches_inference_loop_rule` and
+    `test_training_scan_history_equals_inference_history` cover ordinary gradient
+    scales only.
+    - Below roughly `‖g_u‖ ≈ 1e-7`, training normalizes with `safe_l2_norm` (ε = 1e-8)
+      while inference uses the exact norm and stops at a zero gradient.
+    - When the objective decreases but the gradient is nonfinite, inference charges 2
+      units and training charges 1.
+    - These regimes are untested and the two loops may differ there.
 
 ## Corrections to statements in the frozen design
 

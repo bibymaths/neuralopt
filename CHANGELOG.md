@@ -8,10 +8,11 @@
   closed, with v0.1--v0.5 checkpoints and outputs pinned by a golden regression test.
 - Add `candidate_method="preconditioned"`, a shared loop charging objective and gradient
   calls to one budget, and `train(objective="history")`, its differentiable mirror.
-- Pre-registered multi-seed study: secant history improves learned geometry over a matched
-  no-history control (H1); attention adds nothing over an MLP (H2); learned geometry does
-  not beat the tuned fixed step under the reliability rule (H3), and an untrained BB step
-  and L-BFGS-B remain far stronger. Fixed geometry stays the default.
+- Pre-registered multi-seed study with a negative main result: an untrained
+  Barzilai--Borwein step beats every learned arm by about one decade, and attention adds
+  nothing over an MLP (H2). History plus a rejection signal helps over a matched control
+  (H1); under a 3.5x anisotropy cap, learned geometry does not beat the tuned fixed step
+  under the reliability rule (H3). Fixed geometry stays the default.
 
 ## 0.5.0 - In development
 
