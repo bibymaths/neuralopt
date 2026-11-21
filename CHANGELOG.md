@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.7.0 - In development
+
+- Track A (speed only, opt-in): `preconditioned_engine="compiled"` runs the v0.6 loop as
+  one `lax.while_loop` (float64 parity with the Python loop to 1e-10), with a vmapped
+  batch API; parametric task families and a compiled, batched, NaN-guarded trainer
+  (`train_batched`, skipped updates counted). Engine and training benchmarks in
+  `results/engine-benchmark-v0.7.0.json`; Optimistix added to the `benchmark` extra only.
+
 ## 0.6.0 - In development
 
 - Add opt-in `history-v1` trajectory features (`neuralopt.trajectory`): a bounded buffer

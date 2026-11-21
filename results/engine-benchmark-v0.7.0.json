@@ -1,0 +1,149 @@
+{
+ "schema": "neuralopt-engine-benchmark/v1",
+ "environment": {
+  "jax": "0.12.0.1",
+  "python": "3.12.10",
+  "platform": "Linux-7.0.0-43-generic-x86_64-with-glibc2.43",
+  "cpu_count": 96,
+  "xla_flags": "--xla_cpu_multi_thread_eigen=false",
+  "float": "float64"
+ },
+ "protocol": {
+  "tasks": "32 rotated kappa=100 quadratics, d=16, interior optima, seeds 5000+",
+  "budget_units": 100,
+  "warm_repeats": 10,
+  "checkpoint": "trajectory-v0.6.0-tf-h8-seed0.npz",
+  "optimistix_note": "unbounded solvers; iterates may leave the box",
+  "warm_note": "median over 10 solves of new tasks of the same family; the python engine takes Problem closures and recompiles objective/gradient on every call (A1)"
+ },
+ "rows": [
+  {
+   "arm": "tf-h8-python",
+   "cold_seconds": 2.126601080992259,
+   "warm_seconds_median": 0.2978383250301704,
+   "warm_ms_per_budget_unit": 2.978383250301704,
+   "batched_tasks_per_second": 4.126148954125511,
+   "batch_mode": "sequential",
+   "batched_matches_single": true,
+   "median_log10_regret": -2.716799841946595,
+   "mean_objective_evaluations": 62.75,
+   "mean_gradient_evaluations": 36.4375,
+   "max_units": 100,
+   "first_value_finite": true
+  },
+  {
+   "arm": "tf-h8-compiled",
+   "cold_seconds": 0.8331539490027353,
+   "warm_seconds_median": 0.0040769195184111595,
+   "warm_ms_per_budget_unit": 0.040769195184111595,
+   "batched_tasks_per_second": 453.35823587335256,
+   "batch_mode": "vmap",
+   "batched_matches_single": true,
+   "median_log10_regret": -2.7167998419465906,
+   "mean_objective_evaluations": 62.75,
+   "mean_gradient_evaluations": 36.4375,
+   "max_units": 100,
+   "first_value_finite": true
+  },
+  {
+   "arm": "fixed-compiled",
+   "cold_seconds": 0.5612437400268391,
+   "warm_seconds_median": 0.0010387145448476076,
+   "warm_ms_per_budget_unit": 0.010387145448476076,
+   "batched_tasks_per_second": 4698.418752357945,
+   "batch_mode": "vmap",
+   "batched_matches_single": true,
+   "median_log10_regret": -2.880455695676971,
+   "mean_objective_evaluations": 54.625,
+   "mean_gradient_evaluations": 44.71875,
+   "max_units": 100,
+   "first_value_finite": true
+  },
+  {
+   "arm": "scipy-lbfgsb",
+   "cold_seconds": 0.08742779598105699,
+   "warm_seconds_median": 0.009836279961746186,
+   "warm_ms_per_budget_unit": 0.09836279961746186,
+   "batched_tasks_per_second": 102.11690317893131,
+   "batch_mode": "sequential",
+   "batched_matches_single": true,
+   "median_log10_regret": -11.189201759935226,
+   "mean_objective_evaluations": 50.0,
+   "mean_gradient_evaluations": 50.0,
+   "max_units": 100,
+   "first_value_finite": true
+  },
+  {
+   "arm": "optimistix-bfgs",
+   "cold_seconds": 0.462920957012102,
+   "warm_seconds_median": 0.00017396500334143639,
+   "warm_ms_per_budget_unit": 0.0017396500334143639,
+   "batched_tasks_per_second": 24635.945913433854,
+   "batch_mode": "vmap",
+   "batched_matches_single": true,
+   "median_log10_regret": -1.2053649423191994,
+   "mean_objective_evaluations": 50.0,
+   "mean_gradient_evaluations": 50.0,
+   "max_units": 100,
+   "first_value_finite": true
+  },
+  {
+   "arm": "optimistix-lbfgs",
+   "cold_seconds": 0.7047550780698657,
+   "warm_seconds_median": 0.00022255047224462032,
+   "warm_ms_per_budget_unit": 0.0022255047224462032,
+   "batched_tasks_per_second": 12030.96188395233,
+   "batch_mode": "vmap",
+   "batched_matches_single": true,
+   "median_log10_regret": -9.250391197191599,
+   "mean_objective_evaluations": 50.0,
+   "mean_gradient_evaluations": 50.0,
+   "max_units": 100,
+   "first_value_finite": true
+  }
+ ],
+ "training": {
+  "tasks": 21,
+  "updates": 60,
+  "unroll_steps": 24,
+  "v06_train": {
+   "compilations": 21,
+   "compile_seconds": 36.467503600986674,
+   "seconds_for_updates_after_compile": 4.588897838955745,
+   "updates_per_second": 13.075035031430046,
+   "task_gradients_per_second": 13.075035031430046
+  },
+  "batched_train_batch1": {
+   "compilations": 6,
+   "group_sizes": {
+    "quadratic-d2": 6,
+    "quadratic-d4": 6,
+    "quadratic-d8": 6,
+    "rastrigin-d2": 1,
+    "rastrigin-d4": 1,
+    "rastrigin-d8": 1
+   },
+   "first_pass_seconds_incl_compile": 16.47147082001902,
+   "seconds_for_updates_after_compile": 0.49245860998053104,
+   "updates_per_second": 121.83765048269143,
+   "task_gradients_per_second": 121.83765048269143,
+   "skipped_updates": 0
+  },
+  "batched_train_batch8": {
+   "compilations": 6,
+   "group_sizes": {
+    "quadratic-d2": 6,
+    "quadratic-d4": 6,
+    "quadratic-d8": 6,
+    "rastrigin-d2": 1,
+    "rastrigin-d4": 1,
+    "rastrigin-d8": 1
+   },
+   "first_pass_seconds_incl_compile": 8.539023998077027,
+   "seconds_for_updates_after_compile": 0.5994523670524359,
+   "updates_per_second": 100.0913555401002,
+   "task_gradients_per_second": 350.31974439035065,
+   "skipped_updates": 0
+  }
+ }
+}
