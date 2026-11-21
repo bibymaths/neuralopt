@@ -11,7 +11,12 @@ import jax.numpy as jnp
 import numpy as np
 
 from .certification import Certificate, Expr, certify
-from .features import gradient_to_normalized, parameter_features
+from .features import (
+    denormalize_coordinates,
+    gradient_to_normalized,
+    normalize_coordinates,
+    parameter_features,
+)
 from .hamiltonian import DEFAULT_HAMILTONIAN_CONFIG, HamiltonianConfig, hamiltonian_proposal
 from .langevin import (
     DEFAULT_OVERDAMPED_CONFIG,
@@ -30,6 +35,13 @@ from .model import (
     precondition,
 )
 from .problem import Problem
+from .trajectory import (
+    empty_history,
+    history_token_features,
+    preconditioned_candidate,
+    push_history,
+    record_rejection,
+)
 
 
 @dataclass(frozen=True)
@@ -63,6 +75,13 @@ def _validate_policy_params(params: Params, model_kind: str, config: ModelConfig
     missing = sorted(required - params.keys())
     if missing:
         raise ValueError(f"{model_kind} parameters are missing keys: {', '.join(missing)}")
+    input_key, extra = ("hidden", 2) if model_kind == "mlp" else ("embed", 0)
+    expected = config.input_features + extra
+    if params[input_key].shape[0] != expected:
+        raise ValueError(
+            f"{model_kind} input width {params[input_key].shape[0]} does not match "
+            f"feature_set={config.feature_set!r} ({expected})"
+        )
 
 
 def minimize(
@@ -75,13 +94,16 @@ def minimize(
     absolute_gap: float = 1e-6,
     record_diagnostics: bool = False,
     model_kind: Literal["transformer", "mlp"] = "transformer",
-    candidate_method: Literal["direct", "hamiltonian", "langevin", "underdamped"] = "direct",
+    candidate_method: Literal[
+        "direct", "hamiltonian", "langevin", "underdamped", "preconditioned"
+    ] = "direct",
     hamiltonian_config: HamiltonianConfig = DEFAULT_HAMILTONIAN_CONFIG,
     hamiltonian_metric: Literal["identity", "fixed", "learned"] = "learned",
     fixed_metric_diag: Any | None = None,
     learned_metric_structure: Literal["diagonal", "lowrank", "full"] = "full",
     overdamped_config: OverdampedConfig = DEFAULT_OVERDAMPED_CONFIG,
     underdamped_config: UnderdampedConfig = DEFAULT_UNDERDAMPED_CONFIG,
+    preconditioned_step: float | None = None,
 ) -> OptimizationResult:
     """Minimize a bounded objective with learned actions or rigorous certification."""
     budget = max_evaluations or problem.max_evaluations
@@ -113,16 +135,18 @@ def minimize(
         raise ValueError("mode must be 'learned' or 'certified'")
     if model_kind not in {"transformer", "mlp"}:
         raise ValueError("model_kind must be 'transformer' or 'mlp'")
-    if candidate_method not in {"direct", "hamiltonian", "langevin", "underdamped"}:
+    methods = {"direct", "hamiltonian", "langevin", "underdamped", "preconditioned"}
+    if candidate_method not in methods:
         raise ValueError(
-            "candidate_method must be 'direct', 'hamiltonian', 'langevin', or 'underdamped'"
+            "candidate_method must be 'direct', 'hamiltonian', 'langevin', 'underdamped', "
+            "or 'preconditioned'"
         )
     if hamiltonian_metric not in {"identity", "fixed", "learned"}:
         raise ValueError("hamiltonian_metric must be 'identity', 'fixed', or 'learned'")
     if learned_metric_structure not in {"diagonal", "lowrank", "full"}:
         raise ValueError("learned_metric_structure must be 'diagonal', 'lowrank', or 'full'")
     if candidate_method != "direct" and problem.constraints:
-        raise ValueError("stochastic proposals currently support box constraints only")
+        raise ValueError(f"{candidate_method} proposals currently support box constraints only")
     checkpoint_name = "caller-provided"
     if params is None:
         if model_kind != "transformer":
@@ -134,6 +158,8 @@ def minimize(
             params, config = load_checkpoint(checkpoint_path)
         checkpoint_name = "bundled-demo-v0.1.0"
     _validate_policy_params(params, model_kind, config)
+    if config.feature_set != "legacy" and candidate_method != "preconditioned":
+        raise ValueError("history feature sets require candidate_method='preconditioned'")
     lo, hi = problem.bounds
     if hamiltonian_metric == "fixed":
         if fixed_metric_diag is None:
@@ -145,6 +171,21 @@ def minimize(
             raise ValueError(
                 "fixed_metric_diag must be a finite positive vector of problem dimension"
             )
+    if candidate_method == "preconditioned":
+        return _minimize_preconditioned(
+            problem,
+            budget,
+            seed,
+            params,
+            config,
+            model_kind,
+            hamiltonian_metric,
+            fixed_metric_diag,
+            learned_metric_structure,
+            preconditioned_step,
+            record_diagnostics,
+            checkpoint_name,
+        )
     width = hi - lo
     if problem.gradient is None:
         objective_fn = jax.jit(problem.objective)
@@ -432,3 +473,171 @@ def minimize(
             else None,
         },
     )
+
+
+def _minimize_preconditioned(
+    problem: Problem,
+    budget: int,
+    seed: int,
+    params: Params,
+    config: ModelConfig,
+    model_kind: str,
+    geometry: str,
+    fixed_metric_diag: Any,
+    structure: str,
+    preconditioned_step: float | None,
+    record_diagnostics: bool,
+    checkpoint_name: str,
+) -> OptimizationResult:
+    """Shared v0.6 loop: ``u' = clip(u - σ L P ĝ, -1, 1)`` with hard acceptance.
+
+    Every arm (learned, fixed, identity geometry) uses this rule, so differences come
+    from geometry and step length only. ``P`` is an SPD *inverse* metric here, so
+    ``fixed_metric_diag`` multiplies the gradient (it is a mass, i.e. inverted, only for
+    ``candidate_method='hamiltonian'``). ``-Pĝ`` is a descent direction, but after box
+    clipping a non-diagonal ``P`` can yield an ascent step; hard acceptance rejects it.
+    Objective *and* gradient calls are charged to ``budget``; a gradient is evaluated
+    once per accepted state and never at rejected candidates. ``σ`` halves after each
+    rejection and resets on acceptance.
+    """
+    if geometry != "learned" and (preconditioned_step is None or not preconditioned_step > 0):
+        raise ValueError("non-learned preconditioned geometry requires preconditioned_step > 0")
+    if budget < 2:
+        raise ValueError("preconditioned loop needs a budget of at least 2 (objective + gradient)")
+    lo, hi = problem.bounds
+    dimension = problem.dimension
+    if problem.gradient is None:
+        objective_fn = jax.jit(problem.objective)
+        grad_fn = jax.jit(jax.grad(problem.objective))
+    else:
+        objective_fn = problem.objective
+        grad_fn = problem.gradient
+    history_on = config.feature_set != "legacy"
+    apply = apply_model_jit if model_kind == "transformer" else apply_mlp_model_jit
+    features_fn = _history_tokens_jit if history_on else None
+    x = problem.x0
+    assert x is not None
+    value = float(objective_fn(x))
+    if not np.isfinite(value):
+        raise FloatingPointError("objective returned a nonfinite initial value")
+    try:
+        grad = jnp.asarray(grad_fn(x), dtype=lo.dtype)
+    except Exception as exc:
+        raise ValueError("objective is not differentiable; provide a gradient") from exc
+    objective_evaluations, gradient_evaluations = 1, 1
+    if not bool(jnp.all(jnp.isfinite(grad))):
+        raise FloatingPointError("gradient is nonfinite at the initial point")
+    history = empty_history(config.history_length, dimension, lo.dtype)
+    if history_on:
+        history = push_history(
+            history, normalize_coordinates(x, lo, hi), gradient_to_normalized(grad, lo, hi), value
+        )
+    trajectory, records = [value], []
+    shrink, accepted_steps, rejected_steps, status = 1.0, 0, 0, "budget_exhausted"
+    while objective_evaluations + gradient_evaluations + 2 <= budget:
+        g_u = gradient_to_normalized(grad, lo, hi)
+        g_norm = float(jnp.linalg.norm(g_u))
+        if g_norm == 0.0:
+            status = "stationary"
+            break
+        unit = g_u / g_norm
+        if geometry == "learned":
+            if features_fn is None:
+                tokens = parameter_features(x, grad, lo, hi, x, config.scale_aware)
+            else:
+                tokens = features_fn(x, grad, lo, hi, history)
+            used = objective_evaluations + gradient_evaluations
+            out = apply(params, tokens, 1 - used / budget, config)
+            diag, lowrank = out["diag"], out["lowrank"]
+            if structure == "diagonal":
+                lowrank = jnp.zeros_like(lowrank)
+            elif structure == "lowrank":
+                diag = jnp.ones_like(diag)
+            step = 0.5 * out["step"]
+            if not (
+                bool(jnp.all(jnp.isfinite(diag)))
+                and bool(jnp.all(diag > 0))
+                and bool(jnp.all(jnp.isfinite(lowrank)))
+                and bool(jnp.isfinite(step))
+            ):
+                raise FloatingPointError("learned geometry is nonfinite or not positive definite")
+        else:
+            diag = fixed_metric_diag if geometry == "fixed" else jnp.ones(dimension, lo.dtype)
+            lowrank = jnp.zeros((dimension, 1), lo.dtype)
+            assert preconditioned_step is not None  # validated on entry
+            step = preconditioned_step
+        u = normalize_coordinates(x, lo, hi)
+        u_new = preconditioned_candidate(u, unit, diag, lowrank, step, shrink)
+        candidate = jnp.clip(denormalize_coordinates(u_new, lo, hi), lo, hi)
+        applied_length = float(shrink * step)
+        candidate_value = float(objective_fn(candidate))
+        objective_evaluations += 1
+        accepted = bool(np.isfinite(candidate_value) and candidate_value < value)
+        if accepted:
+            candidate_grad = jnp.asarray(grad_fn(candidate), dtype=lo.dtype)
+            gradient_evaluations += 1
+            # A state whose gradient is unusable is never adopted or stored.
+            accepted = bool(jnp.all(jnp.isfinite(candidate_grad)))
+        if accepted:
+            x, value, grad = candidate, candidate_value, candidate_grad
+            shrink = 1.0
+            accepted_steps += 1
+            if history_on:
+                history = push_history(
+                    history,
+                    normalize_coordinates(x, lo, hi),
+                    gradient_to_normalized(grad, lo, hi),
+                    value,
+                )
+        else:
+            shrink *= 0.5
+            rejected_steps += 1
+            history = record_rejection(history)
+        trajectory.append(value)
+        if record_diagnostics:
+            records.append(
+                {
+                    "candidate": np.asarray(candidate).tolist(),
+                    "candidate_objective": candidate_value,
+                    "accepted": accepted,
+                    "step_length": applied_length,
+                    "diag_min": float(jnp.min(diag)),
+                    "diag_max": float(jnp.max(diag)),
+                    "lowrank_frobenius": float(jnp.linalg.norm(lowrank)),
+                }
+            )
+    total = objective_evaluations + gradient_evaluations
+    return OptimizationResult(
+        x,
+        value,
+        status,
+        total,
+        tuple(trajectory),
+        diagnostics={
+            "candidate_method": "preconditioned",
+            "geometry": geometry,
+            "feature_set": config.feature_set,
+            "history_length": config.history_length,
+            "checkpoint": checkpoint_name,
+            "seed": seed,
+            "parameter_count": sum(v.size for v in jax.tree_util.tree_leaves(params)),
+            "objective_evaluations": objective_evaluations,
+            "gradient_evaluations": gradient_evaluations,
+            "hvp_evaluations": 0,
+            "accepted_steps": accepted_steps,
+            "rejected_steps": rejected_steps,
+            "records": records if record_diagnostics else None,
+            "history": {
+                "u": np.asarray(history.u).tolist(),
+                "g": np.asarray(history.g).tolist(),
+                "f": np.asarray(history.f).tolist(),
+                "valid": np.asarray(history.valid).tolist(),
+                "rejections": int(history.rejections),
+            }
+            if record_diagnostics
+            else None,
+        },
+    )
+
+
+_history_tokens_jit = jax.jit(history_token_features)

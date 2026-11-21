@@ -1,0 +1,17 @@
+# Claude Code master task: NeuralOpt v0.6 trajectory-aware curvature learning
+
+You are the **only coding agent**, working in the existing `/workspace/neuralopt` repository (or actual repository root). Use the project `CLAUDE.md`, `.claude/rules/`, skills, the real source tree and up-to-date research docs. When the user has installed Superpowers, follow its brainstorming → writing-plans → TDD → verification discipline; do not vendor it.
+
+**Question:** Can a small variable-dimensional transformer infer useful curvature from multiple *actually evaluated* positions and gradients and produce transferable geometry that beats a validation-tuned fixed-diagonal baseline on unseen rotated and ill-conditioned objectives, after accounting for all objective/gradient/HVP and runtime costs?
+
+First audit the *actual current* repository, PR history, checkpoints and v0.5 negative results. The problem is missing history/curvature information—not automatically insufficient model size, FP weighting, or more stochastic solvers. The reference arXiv:2501.16371 supports historical secants and self-scaled Broyden principles, **not adding PINNs**. Read `docs/research/trajectory-curvature-literature.md` for primary sources and novelty constraints (Optimus, L-SR1, LODO, Set Transformer, noisy secants).
+
+Propose a minimal versioned v0.6 design: bounded coherent JAX state history of 4–8 evaluated position/gradient pairs in normalized box coordinates; masked `(s,y)` secant/reliability/curvature features; initial no-attention statistical baseline; then optional tiny temporal/cross-coordinate attention only if justified by tests. Keep `features.py` five-feature legacy model and all existing `.npz` checkpoint loading functional; use explicit schema/version tags. Never add external solver dispatch during inference. Preserve HMC/Langevin/FP/function-space and certification logic, not rebuild them.
+
+Write failing tests first: coordinate and gradient scaling, exact secant on rotated SPD quadratic, negative/noisy curvature, degenerate history, accepted/rejected state coherence, eval counting, checkpoint backward compatibility, JIT/vmap/meta-gradients, bound handling and constant-metric stochastic correctness. Document inability to recover full Hessian from insufficient-rank displacement history.
+
+Pre-register a multi-seed matched-budget evaluation against v0.5 learned single-token geometry, tuned fixed diagonal, no-attention history, matched MLP, optional strong quasi-Newton reference, and tiny attention; report paired regret, confidence intervals, held-out family/dimension transfer, objective/grad/HVP counts, compile/warm runtime and training compute. Hold out test families/seeds and **do not tune after seeing results**.
+
+Only if information and representation gates pass, train stochastic mass/mobility with history (correct noise/metric conventions); defer function-space generalization and certification candidate injection until direct learned geometry demonstrates value. Keep mathematical certification entirely independent.
+
+Implement in small, verified gates per `docs/plans/neuralopt-v06-trajectory-curvature.md`. Update docs and figures only from reproducible evidence. Finish with explicit hypothesis outcomes, test commands/results, changed files, measured gains and regressions, open gaps and next recommendation. Never fabricate superiority or release. Do not merge, push or publish without explicit permission.

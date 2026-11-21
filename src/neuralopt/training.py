@@ -11,11 +11,18 @@ import jax
 import jax.numpy as jnp
 import numpy as np
 
-from .features import gradient_to_normalized, parameter_features, safe_l2_norm
+from .features import (
+    denormalize_coordinates,
+    gradient_to_normalized,
+    normalize_coordinates,
+    parameter_features,
+    safe_l2_norm,
+)
 from .hamiltonian import from_unconstrained, log_abs_det_jacobian, mass_solve, to_unconstrained
 from .langevin import mobility_apply, sample_mobility_noise
 from .model import (
     DEFAULT_CONFIG,
+    HISTORY_SCHEMA,
     ModelConfig,
     Params,
     apply_mlp_model,
@@ -25,6 +32,13 @@ from .model import (
     precondition,
 )
 from .problem import Problem
+from .trajectory import (
+    empty_history,
+    history_token_features,
+    preconditioned_candidate,
+    push_history,
+    record_rejection,
+)
 
 
 def imitation_loss(
@@ -371,6 +385,137 @@ def unrolled_regret_loss(
     return jnp.sum(weights * jnp.log1p(regrets)) + jnp.mean(regularizers)
 
 
+@dataclass(frozen=True)
+class HistoryUnrollConfig:
+    """Differentiable mirror of the v0.6 ``preconditioned`` inference loop."""
+
+    steps: int = 24
+    horizons: tuple[int, ...] = (6, 12, 24)
+    candidate_weight: float = 0.1
+    regret_floor: float = 1e-6
+
+    def __post_init__(self) -> None:
+        if self.steps < 1 or not self.horizons:
+            raise ValueError("steps and horizons must be positive")
+        if any(h < 1 or h > self.steps for h in self.horizons):
+            raise ValueError("horizons must lie in [1, steps]")
+        if self.candidate_weight < 0 or self.regret_floor <= 0:
+            raise ValueError("candidate_weight must be nonnegative and regret_floor positive")
+
+
+def history_unroll(
+    params: Params,
+    problem: Problem,
+    key: Any,
+    config: ModelConfig,
+    unroll: HistoryUnrollConfig = HistoryUnrollConfig(),
+    model_kind: str = "transformer",
+    x0: Any | None = None,
+) -> dict[str, Any]:
+    """Run the shared loop rule for ``unroll.steps`` candidates under ``lax.scan``.
+
+    Acceptance is hard (``f' < f`` with finite value and gradient), exactly as in
+    inference; the budget fraction uses the same ``1 - used / budget`` definition with
+    ``budget = 2 + 2 * steps``. The candidate gradient is computed for every step here
+    only because ``scan`` needs static shapes; inference charges it only on acceptance.
+    History *features* are ``stop_gradient``-ed, but the meta-gradient still flows
+    through positions and through ``∇f`` at earlier candidates (the normalized gradient
+    direction), i.e. it uses second-order derivatives of the objective in training.
+    """
+    lo, hi = problem.bounds
+    budget = 2 + 2 * unroll.steps
+    if x0 is None:
+        x0 = jax.random.uniform(key, (problem.dimension,), minval=lo, maxval=hi)
+    grad_fn = jax.grad(problem.objective)
+    f0 = problem.objective(x0)
+    g0 = grad_fn(x0)
+    history_on = config.feature_set != "legacy"
+    history = empty_history(config.history_length, problem.dimension, f0.dtype)
+    if history_on:
+        history = push_history(
+            history, normalize_coordinates(x0, lo, hi), gradient_to_normalized(g0, lo, hi), f0
+        )
+    apply = apply_model if model_kind == "transformer" else apply_mlp_model
+
+    def step(carry: tuple[Any, ...], _: Any) -> tuple[tuple[Any, ...], dict[str, Any]]:
+        x, value, grad, hist, shrink, used = carry
+        g_u = gradient_to_normalized(grad, lo, hi)
+        unit = g_u / safe_l2_norm(g_u)
+        if history_on:
+            tokens = history_token_features(x, grad, lo, hi, hist)
+        else:
+            tokens = parameter_features(x, grad, lo, hi, x, config.scale_aware)
+        out = apply(params, jax.lax.stop_gradient(tokens), 1.0 - used / budget, config)
+        u_new = preconditioned_candidate(
+            normalize_coordinates(x, lo, hi), unit, out["diag"], out["lowrank"],
+            0.5 * out["step"], shrink,
+        )
+        candidate = jnp.clip(denormalize_coordinates(u_new, lo, hi), lo, hi)
+        candidate_value = problem.objective(candidate)
+        candidate_grad = grad_fn(candidate)
+        accepted = (
+            jnp.isfinite(candidate_value)
+            & (candidate_value < value)
+            & jnp.all(jnp.isfinite(candidate_grad))
+        )
+        pushed = push_history(
+            hist,
+            normalize_coordinates(candidate, lo, hi),
+            gradient_to_normalized(candidate_grad, lo, hi),
+            candidate_value,
+        )
+        next_hist = jax.tree_util.tree_map(
+            lambda a, b: jnp.where(accepted, a, b), pushed, record_rejection(hist)
+        )
+        next_carry = (
+            jnp.where(accepted, candidate, x),
+            jnp.where(accepted, candidate_value, value),
+            jnp.where(accepted, candidate_grad, grad),
+            next_hist,
+            jnp.where(accepted, 1.0, 0.5 * shrink),
+            used + 1 + accepted.astype(used.dtype),
+        )
+        return next_carry, {
+            "values": next_carry[1],
+            "candidate_values": jnp.where(jnp.isfinite(candidate_value), candidate_value, value),
+            "accepted": accepted,
+        }
+
+    init = (x0, f0, g0, history, jnp.asarray(1.0, f0.dtype), jnp.asarray(2.0, f0.dtype))
+    final, outputs = jax.lax.scan(step, init, None, length=unroll.steps)
+    outputs["initial_value"] = f0
+    outputs["final_history"] = final[3]
+    return outputs
+
+
+def history_regret_loss(
+    params: Params,
+    problem: Problem,
+    key: Any,
+    config: ModelConfig,
+    unroll: HistoryUnrollConfig = HistoryUnrollConfig(),
+    model_kind: str = "transformer",
+) -> Any:
+    """Multi-horizon log incumbent regret plus a weighted anytime candidate term.
+
+    Regret is normalized by the initial gap, so the loss is objective-scale invariant.
+    """
+    if "known_optimum" not in problem.metadata:
+        raise ValueError("history training requires problem.metadata['known_optimum']")
+    rolled = history_unroll(params, problem, key, config, unroll, model_kind)
+    f0 = rolled["initial_value"]
+    optimum = jnp.asarray(problem.metadata["known_optimum"], dtype=f0.dtype)
+    scale = jnp.abs(f0 - optimum) + 1e-12
+
+    def log_regret(values: Any) -> Any:
+        return jnp.log(jnp.maximum(values - optimum, 0.0) / scale + unroll.regret_floor)
+
+    horizon_indices = jnp.asarray([h - 1 for h in unroll.horizons])
+    incumbent = jnp.mean(log_regret(rolled["values"][horizon_indices]))
+    candidates = jnp.mean(log_regret(rolled["candidate_values"]))
+    return incumbent + unroll.candidate_weight * candidates
+
+
 def train(
     problems: Iterable[Problem],
     seed: int = 0,
@@ -381,6 +526,7 @@ def train(
     unroll: UnrollConfig = UnrollConfig(),
     stochastic: StochasticTrainingConfig = StochasticTrainingConfig(),
     model_kind: str = "transformer",
+    history_unroll: HistoryUnrollConfig = HistoryUnrollConfig(),
 ) -> tuple[Params, list[float]]:
     """Train with Optax; objective optimization inference never uses Optax."""
     try:
@@ -390,8 +536,10 @@ def train(
     items = list(problems)
     if not items:
         raise ValueError("at least one training problem is required")
-    if objective not in {"imitation", "regret", "stochastic"}:
-        raise ValueError("objective must be 'imitation', 'regret', or 'stochastic'")
+    if objective not in {"imitation", "regret", "stochastic", "history"}:
+        raise ValueError("objective must be 'imitation', 'regret', 'stochastic', or 'history'")
+    if config.feature_set != "legacy" and objective != "history":
+        raise ValueError("history feature sets require objective='history'")
     if objective == "stochastic" and model_kind != "transformer":
         raise ValueError("stochastic geometry training requires model_kind='transformer'")
     key = jax.random.PRNGKey(seed)
@@ -410,6 +558,11 @@ def train(
 
             def task_loss(p: Params, k: Any) -> Any:
                 return unrolled_regret_loss(p, problem, k, config, unroll, model_kind)
+
+        elif objective == "history":
+
+            def task_loss(p: Params, k: Any) -> Any:
+                return history_regret_loss(p, problem, k, config, history_unroll, model_kind)
 
         else:
 
@@ -440,22 +593,20 @@ def save_checkpoint(
     path: str | Path, params: Params, config: ModelConfig, metadata: dict[str, Any] | None = None
 ) -> None:
     arrays = {f"param__{k}": np.asarray(v) for k, v in params.items()}
-    arrays.update(
-        {
-            "config": np.array(
-                [
-                    config.width,
-                    config.heads,
-                    config.rank,
-                    config.layers,
-                    float(config.scale_aware),
-                    config.geometry_bound,
-                    config.lowrank_scale,
-                ]
-            ),
-            "metadata": np.array([repr(metadata or {})]),
-        }
-    )
+    values = [
+        config.width,
+        config.heads,
+        config.rank,
+        config.layers,
+        float(config.scale_aware),
+        config.geometry_bound,
+        config.lowrank_scale,
+    ]
+    if config.feature_set != "legacy":
+        # Legacy files stay byte-compatible; versioned schemas are explicit and opt-in.
+        values += [1.0, config.history_length]
+        arrays["schema"] = np.array([HISTORY_SCHEMA])
+    arrays.update({"config": np.array(values), "metadata": np.array([repr(metadata or {})])})
     saver: Any = np.savez_compressed
     saver(path, **arrays)
 
@@ -463,6 +614,16 @@ def save_checkpoint(
 def load_checkpoint(path: str | Path) -> tuple[Params, ModelConfig]:
     with np.load(path, allow_pickle=False) as data:
         c = data["config"].tolist()
+        schema = str(data["schema"][0]) if "schema" in data.files else None
+        if schema is None and len(c) > 7:
+            raise ValueError("extended checkpoint config without a schema tag")
+        if schema is not None and (schema != HISTORY_SCHEMA or len(c) != 9 or c[7] != 1.0):
+            raise ValueError(f"unsupported checkpoint schema: {schema}")
+        if schema is not None and (c[8] != int(c[8]) or c[8] < 0):
+            raise ValueError("checkpoint schema has an invalid history_length")
+        history = (
+            {"feature_set": "history-v1", "history_length": int(c[8])} if schema else {}
+        )
         config = ModelConfig(
             width=int(c[0]),
             heads=int(c[1]),
@@ -471,10 +632,18 @@ def load_checkpoint(path: str | Path) -> tuple[Params, ModelConfig]:
             scale_aware=bool(c[4]) if len(c) > 4 else False,
             geometry_bound=float(c[5]) if len(c) > 5 else 0.0,
             lowrank_scale=float(c[6]) if len(c) > 6 else 1.0,
+            **history,
         )
         params = {
             k.removeprefix("param__"): jnp.asarray(data[k])
             for k in data.files
             if k.startswith("param__")
         }
+    # Fail closed when the input width contradicts the (possibly absent) schema tag.
+    for key, extra in (("embed", 0), ("hidden", 2)):
+        if key in params and params[key].shape[0] != config.input_features + extra:
+            raise ValueError(
+                f"checkpoint {key} width {params[key].shape[0]} contradicts its schema "
+                f"(feature_set={config.feature_set!r})"
+            )
     return params, config
