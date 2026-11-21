@@ -6,8 +6,9 @@
 
 - **The best learned arm loses to an untrained secant step.** A Barzilai–Borwein (BB)
   step-length rule uses the same loop, history and 100-unit budget, with no training.
-  It beats every learned arm by about one decade of normalized regret: the 8-pair
-  history transformer by +0.92 [+0.59, +1.25] on the curvature domain.
+  It beats every learned arm by about one decade of normalized regret. For the 8-pair
+  history transformer on the curvature domain, tf-h8 − BB = +0.92 [+0.59, +1.25]
+  (positive means BB is better).
 - **Attention adds nothing over an MLP (H2).**
 
 Learned geometry does not beat the validation-tuned fixed step under the
@@ -100,6 +101,8 @@ It is never inverted. The geometry `P = diag + UUᵀ` stays SPD.
     differences.
   - When both arms are untrained references (fixed, BB, L-BFGS-B), there is no seed
     level, so only problems are resampled.
+  - With only 3 training seeds, the seed level of the bootstrap captures training
+    variation only coarsely.
 - **L-BFGS-B budget:** every SciPy objective call, line-search trials included, is
   charged one objective plus one gradient unit against the same budget.
   - Calls are hard-capped at budget/2, so it never exceeds 100 units at budget 100.
