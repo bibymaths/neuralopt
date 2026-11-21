@@ -8,7 +8,13 @@ from typing import Any
 import jax
 import jax.numpy as jnp
 
+from .trajectory import HISTORY_FEATURES
+
 Params = dict[str, Any]
+
+LEGACY_FEATURES = 5
+HISTORY_SCHEMA = "neuralopt-policy/v0.6-history-v1"
+FEATURE_SETS = {"legacy": LEGACY_FEATURES, "history-v1": LEGACY_FEATURES + HISTORY_FEATURES}
 
 
 @dataclass(frozen=True)
@@ -20,8 +26,18 @@ class ModelConfig:
     scale_aware: bool = False
     geometry_bound: float = 0.0
     lowrank_scale: float = 1.0
+    feature_set: str = "legacy"
+    history_length: int = 0
 
     def __post_init__(self) -> None:
+        if self.feature_set not in FEATURE_SETS:
+            raise ValueError(f"feature_set must be one of {sorted(FEATURE_SETS)}")
+        if self.feature_set == "legacy" and self.history_length:
+            raise ValueError("legacy feature_set requires history_length=0")
+        if self.history_length < 0:
+            raise ValueError("history_length must be nonnegative")
+        if self.feature_set != "legacy" and not self.scale_aware:
+            raise ValueError("history feature sets require scale_aware=True")
         if self.width % self.heads:
             raise ValueError("width must be divisible by heads")
         if self.rank < 0 or self.layers < 1:
@@ -30,6 +46,11 @@ class ModelConfig:
             raise ValueError("geometry_bound must be zero or greater than one")
         if self.lowrank_scale < 0:
             raise ValueError("lowrank_scale must be nonnegative")
+
+    @property
+    def input_features(self) -> int:
+        """Per-coordinate token width implied by the versioned feature set."""
+        return FEATURE_SETS[self.feature_set]
 
 
 DEFAULT_CONFIG = ModelConfig()
@@ -42,7 +63,7 @@ def init_model(key: Any, config: ModelConfig = DEFAULT_CONFIG) -> Params:
     def w(a: int, b: int, scale: float | None = None) -> Any:
         return jax.random.normal(next(keys), (a, b)) * (scale or a**-0.5)
 
-    p: Params = {"embed": w(5, config.width), "task": w(2, config.width)}
+    p: Params = {"embed": w(config.input_features, config.width), "task": w(2, config.width)}
     for i in range(config.layers):
         p[f"q{i}"], p[f"k{i}"], p[f"v{i}"], p[f"o{i}"] = (
             w(config.width, config.width) for _ in range(4)
@@ -67,7 +88,7 @@ def init_mlp_model(key: Any, config: ModelConfig = DEFAULT_CONFIG) -> Params:
         return jax.random.normal(next(k), (a, b)) * a**-0.5
 
     return {
-        "hidden": w(7, config.width),
+        "hidden": w(config.input_features + 2, config.width),
         "direction": w(config.width, 1),
         "proposal": w(config.width, 1),
         "diag": w(config.width, 1),
