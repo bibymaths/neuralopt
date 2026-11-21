@@ -104,6 +104,7 @@ def minimize(
     overdamped_config: OverdampedConfig = DEFAULT_OVERDAMPED_CONFIG,
     underdamped_config: UnderdampedConfig = DEFAULT_UNDERDAMPED_CONFIG,
     preconditioned_step: float | None = None,
+    preconditioned_engine: Literal["python", "compiled"] = "python",
 ) -> OptimizationResult:
     """Minimize a bounded objective with learned actions or rigorous certification."""
     budget = max_evaluations or problem.max_evaluations
@@ -171,6 +172,23 @@ def minimize(
             raise ValueError(
                 "fixed_metric_diag must be a finite positive vector of problem dimension"
             )
+    if preconditioned_engine not in {"python", "compiled"}:
+        raise ValueError("preconditioned_engine must be 'python' or 'compiled'")
+    if candidate_method == "preconditioned" and preconditioned_engine == "compiled":
+        return _minimize_preconditioned_compiled(
+            problem,
+            budget,
+            seed,
+            params,
+            config,
+            model_kind,
+            hamiltonian_metric,
+            fixed_metric_diag,
+            learned_metric_structure,
+            preconditioned_step,
+            record_diagnostics,
+            checkpoint_name,
+        )
     if candidate_method == "preconditioned":
         return _minimize_preconditioned(
             problem,
@@ -615,6 +633,7 @@ def _minimize_preconditioned(
         tuple(trajectory),
         diagnostics={
             "candidate_method": "preconditioned",
+            "engine": "python",
             "geometry": geometry,
             "feature_set": config.feature_set,
             "history_length": config.history_length,
@@ -641,3 +660,93 @@ def _minimize_preconditioned(
 
 
 _history_tokens_jit = jax.jit(history_token_features)
+
+
+def _minimize_preconditioned_compiled(
+    problem: Problem,
+    budget: int,
+    seed: int,
+    params: Params,
+    config: ModelConfig,
+    model_kind: str,
+    geometry: str,
+    fixed_metric_diag: Any,
+    structure: str,
+    preconditioned_step: float | None,
+    record_diagnostics: bool,
+    checkpoint_name: str,
+) -> OptimizationResult:
+    """Same rule as :func:`_minimize_preconditioned`, run by :mod:`neuralopt.compiled`."""
+    from .compiled import STATUS_MESSAGES, preconditioned_solve
+
+    if problem.gradient is not None:
+        raise ValueError(
+            "the compiled engine needs a JAX-traceable objective; use "
+            "preconditioned_engine='python' for host/NumPy gradients"
+        )
+    out = preconditioned_solve(
+        problem.objective,
+        problem.x0,
+        problem.bounds,
+        budget,
+        params=params,
+        config=config,
+        model_kind=model_kind,
+        geometry=geometry,
+        structure=structure,
+        fixed_metric_diag=fixed_metric_diag,
+        preconditioned_step=preconditioned_step,
+    )
+    status = int(out["status"])
+    if status in STATUS_MESSAGES:
+        raise FloatingPointError(STATUS_MESSAGES[status])
+    iterations = int(out["iteration"])
+    history = out["history"]
+    records = None
+    if record_diagnostics:
+        records = [
+            {
+                "candidate": np.asarray(out["candidates"][i]).tolist(),
+                "candidate_objective": float(out["candidate_values"][i]),
+                "accepted": bool(out["accepted"][i]),
+                "step_length": float(out["step_lengths"][i]),
+                "diag_min": float(out["diag_min"][i]),
+                "diag_max": float(out["diag_max"][i]),
+                "lowrank_frobenius": float(out["lowrank_frobenius"][i]),
+            }
+            for i in range(iterations)
+        ]
+    objective_evaluations = int(out["objective_evaluations"])
+    gradient_evaluations = int(out["gradient_evaluations"])
+    return OptimizationResult(
+        jnp.asarray(out["x"]),
+        float(out["value"]),
+        "stationary" if bool(out["stationary"]) else "budget_exhausted",
+        objective_evaluations + gradient_evaluations,
+        tuple(float(v) for v in out["trajectory"][: iterations + 1]),
+        diagnostics={
+            "candidate_method": "preconditioned",
+            "engine": "compiled",
+            "geometry": geometry,
+            "feature_set": config.feature_set,
+            "history_length": config.history_length,
+            "checkpoint": checkpoint_name,
+            "seed": seed,
+            "parameter_count": sum(v.size for v in jax.tree_util.tree_leaves(params)),
+            "objective_evaluations": objective_evaluations,
+            "gradient_evaluations": gradient_evaluations,
+            "hvp_evaluations": 0,
+            "accepted_steps": int(out["accepted_steps"]),
+            "rejected_steps": int(out["rejected_steps"]),
+            "records": records,
+            "history": {
+                "u": np.asarray(history.u).tolist(),
+                "g": np.asarray(history.g).tolist(),
+                "f": np.asarray(history.f).tolist(),
+                "valid": np.asarray(history.valid).tolist(),
+                "rejections": int(history.rejections),
+            }
+            if record_diagnostics
+            else None,
+        },
+    )
