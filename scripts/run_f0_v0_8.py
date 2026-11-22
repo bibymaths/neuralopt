@@ -3,7 +3,9 @@
 Subcommands:
   probe   timing probe: warm µs per objective/gradient call (owned batched, SciPy per call),
           units per local solve; projects F0 compute against the 6 CPU-hour cap.
-  run     the F0 study (written after the probe is reviewed).
+  run     the F0 study (written after the probe is reviewed). With ``--out RUN_DIR`` each
+          finished family is checkpointed in RUN_DIR and a rerun with the same RUN_DIR resumes
+          (scripts/run_checkpoint.py); progress.json is rewritten atomically.
 
 See docs/plans/neuralopt-v08-amortized-families.md, section 9.
 """
@@ -11,9 +13,11 @@ See docs/plans/neuralopt-v08-amortized-families.md, section 9.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import platform
+import subprocess
 import sys
 import time
 from pathlib import Path
@@ -30,6 +34,9 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 from neuralopt.families import FAMILIES, family_objective, make_split  # noqa: E402
 from neuralopt.lbfgs import lbfgs_solve_batch  # noqa: E402
+
+sys.path.insert(0, str(ROOT / "scripts"))
+import run_checkpoint  # noqa: E402
 
 VARIANTS = ("sinusoid", "cascade-clean", "cascade-realistic")
 N_VALIDATION, N_TRAIN = 200, 2000
@@ -283,7 +290,11 @@ def _b95(rates: dict[int, float]) -> int | None:
     return None
 
 
-def run_family(name: str) -> dict[str, Any]:
+def _no_progress(stage: str, done: int, total: int) -> None:
+    return None
+
+
+def run_family(name: str, progress: Any = _no_progress) -> dict[str, Any]:
     spec = FAMILIES[name]
     t_start, cpu_start = time.perf_counter(), time.process_time()
     val, val_truth = make_split(name, "validation", N_VALIDATION)
@@ -298,6 +309,7 @@ def run_family(name: str) -> dict[str, Any]:
         starts = _sobol(spec, REFERENCE_STARTS, SOBOL_SEEDS[tag])
         best = np.full(n, np.inf)
         for i in range(n):
+            progress(tag, i, n)
             finals = []
             for x0 in [*starts, np.asarray(val_truth[i])]:
                 tr = scipy.trace(x0, ctx[i], REFERENCE_UNITS, precise=True)
@@ -313,10 +325,12 @@ def run_family(name: str) -> dict[str, Any]:
                           for a, b in zip(ref["reference_a"], ref["reference_b"], strict=True)])
 
     # arms on validation (one long run per start; budgets read off the traces)
+    progress("arms A0/A1", 0, n)
     default = np.tile(spec.default, (n, 1))
     a0 = _owned_traces(name, val, default, LONG)
     a1 = [scipy.trace(spec.default, ctx[i], LONG) for i in range(n)]
     arm_starts = _sobol(spec, max(MULTISTART_K), SOBOL_SEEDS["arms"])
+    progress("arms A2/A2o", 0, n)
     a2_traces = [[scipy.trace(arm_starts[k], ctx[i], LONG) for k in range(len(arm_starts))]
                  for i in range(n)]
     a2o_traces = [
@@ -331,6 +345,7 @@ def run_family(name: str) -> dict[str, Any]:
     best_x = np.zeros((N_TRAIN, spec.dimension))
     label_units = 0
     for k in range(LABEL_STARTS):
+        progress("training labels (starts)", k, LABEL_STARTS)
         runs = _owned_traces(name, train, np.tile(label_starts[k], (N_TRAIN, 1)), LABEL_UNITS)
         for i, r in enumerate(runs):
             label_units += r["used"]
@@ -346,6 +361,7 @@ def run_family(name: str) -> dict[str, Any]:
     # label-reference adequacy: the label procedure on validation versus f*
     label_val_best = np.full(n, np.inf)
     for k in range(LABEL_STARTS):
+        progress("label adequacy (starts)", k, LABEL_STARTS)
         for i, r in enumerate(_owned_traces(name, val, np.tile(label_starts[k], (n, 1)),
                                             LABEL_UNITS)):
             label_val_best[i] = min(label_val_best[i], r["trace"][-1][1])
@@ -408,6 +424,7 @@ def run_family(name: str) -> dict[str, Any]:
 
     # identifiability at the reference optimum (precise SciPy multistart, first 50 instances)
     starts_a = _sobol(spec, REFERENCE_STARTS, SOBOL_SEEDS["reference_a"])
+    progress("identifiability", 0, min(n, 50))
     cond = [_fisher_condition(name, _scipy_argmin(scipy, [*starts_a[:16], val_truth[i]],
                                                    ctx[i]), ctx[i]) for i in range(min(n, 50))]
     cond = np.asarray(cond)
@@ -468,30 +485,84 @@ def split_manifest() -> dict[str, Any]:
     return out
 
 
+RUN_FILES = (ROOT / "scripts" / "run_f0_v0_8.py", ROOT / "scripts" / "run_checkpoint.py",
+             ROOT / "src" / "neuralopt" / "families.py", ROOT / "src" / "neuralopt" / "lbfgs.py",
+             ROOT / "uv.lock")
+
+
+def _run_report() -> dict[str, Any]:
+    env = {"jax": jax.__version__, "python": platform.python_version(),
+           "platform": platform.platform(), "cpu_count": os.cpu_count(),
+           "xla_flags": os.environ.get("XLA_FLAGS"), "float": "float64"}
+    return {"schema": "neuralopt-f0/v0.8", "environment": env,
+            "protocol": {"budgets": BUDGETS, "multistart_k": MULTISTART_K,
+                         "sobol_seeds": SOBOL_SEEDS, "eps_abs": EPS_ABS,
+                         "eps_rel": EPS_REL, "fisher_cond_limit": FISHER_COND_LIMIT,
+                         "accounting": "objective and gradient calls; SciPy call = "
+                         "objective + gradient (2 units); owned: objective per trial, "
+                         "gradient on acceptance",
+                         "scipy_best_so_far": "over all evaluated points (as in v0.7)"},
+            "splits": split_manifest(), "families": []}
+
+
+def _git(*args: str) -> str:
+    return subprocess.run(["git", *args], cwd=ROOT, capture_output=True, text=True).stdout.strip()
+
+
+def run_in_directory(run_dir: Path, families: list[str]) -> int:
+    """F0 with per-family checkpoints in ``run_dir``; rerunning resumes."""
+    run_dir.mkdir(parents=True, exist_ok=True)
+    final = run_dir / "f0-v0.8.0.json"
+    if final.exists():
+        raise SystemExit(f"{final} exists; results are never overwritten")
+    code = run_checkpoint.fingerprint(RUN_FILES)
+    lock = hashlib.sha256((ROOT / "uv.lock").read_bytes()).hexdigest()
+    with (run_dir / "command.txt").open("a") as handle:
+        handle.write(f"start_utc: {time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())}\n"
+                     f"command: {' '.join([sys.executable, *sys.argv])}\n"
+                     f"git_sha: {_git('rev-parse', 'HEAD')}\n"
+                     f"git_dirty: {bool(_git('status', '--porcelain', '--untracked-files=no'))}\n"
+                     f"uv_lock_sha256: {lock}\ncode_fingerprint: {code}\n\n")
+    probe = ROOT / "results" / "f0-probe-v0.8.0.json"
+    weights = {r["family"]: r["projection"]["total_cpu_hours"]
+               for r in json.loads(probe.read_text())["rows"]} if probe.exists() else None
+
+    def compute(name: str, progress: Any) -> dict[str, Any]:
+        row = run_family(name, progress)
+        print(json.dumps({k: row[k] for k in ("family", "B95", "c_local_median_units",
+                                              "B95_multi_better_of_A2_A2o", "stop_rule",
+                                              "wall_seconds")}), flush=True)
+        return row
+
+    rows = run_checkpoint.run_units(families, run_dir, compute, fingerprint=code,
+                                    weights=weights)
+    report = _run_report()
+    report["code_fingerprint"] = code
+    report["families"] = rows
+    run_checkpoint.write_atomic(final, json.dumps(report, indent=2) + "\n")
+    (run_dir / "DONE").write_text(f"{final.name}\n")
+    print(f"F0 complete: {final}", flush=True)
+    return 0
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("command", choices=["probe", "run"])
     parser.add_argument("--families", nargs="*", default=list(VARIANTS))
     parser.add_argument("--output", type=Path,
                         default=ROOT / "results" / "f0-probe-v0.8.0.json")
+    parser.add_argument("--out", type=Path, default=None,
+                        help="run directory (run only): per-family checkpoints, progress.json, "
+                        "command.txt, final report; rerun with the same directory to resume")
     args = parser.parse_args()
+    if args.command == "run" and args.out is not None:
+        return run_in_directory(args.out, list(args.families))
     if args.command == "run" and args.output.name == "f0-probe-v0.8.0.json":
         args.output = ROOT / "results" / "f0-v0.8.0.json"
     if args.output.exists():
         raise SystemExit(f"{args.output} exists; results are never overwritten")
     if args.command == "run":
-        env = {"jax": jax.__version__, "python": platform.python_version(),
-               "platform": platform.platform(), "cpu_count": os.cpu_count(),
-               "xla_flags": os.environ.get("XLA_FLAGS"), "float": "float64"}
-        report = {"schema": "neuralopt-f0/v0.8", "environment": env,
-                  "protocol": {"budgets": BUDGETS, "multistart_k": MULTISTART_K,
-                               "sobol_seeds": SOBOL_SEEDS, "eps_abs": EPS_ABS,
-                               "eps_rel": EPS_REL, "fisher_cond_limit": FISHER_COND_LIMIT,
-                               "accounting": "objective and gradient calls; SciPy call = "
-                               "objective + gradient (2 units); owned: objective per trial, "
-                               "gradient on acceptance",
-                               "scipy_best_so_far": "over all evaluated points (as in v0.7)"},
-                  "splits": split_manifest(), "families": []}
+        report = _run_report()
         for name in args.families:
             row = run_family(name)
             report["families"].append(row)

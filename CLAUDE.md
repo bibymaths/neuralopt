@@ -1,5 +1,7 @@
 # NeuralOpt — Claude Code project instructions
 
+If HANDOFF.md exists, read it first.
+
 ## Mission
 NeuralOpt studies **where learning helps numerical optimization**, in JAX.
 - **From v0.8, the learned component is a start predictor** trained on a problem family `f(θ; c)`. Refinement uses **NeuralOpt's own pure-JAX L-BFGS**, counted on the same objective/gradient budget.
@@ -32,6 +34,7 @@ NeuralOpt studies **where learning helps numerical optimization**, in JAX.
 6. Report measured changes, negative results, uncertainty and unfinished gates.
 7. Never merge, publish, force-push or delete unrelated work without explicit permission. A PR may be prepared after validation when authorized.
 8. **v0.8 release freeze:** no v0.8.0 tag, PyPI upload or GitHub release until every claim in `docs/research/v0.8-claims.md` has a pre-registered result and the user has reviewed the register and approved the release. README, docs, CHANGELOG and release notes describe a v0.8 claim as "under test" until its status is "supported".
+9. **Long runs:** any run expected to exceed 10 minutes runs in a named tmux (or screen) session, never as a child of the agent's shell, with a git-ignored run directory `runs/<name>-<UTC stamp>/` holding `command.txt` (command, git SHA, uv.lock hash, UTC start), `log.txt`, an atomically rewritten `progress.json`, checkpoints for resume, `exit_code`, and `DONE` only on success. Update `HANDOFF.md` (repo root, git-ignored) before and after the run. Versioned results still go to `results/` when the report is written.
 
 ## Research workflow
 Read `docs/plans/neuralopt-v08-amortized-families.md` and the claims register `docs/research/v0.8-claims.md` (earlier: `docs/plans/neuralopt-v06-trajectory-curvature.md`). Use the local skills (see `SKILLS.md`). When installed, invoke Superpowers' brainstorming, writing-plans, test-driven-development and verification procedures instead of copying its source into this repository.
