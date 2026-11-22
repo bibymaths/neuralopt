@@ -2,6 +2,9 @@
 
 ## Result
 
+**The claim the frozen outcome-to-claim table permits: learned geometry did not beat BB
+on the curvature domain; BB stays the bar.** H2 and H3 are exploratory, with no claim.
+
 **This is a negative result.** Read off the frozen outcome-to-claim table
 (pre-registration sha256 `6d5489da…3cad3f`), the row that applies is: Stage 1 passes,
 H1 fails, so:
@@ -39,8 +42,8 @@ Intervals are 95% paired over 5 training seeds × tasks (two-level crossed boots
 | Guard | gram-full − BB, Rastrigin | +2.144 [+0.356, +4.338] | mean > +0.5 and lower > 0 | **violated** |
 | Guard | gram-full − BB, Ackley | +0.892 [+0.095, +2.082] | same | **violated** |
 | Guard | gram-full − BB, shifted Rosenbrock | −0.062 [−0.111, −0.026] | same | not violated |
-| H2 (secondary) | gram-full, rotated κ1000 − diagonal κ1000 (equal spectrum) | +0.054 [−0.257, +0.367] | whole CI within ±0.5 | pass (no claim: H1 failed) |
-| H3 (secondary) | gram-full − oracle-BFGS, curvature | +4.688 [+3.758, +5.681] | upper < +0.5 | **fail** |
+| H2 (secondary; **exploratory** because H1 failed) | gram-full, rotated κ1000 − diagonal κ1000 (equal spectrum) | +0.054 [−0.257, +0.367] | whole CI within ±0.5 | within the margin; **no claim** |
+| H3 (secondary; exploratory because H1 failed) | gram-full − oracle-BFGS, curvature | +4.688 [+3.758, +5.681] | upper < +0.5 | **fail** |
 | R(i) | share of task × seed pairs with \|gram-full − oracle\| ≤ 0.25 | 0.000 | ≥ 0.75 | not met |
 | R(ii) | median direction cosine with the oracle (200 probe states) | 0.482 | ≥ 0.99 | not met |
 
@@ -92,6 +95,114 @@ Source: `results/gram-untrained-diagnostic-v0.7.0.json`.
 - **The flat training loss hides this.** The gain on the curvature domain and the
   regression on Rastrigin both happened during training.
 - These are exploratory observations, not claims.
+
+## Post-mortem (EXPLORATORY: not pre-registered, no new claims, feeds no decision)
+
+Source: `results/gram-postmortem-v0.7.0.json`.
+- **Hypothesis tested:** the model configuration (depth and width) limits learning the A
+  and C coefficients.
+- **Data:** only training tasks and validation tasks (seeds 8500+, dimensions 6 and 10).
+  No test task was built. Frozen v0.7 results and checkpoints are unchanged.
+- **Oracle states:** oracle-BFGS runs in the frozen loop (halving, K = 10, history-v2
+  masks, float64, budget 100) gave 6,505 training states and 2,101 validation states.
+
+### 1. Imitation sweep
+
+Each configuration was fitted by supervised regression to the oracle's A, C·Cᵀ (C is
+defined only up to a right orthogonal factor), δ and σ = 1. Training used 3,000 Adam
+steps, batch 256 and seed 0. Heads = width/8, so the head dimension is 8 as in the
+frozen model.
+
+**Fit columns:** median relative error on held-out validation states, and the median
+cosine between the fitted model's step direction and the oracle's.
+
+**Regret column:** median log10 regret when the fitted model runs the shared loop on the
+12 curvature-domain validation tasks.
+
+**Reference on those 12 tasks:**
+- BB −3.32;
+- oracle −15.99;
+- the frozen meta-trained gram-full, per seed: −3.82, −3.34, −3.94, −3.57, −3.67.
+
+| Layers × width | Parameters | Rel. error A | Rel. error CCᵀ | \|δ error\| | Direction cosine | Regret (validation) |
+|---|---:|---:|---:|---:|---:|---:|
+| 2 × 32 (frozen config) | 14,080 | 0.700 | 0.731 | 0.089 | 0.916 | −2.34 |
+| 2 × 64 | 52,736 | 0.435 | 0.488 | 0.088 | 0.947 | −2.60 |
+| 2 × 128 | 203,776 | 0.349 | 0.466 | 0.049 | 0.963 | −1.79 |
+| 4 × 32 | 22,272 | 0.630 | 0.662 | 0.080 | 0.922 | −2.24 |
+| 4 × 64 | 85,504 | 0.444 | 0.541 | 0.071 | 0.937 | −2.55 |
+| 4 × 128 | 334,848 | 0.328 | 0.430 | 0.067 | 0.970 | −2.47 |
+| 6 × 32 | 30,464 | 0.708 | 0.765 | 0.109 | 0.891 | −2.20 |
+| 6 × 64 | 118,272 | 0.485 | 0.535 | 0.074 | 0.956 | −2.37 |
+| 6 × 128 | 465,920 | 0.339 | 0.438 | 0.043 | 0.966 | −2.70 |
+
+### 2. Head saddle check
+
+**Setup:**
+- 200 updates of the frozen meta-training on training tasks, with the same batching as
+  `train_batched`.
+- The loop is verified to reproduce `train_batched` exactly for seed 0: maximum
+  parameter difference 0.0.
+- Seeds 0, 1 and 2, under two initializations: the frozen one (A/C head weights at
+  0.1 scale), and a variant with those weights rescaled to 1.0 scale.
+- No NaN skips occurred.
+
+**Measures:**
+- Median per-update gradient norm (before the global-norm clip at 1.0) at the A, C, δ
+  and σ heads.
+- A/C output magnitudes (mean Frobenius norm) on 256 fixed validation probe states.
+- For scale: on training states with pairs, the oracle targets have median ‖A*‖_F 4.5
+  and median ‖C*C*ᵀ‖_F 5.0.
+
+| Init | Seed | ‖∇A heads‖ | ‖∇C heads‖ | ‖∇δ‖ | ‖∇σ‖ | (A,C) / (δ,σ) ratio | ‖A‖_F: 0 → 200 | ‖C‖_F: 0 → 200 |
+|---|---:|---:|---:|---:|---:|---:|---|---|
+| 0.1 (frozen) | 0 | 22.8 | 3.3 | 137 | 39.1 | 0.14 | 0.010 → 0.034 | 0.010 → 0.249 |
+| 0.1 (frozen) | 1 | 35.4 | 11.0 | 179 | 53.1 | 0.19 | 0.009 → 0.260 | 0.007 → 0.495 |
+| 0.1 (frozen) | 2 | 53.3 | 1.4 | 245 | 71.4 | 0.18 | 0.008 → 0.089 | 0.009 → 0.084 |
+| 1.0 | 0 | 293 | 92.1 | 678 | 245 | 0.44 | 0.966 → 1.573 | 1.014 → 0.497 |
+| 1.0 | 1 | 158 | 66.3 | 293 | 120 | 0.57 | 0.850 → 0.513 | 0.724 → 0.390 |
+| 1.0 | 2 | 89.7 | 65.7 | 193 | 92.8 | 0.55 | 0.807 → 0.744 | 0.912 → 0.922 |
+
+### 3. Conclusion (exploratory)
+
+**Depth and width are not the binding limit.**
+- Width improves imitation fit: relative A error falls from 0.70 to 0.33–0.35, and the
+  direction cosine rises from 0.92 to 0.96–0.97. Depth adds little.
+- But no fitted configuration performs well in the shared loop. Every one is worse than
+  BB on validation (−1.79 to −2.70, against −3.32), and worse than the frozen
+  meta-trained model (−3.3 to −3.9).
+- Even direction cosines of 0.96–0.97 with the oracle do not reproduce the oracle's
+  −15.99. That points to the loop's sensitivity to small metric errors and to the shift
+  between oracle-visited and self-visited states. Neither cause was isolated.
+
+**There is no head saddle.**
+- Gradients reach the A and C heads from the frozen init, and A/C magnitudes grow 3–30×
+  in 200 updates.
+- They stay 20–150× below the oracle's median ‖A*‖_F of 4.5.
+- The A/C gradient is only about 0.14–0.19 of the δ/σ gradient, and every update is
+  dominated by δ: total norms of 135–370 are clipped to 1.0.
+- With init scale 1.0, A and C do not collapse, but their share stays at 0.44–0.57,
+  and δ moves most (|δ| 0.3 to 1.1–1.6).
+
+**Overall, the failure is undetermined, leaning towards optimization and objective
+signal rather than representation.** The meta-gradient mostly drives the scalar step
+(δ/σ). Larger networks fit the oracle better without performing better in the loop.
+Which change would let A and C be learned (the loss, the gradient balance or clipping,
+on-policy imitation, or more updates) was not tested. Any such change belongs to a
+future v0.8 pre-registration, not to v0.7.
+
+## Decision and next work
+
+- **By plan gate G7, the trajectory-curvature line is not expanded further.** The
+  validation-tuned fixed diagonal and the BB step remain the reference geometries, and
+  no v0.7 learned geometry becomes a default.
+- **The next work is learned guidance for certified global search.** This was set by
+  the user on 2026-11-22. In this repository it connects to plan gate G6 (optional
+  feasible-incumbent candidate injection into certified search), which the v0.6 plan
+  deferred until learned geometry showed value. Certification itself remains
+  independent and model-free.
+- Any changed model or training setup for the Gram line, including the post-mortem
+  ideas above, needs a new pre-registration (v0.8). It is not added to v0.7.
 
 ## Training and compute
 
@@ -432,8 +543,10 @@ frozen file is never edited.
 4. **The Stage 2 evaluation re-evaluates the Stage 1 arms** on the same frozen tasks
    (deterministic). It reproduces the Stage 1 decision exactly:
    −0.139 [−0.334, +0.044].
-5. **Untrained-weights diagnostic** (added after Stage 2, at the user's request): it is
-   **exploratory, not pre-registered, and feeds no decision.**
+5. **Untrained-weights diagnostic and post-mortem** (added after Stage 2, at the user's
+   request): both are **exploratory, not pre-registered, and feed no decision.** They
+   used training and validation tasks only, except that the untrained diagnostic used
+   the already-built test tasks.
 6. **CPU accounting:** process CPU time includes XLA helper threads, so it is about
    twice the per-run wall time. The probe's estimate was a single-process wall-time
    projection.
@@ -468,4 +581,5 @@ uv run python scripts/run_gram_space_v0_7.py --probe
 uv run python scripts/run_gram_space_v0_7.py --stage 1 && uv run python scripts/run_gram_space_v0_7.py --evaluate 1
 uv run python scripts/run_gram_space_v0_7.py --stage 2 && uv run python scripts/run_gram_space_v0_7.py --evaluate 2
 uv run python scripts/run_gram_untrained_diagnostic_v0_7.py   # exploratory
+uv run python scripts/run_gram_postmortem_v0_7.py              # exploratory post-mortem
 ```

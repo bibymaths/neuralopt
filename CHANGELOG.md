@@ -14,6 +14,11 @@
   gram-full did not beat the untrained BB step on the curvature domain (H1 fails), the
   reliability guard trips on Rastrigin and Ackley, and the model is far from the
   oracle-BFGS ceiling. BB stays the bar.
+  Exploratory post-mortem (training and validation tasks only): wider models imitate
+  the oracle better but none performs well in the loop, and A/C gradients reach the
+  heads without a saddle, so the cause is undetermined (leaning optimization signal).
+  By plan gate G7 the line is not expanded; the next work is learned guidance for
+  certified global search.
 
 ## 0.6.0 - In development
 
