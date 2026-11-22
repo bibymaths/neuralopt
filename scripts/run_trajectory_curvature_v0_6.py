@@ -320,6 +320,7 @@ def evaluate_once(
         hamiltonian_metric="fixed" if fixed else "learned",
         fixed_metric_diag=np.ones(problem.dimension) if fixed else None,
         preconditioned_step=job["fixed_step"] if fixed else None,
+        preconditioned_engine="python",  # pinned at v0.7.0 (default became "compiled")
     )
     d = result.diagnostics or {}
     return {
@@ -585,7 +586,7 @@ def self_check_reference_parity() -> None:
     package = minimize(
         problem, max_evaluations=40, candidate_method="preconditioned",
         hamiltonian_metric="fixed", fixed_metric_diag=np.ones(problem.dimension),
-        preconditioned_step=0.1,
+        preconditioned_step=0.1, preconditioned_engine="python",
     )
     np.testing.assert_allclose(ours["trajectory"], package.trajectory, rtol=1e-6)
 

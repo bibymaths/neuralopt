@@ -111,7 +111,7 @@ def minimize(
     overdamped_config: OverdampedConfig = DEFAULT_OVERDAMPED_CONFIG,
     underdamped_config: UnderdampedConfig = DEFAULT_UNDERDAMPED_CONFIG,
     preconditioned_step: float | None = None,
-    preconditioned_engine: Literal["python", "compiled"] = "python",
+    preconditioned_engine: Literal["python", "compiled"] = "compiled",
     loop_rule: Literal["halving", "armijo", "wolfe"] = "halving",
 ) -> OptimizationResult:
     """Minimize a bounded objective with learned actions or rigorous certification."""
