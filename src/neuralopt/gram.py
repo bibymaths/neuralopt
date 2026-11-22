@@ -38,7 +38,11 @@ import numpy as np
 
 from .trajectory import TrajectoryHistory, secant_pairs
 
-GRAM_SCHEMA = "neuralopt-policy/v0.7-gram-v1"
+GRAM_SCHEMA_V1 = "neuralopt-policy/v0.7-gram-v1"
+# v2 adds the pair-mask thresholds and the no-history switch to the config. v1 files load
+# with the v1 (float32-era) thresholds, which are the field defaults.
+GRAM_SCHEMA = "neuralopt-policy/v0.7-gram-v2"
+HISTORY_V2_MASKS = {"mask_step_tol": 1e-12, "mask_gradient_rtol": 1e-10}
 _TINY = 1e-30
 
 
@@ -54,6 +58,9 @@ class GramConfig:
     sigma_bound: float = 4.0
     coefficient_bound: float = 100.0
     scalar_only: bool = False
+    mask_step_tol: float = 1e-7
+    mask_gradient_rtol: float = 1e-6
+    history_masked: bool = False  # no-history control: every pair is masked
 
     def __post_init__(self) -> None:
         if self.history_length < 1:
@@ -64,6 +71,8 @@ class GramConfig:
             raise ValueError("eps_rel must be nonnegative and fallback_length positive")
         if min(self.delta_bound, self.coefficient_bound) <= 0 or self.sigma_bound <= 1:
             raise ValueError("bounds must be positive and sigma_bound > 1")
+        if self.mask_step_tol < 0 or self.mask_gradient_rtol < 0:
+            raise ValueError("mask thresholds must be nonnegative")
 
     feature_set = "gram-v1"  # class attribute: lets shared loops treat it as history-on
 
@@ -88,8 +97,16 @@ class RejectionInfo(NamedTuple):
     has: Any  # bool: a rejection happened at the current point
 
 
-def gram_basis(history: TrajectoryHistory) -> GramBasis:
-    S, Y, mask = secant_pairs(history)  # rows (K, d), sanitized
+def gram_basis(history: TrajectoryHistory, config: GramConfig | None = None) -> GramBasis:
+    """Normalized secant basis; ``config`` supplies the mask thresholds and switch
+    (``None``: the v1 defaults)."""
+    if config is None:
+        S, Y, mask = secant_pairs(history)  # rows (K, d), sanitized
+    else:
+        S, Y, mask = secant_pairs(history, config.mask_step_tol, config.mask_gradient_rtol)
+        if config.history_masked:
+            mask = jnp.zeros_like(mask)
+            S, Y = jnp.zeros_like(S), jnp.zeros_like(Y)
     s_norm = jnp.sqrt(jnp.sum(S * S, axis=-1) + _TINY)
     y_norm = jnp.sqrt(jnp.sum(Y * Y, axis=-1) + _TINY)
     keep = mask[:, None]
@@ -143,7 +160,7 @@ def gram_tokens(history: TrajectoryHistory, g_u: Any, rejection: RejectionInfo,
                 budget_fraction: Any, config: GramConfig) -> Any:
     """``(K + 1, 4K + 14)`` rotation- and objective-scale-invariant token features."""
     K = config.history_length
-    basis = gram_basis(history)
+    basis = gram_basis(history, config)
     dtype = basis.S_hat.dtype
     m = basis.mask.astype(dtype)
     g_norm = jnp.sqrt(jnp.sum(g_u * g_u) + _TINY)
@@ -270,7 +287,7 @@ def gram_step(params: dict[str, Any], config: GramConfig, history: TrajectoryHis
               g_u: Any, rejection: RejectionInfo,
               budget_fraction: Any) -> tuple[Any, Any, dict[str, Any], Any]:
     """``P g_u`` (u units), ``σ``, the model outputs and ``τ``; the step is ``σ P g_u``."""
-    basis = gram_basis(history)
+    basis = gram_basis(history, config)
     tau = tau_scale(basis, g_u, config.fallback_length)
     tokens = gram_tokens(history, g_u, rejection, budget_fraction, config)
     out = apply_gram_model(params, tokens, basis.mask, config)
@@ -301,7 +318,7 @@ def save_gram_checkpoint(path: str | Path, params: dict[str, Any], config: GramC
 def load_gram_checkpoint(path: str | Path) -> tuple[dict[str, Any], GramConfig]:
     with np.load(path, allow_pickle=False) as data:
         schema = str(data["schema"][0]) if "schema" in data.files else None
-        if schema != GRAM_SCHEMA:
+        if schema not in (GRAM_SCHEMA, GRAM_SCHEMA_V1):
             raise ValueError(f"unsupported checkpoint schema for the Gram model: {schema}")
         config = GramConfig(**json.loads(str(data["gram_config"][0])))
         params = {k.removeprefix("param__"): jnp.asarray(data[k]) for k in data.files

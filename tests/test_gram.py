@@ -246,3 +246,68 @@ def test_gram_records_report_tau_and_sigma_separately():
     # tau carries the inverse objective units; sigma is dimensionless.
     np.testing.assert_allclose([r["tau"] * 1e-6 for r in rt], [r["tau"] for r in rb], rtol=1e-6)
     np.testing.assert_allclose([r["sigma"] for r in rt], [r["sigma"] for r in rb], rtol=1e-9)
+
+
+# --- v0.7 infrastructure: Gram schema v2 (history-v2 masks, no-history switch) ---
+
+from neuralopt.gram import GRAM_SCHEMA_V1, HISTORY_V2_MASKS  # noqa: E402
+
+V2 = GramConfig(history_length=4, width=16, heads=4, layers=1, **HISTORY_V2_MASKS)
+
+
+def _near_converged_history():
+    """Two pairs; the newest step is 1e-9 in u units (real, but below the v1 threshold)."""
+    with jax.enable_x64(True):
+        d = 3
+        f = lambda x: 0.5 * jnp.sum(jnp.arange(1.0, d + 1) * x**2)  # noqa: E731
+        points = jnp.stack([jnp.full(d, 0.3), jnp.full(d, 0.1), jnp.full(d, 0.1) + 1e-9])
+        return _history_from_points(points, f, 4), f, points
+
+
+def test_history_v2_masks_keep_float64_pairs_that_v1_drops():
+    with jax.enable_x64(True):
+        h, _, _ = _near_converged_history()
+        assert HISTORY_V2_MASKS == {"mask_step_tol": 1e-12, "mask_gradient_rtol": 1e-10}
+        assert gram_basis(h).mask.tolist() == [False, False, True, False]
+        assert gram_basis(h, V2).mask.tolist() == [False, False, True, True]
+
+
+def test_history_masked_control_sees_no_pairs():
+    with jax.enable_x64(True):
+        h, f, points = _near_converged_history()
+        control = GramConfig(**{**V2.__dict__, "history_masked": True})
+        basis = gram_basis(h, control)
+        assert not bool(jnp.any(basis.mask))
+        g = jax.grad(f)(points[-1])
+        tau = tau_scale(basis, g, control.fallback_length)
+        np.testing.assert_allclose(tau * jnp.linalg.norm(g), control.fallback_length)
+        A = jax.random.normal(jax.random.PRNGKey(0), (4, 4))
+        p = apply_inverse_metric(g, basis, A, A, 0.3, tau, control.eps_rel)
+        np.testing.assert_allclose(p, tau * (jnp.exp(0.3) + control.eps_rel) * g, rtol=1e-12)
+        rejection = RejectionInfo(jnp.asarray(1), jnp.asarray(0.1), jnp.asarray(2.0),
+                                  jnp.asarray(True))
+        tokens = gram_tokens(h, g, rejection, 0.5, control)
+        assert bool(jnp.all(tokens[:4] == jnp.where(jnp.arange(tokens.shape[1]) ==
+                                                    4 * 4 + 6, 1.0, 0.0)))  # only is-pair
+        assert float(jnp.abs(tokens[4, -7:]).sum()) > 0  # rejection info still present
+
+
+def test_gram_schema_v2_roundtrip_and_v1_files_keep_v1_thresholds(tmp_path):
+    import json as _json
+
+    params = init_gram_model(jax.random.PRNGKey(0), V2)
+    save_gram_checkpoint(tmp_path / "v2.npz", params, V2)
+    loaded, config = load_gram_checkpoint(tmp_path / "v2.npz")
+    assert config == V2
+    with np.load(tmp_path / "v2.npz") as data:
+        assert str(data["schema"][0]) == GRAM_SCHEMA
+        arrays = {k: data[k] for k in data.files}
+    v1_config = {k: v for k, v in _json.loads(str(arrays["gram_config"][0])).items()
+                 if k not in ("mask_step_tol", "mask_gradient_rtol", "history_masked")}
+    np.savez(tmp_path / "v1.npz", **{**arrays, "schema": np.array([GRAM_SCHEMA_V1]),
+                                     "gram_config": np.array([_json.dumps(v1_config)])})
+    _, old = load_gram_checkpoint(tmp_path / "v1.npz")
+    assert (old.mask_step_tol, old.mask_gradient_rtol, old.history_masked) == (1e-7, 1e-6, False)
+    with pytest.raises(ValueError, match="schema"):
+        np.savez(tmp_path / "v9.npz", **{**arrays, "schema": np.array(["neuralopt-policy/v9"])})
+        load_gram_checkpoint(tmp_path / "v9.npz")

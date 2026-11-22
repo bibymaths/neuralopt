@@ -91,8 +91,14 @@ def _norm(x: Any, axis: int = -1) -> Any:
     return jnp.sqrt(jnp.sum(jnp.square(x), axis=axis) + _TINY)
 
 
-def secant_pairs(h: TrajectoryHistory) -> tuple[Any, Any, Any]:
-    """Return sanitized ``(S, Y, mask)``; masked rows are zero, never fake data."""
+def secant_pairs(
+    h: TrajectoryHistory, step_tol: float = _STEP_TOL, gradient_rtol: float = _GRADIENT_RTOL
+) -> tuple[Any, Any, Any]:
+    """Return sanitized ``(S, Y, mask)``; masked rows are zero, never fake data.
+
+    The default thresholds are the v0.6 (float32-era) ones; the v0.7 Gram schema v2
+    passes float64 thresholds explicitly.
+    """
     s = h.u[1:] - h.u[:-1]
     y = h.g[1:] - h.g[:-1]
     finite = (
@@ -106,8 +112,8 @@ def secant_pairs(h: TrajectoryHistory) -> tuple[Any, Any, Any]:
         h.valid[1:]
         & h.valid[:-1]
         & finite
-        & (jnp.max(jnp.abs(s), axis=-1, initial=0.0) > _STEP_TOL)
-        & (_norm(y) > _GRADIENT_RTOL * gradient_scale)
+        & (jnp.max(jnp.abs(s), axis=-1, initial=0.0) > step_tol)
+        & (_norm(y) > gradient_rtol * gradient_scale)
     )
     keep = mask[:, None]
     return jnp.where(keep, s, 0.0), jnp.where(keep, y, 0.0), mask

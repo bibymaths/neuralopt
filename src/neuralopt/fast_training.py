@@ -17,7 +17,7 @@ import jax
 import jax.numpy as jnp
 import numpy as np
 
-from .model import DEFAULT_CONFIG, ModelConfig, Params, init_mlp_model, init_model
+from .model import DEFAULT_CONFIG, Params, init_mlp_model, init_model
 from .training import HistoryUnrollConfig, history_regret_from_rollout, history_unroll_core
 
 
@@ -72,8 +72,8 @@ class TrainStep:
 @cache
 def make_train_step(
     objective: Any,
-    config: ModelConfig,
-    unroll: HistoryUnrollConfig,
+    config: Any,  # ModelConfig, or GramConfig for model_kind="gram"
+    unroll: Any,  # HistoryUnrollConfig, or GramUnrollConfig for model_kind="gram"
     model_kind: str,
     learning_rate: float,
 ) -> TrainStep:
@@ -86,6 +86,11 @@ def make_train_step(
                    optimum: Any, keys: Any) -> tuple[Params, Any, Any, Any]:
         def loss_fn(p: Params) -> Any:
             def one(theta: Any, lo_i: Any, hi_i: Any, optimum_i: Any, key: Any) -> Any:
+                if model_kind == "gram":
+                    from .gram_training import gram_regret_loss
+
+                    return gram_regret_loss(p, lambda x: objective(x, theta), (lo_i, hi_i),
+                                            optimum_i, key, config, unroll)
                 rolled = history_unroll_core(
                     p, lambda x: objective(x, theta), (lo_i, hi_i), key, config, unroll,
                     model_kind,
@@ -130,8 +135,8 @@ def train_batched(
     steps: int = 100,
     learning_rate: float = 1e-3,
     batch_size: int = 8,
-    config: ModelConfig = DEFAULT_CONFIG,
-    unroll: HistoryUnrollConfig | None = None,
+    config: Any = DEFAULT_CONFIG,
+    unroll: Any = None,
     model_kind: str = "transformer",
 ) -> TrainingReport:
     """Cycle over task groups; each update uses a random batch from one group.
@@ -141,11 +146,19 @@ def train_batched(
     """
     if not groups:
         raise ValueError("at least one task group is required")
-    unroll = unroll if unroll is not None else HistoryUnrollConfig()
-    if model_kind not in {"transformer", "mlp"}:
-        raise ValueError("model_kind must be 'transformer' or 'mlp'")
+    if model_kind not in {"transformer", "mlp", "gram"}:
+        raise ValueError("model_kind must be 'transformer', 'mlp', or 'gram'")
     key = jax.random.PRNGKey(seed)
-    params = init_model(key, config) if model_kind == "transformer" else init_mlp_model(key, config)
+    if model_kind == "gram":
+        from .gram import init_gram_model
+        from .gram_training import GramUnrollConfig
+
+        unroll = unroll if unroll is not None else GramUnrollConfig()
+        params = init_gram_model(key, config)
+    else:
+        unroll = unroll if unroll is not None else HistoryUnrollConfig()
+        init = init_model if model_kind == "transformer" else init_mlp_model
+        params = init(key, config)
     step_fns = {
         g.name: make_train_step(g.objective, config, unroll, model_kind, learning_rate)
         for g in groups
