@@ -636,8 +636,10 @@ def save_checkpoint(
 
 def load_checkpoint(path: str | Path) -> tuple[Params, ModelConfig]:
     with np.load(path, allow_pickle=False) as data:
-        c = data["config"].tolist()
         schema = str(data["schema"][0]) if "schema" in data.files else None
+        if schema is not None and schema != HISTORY_SCHEMA:
+            raise ValueError(f"unsupported checkpoint schema: {schema}")
+        c = data["config"].tolist()
         if schema is None and len(c) > 7:
             raise ValueError("extended checkpoint config without a schema tag")
         if schema is not None and (schema != HISTORY_SCHEMA or len(c) != 9 or c[7] != 1.0):

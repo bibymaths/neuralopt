@@ -29,6 +29,7 @@ from .features import (
     normalize_coordinates,
     parameter_features,
 )
+from .gram import RejectionInfo, gram_direction
 from .model import DEFAULT_CONFIG, ModelConfig, Params, apply_mlp_model, apply_model
 from .trajectory import (
     TrajectoryHistory,
@@ -68,13 +69,17 @@ class _State(NamedTuple):
     diag_min: Any
     diag_max: Any
     lowrank_frobenius: Any
+    # Rejection information at the current point (used by the Gram model only).
+    rejected_length: Any
+    rejected_ratio: Any
+    rejected_has: Any
 
 
 def _solve(
     objective: Any,
     parametric: bool,
     budget: int,
-    config: ModelConfig,
+    config: Any,  # ModelConfig, or GramConfig when model_kind == "gram"
     model_kind: str,
     geometry: str,
     structure: str,
@@ -95,6 +100,8 @@ def _solve(
     grad_f = jax.grad(f)
     history_on = config.feature_set != "legacy"
     apply = apply_model if model_kind == "transformer" else apply_mlp_model
+    if model_kind == "gram" and geometry != "learned":
+        raise ValueError("the Gram model is a learned geometry")
 
     value0 = f(x0).astype(dtype)
     grad0 = grad_f(x0).astype(dtype)
@@ -133,6 +140,9 @@ def _solve(
         diag_min=jnp.zeros((budget,), dtype),
         diag_max=jnp.zeros((budget,), dtype),
         lowrank_frobenius=jnp.zeros((budget,), dtype),
+        rejected_length=jnp.asarray(0.0, dtype),
+        rejected_ratio=jnp.asarray(0.0, dtype),
+        rejected_has=jnp.asarray(False),
     )
 
     def gradient_norm(grad: Any) -> Any:
@@ -144,7 +154,28 @@ def _solve(
     def step(s: _State) -> _State:
         g_u = gradient_to_normalized(s.grad, lo, hi)
         unit = g_u / jnp.linalg.norm(g_u)
-        if geometry == "learned":
+        u = normalize_coordinates(s.x, lo, hi)
+        if model_kind == "gram":
+            rejection = RejectionInfo(s.history.rejections, s.rejected_length,
+                                      s.rejected_ratio, s.rejected_has)
+            direction, gram_out, tau = gram_direction(
+                params, config, s.history, g_u, rejection, 1 - s.used.astype(dtype) / budget
+            )
+            direction = direction.astype(dtype)
+            u_new = jnp.clip(u - s.shrink * direction, -1.0, 1.0)
+            # Records: step_lengths = shrink * σ; diag_min = τ; diag_max = σ;
+            # lowrank_frobenius = ‖A‖_F (see docs/research/gram-space-v0.7.md).
+            length = gram_out["sigma"].astype(dtype)
+            diag = jnp.stack((tau, gram_out["sigma"])).astype(dtype)
+            lowrank = gram_out["A"].astype(dtype)
+            geometry_ok = (
+                jnp.all(jnp.isfinite(direction))
+                & jnp.isfinite(tau)
+                & (tau > 0)
+                & jnp.all(jnp.isfinite(gram_out["A"]))
+                & jnp.all(jnp.isfinite(gram_out["C"]))
+            )
+        elif geometry == "learned":
             if history_on:
                 tokens = history_token_features(s.x, s.grad, lo, hi, s.history)
             else:
@@ -167,10 +198,10 @@ def _solve(
             lowrank = jnp.zeros((dimension, 1), dtype)
             length = fixed_step
             geometry_ok = jnp.asarray(True)
+        if model_kind != "gram":
+            u_new = preconditioned_candidate(u, unit, diag, lowrank, length, s.shrink)
 
         def evaluate(s: _State) -> _State:
-            u = normalize_coordinates(s.x, lo, hi)
-            u_new = preconditioned_candidate(u, unit, diag, lowrank, length, s.shrink)
             candidate = jnp.clip(denormalize_coordinates(u_new, lo, hi), lo, hi)
             candidate_value = f(candidate).astype(dtype)
             improved = jnp.isfinite(candidate_value) & (candidate_value < s.value)
@@ -194,6 +225,13 @@ def _solve(
                 lambda a, b: jnp.where(accepted, a, b), pushed, record_rejection(s.history)
             )
             value = jnp.where(accepted, candidate_value, s.value)
+            step_u = normalize_coordinates(candidate, lo, hi) - u
+            predicted = jnp.sum(g_u * step_u)
+            ratio = jnp.where(
+                jnp.isfinite(candidate_value) & (predicted != 0),
+                (candidate_value - s.value) / jnp.where(predicted != 0, predicted, 1.0),
+                10.0,
+            )
             i = s.iteration
             return s._replace(
                 x=jnp.where(accepted, candidate, s.x),
@@ -215,6 +253,10 @@ def _solve(
                 diag_min=s.diag_min.at[i].set(jnp.min(diag)),
                 diag_max=s.diag_max.at[i].set(jnp.max(diag)),
                 lowrank_frobenius=s.lowrank_frobenius.at[i].set(jnp.linalg.norm(lowrank)),
+                rejected_length=jnp.where(accepted, 0.0, jnp.linalg.norm(step_u)).astype(dtype),
+                rejected_ratio=jnp.where(accepted, 0.0, jnp.clip(ratio, -10.0, 10.0)).astype(
+                    dtype),
+                rejected_has=~accepted,
             )
 
         def fail(s: _State) -> _State:

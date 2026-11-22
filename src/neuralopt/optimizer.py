@@ -63,7 +63,14 @@ def _cosine_alignment(direction: np.ndarray, gradient: np.ndarray) -> float:
     return 0.0 if denominator <= 1e-12 else float(direction @ (-gradient) / denominator)
 
 
-def _validate_policy_params(params: Params, model_kind: str, config: ModelConfig) -> None:
+def _validate_policy_params(params: Params, model_kind: str, config: Any) -> None:
+    if model_kind == "gram":
+        from .gram import init_gram_model
+
+        expected = init_gram_model(jax.random.PRNGKey(0), config)
+        if {k: v.shape for k, v in params.items()} != {k: v.shape for k, v in expected.items()}:
+            raise ValueError("gram parameters do not match the Gram configuration")
+        return
     common = {"direction", "proposal", "diag", "lowrank", "global"}
     if model_kind == "mlp":
         required = common | {"hidden"}
@@ -93,7 +100,7 @@ def minimize(
     config: ModelConfig = DEFAULT_CONFIG,
     absolute_gap: float = 1e-6,
     record_diagnostics: bool = False,
-    model_kind: Literal["transformer", "mlp"] = "transformer",
+    model_kind: Literal["transformer", "mlp", "gram"] = "transformer",
     candidate_method: Literal[
         "direct", "hamiltonian", "langevin", "underdamped", "preconditioned"
     ] = "direct",
@@ -134,8 +141,15 @@ def minimize(
         )
     if mode != "learned":
         raise ValueError("mode must be 'learned' or 'certified'")
-    if model_kind not in {"transformer", "mlp"}:
-        raise ValueError("model_kind must be 'transformer' or 'mlp'")
+    if model_kind not in {"transformer", "mlp", "gram"}:
+        raise ValueError("model_kind must be 'transformer', 'mlp', or 'gram'")
+    if model_kind == "gram" and (
+        candidate_method != "preconditioned" or preconditioned_engine != "compiled"
+    ):
+        raise ValueError(
+            "model_kind='gram' requires candidate_method='preconditioned' and "
+            "preconditioned_engine='compiled'"
+        )
     methods = {"direct", "hamiltonian", "langevin", "underdamped", "preconditioned"}
     if candidate_method not in methods:
         raise ValueError(
@@ -150,6 +164,8 @@ def minimize(
         raise ValueError(f"{candidate_method} proposals currently support box constraints only")
     checkpoint_name = "caller-provided"
     if params is None:
+        if model_kind == "gram":
+            raise ValueError("model_kind='gram' requires caller-provided Gram parameters")
         if model_kind != "transformer":
             raise ValueError("model_kind='mlp' requires caller-provided MLP parameters")
         from .training import load_checkpoint
