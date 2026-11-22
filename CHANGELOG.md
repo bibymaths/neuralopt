@@ -10,7 +10,10 @@
 - Track B (opt-in, research): Gram-space history model (`model_kind="gram"`, schema
   gram-v2), opt-in step-acceptance rules (`loop_rule`), gates 1-2, loop-rule ablation,
   mask diagnostic, a frozen pre-registration (sha256 recorded) and its training and
-  evaluation infrastructure. No training has been run.
+  evaluation infrastructure. Pre-registered result (negative): Stage 1 passed, but
+  gram-full did not beat the untrained BB step on the curvature domain (H1 fails), the
+  reliability guard trips on Rastrigin and Ackley, and the model is far from the
+  oracle-BFGS ceiling. BB stays the bar.
 
 ## 0.6.0 - In development
 
