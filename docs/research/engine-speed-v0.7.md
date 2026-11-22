@@ -6,8 +6,9 @@ new paths are opt-in.
 - `minimize(..., preconditioned_engine="compiled")` and
   `neuralopt.compiled.preconditioned_solve(_batch)` give the same results as the Python
   loop: identical to 1e-10 in float64, and statistically equivalent in float32.
-- The default stays `"python"`, so the frozen v0.6 results and the sha256 of their script
-  remain reproducible bit for bit.
+- **Since the v0.7.0 release the default is `"compiled"`** (see "Default engine" below).
+  The v0.6 reproduction script pins `"python"`, so the frozen v0.6 results remain
+  reproducible bit for bit.
 
 ## A1. Where the time went (profile)
 
@@ -153,15 +154,21 @@ pass and the history-related loop state, not by objective work.
   inside NeuralOpt inference. Its solvers have no box bounds; with interior optima the
   box is inactive at the solution, but iterates may leave it.
 
-## Default engine and plan
+## Default engine
 
-- `preconditioned_engine` stays `"python"` by default for now.
-- **At the v0.7 release the default will flip to `"compiled"`.** In the same change, the
-  v0.6 reproduction script (`scripts/run_trajectory_curvature_v0_6.py`) will be pinned
-  explicitly to `preconditioned_engine="python"`, so the frozen v0.6 results keep
-  reproducing exactly.
-- That edit changes the script's sha256. It will be recorded alongside the frozen
-  results rather than by rewriting them.
+- While v0.7 was in development, `preconditioned_engine` defaulted to `"python"`.
+- **At the v0.7.0 release the default flipped to `"compiled"`**, as planned here.
+  Objectives with a host/NumPy `gradient=` are not traceable; with the default engine
+  they now raise a `ValueError` naming `preconditioned_engine="python"` (fail closed,
+  not a silent fallback).
+- In the same change, `scripts/run_trajectory_curvature_v0_6.py` passes
+  `preconditioned_engine="python"` explicitly at both preconditioned `minimize` calls,
+  and a test checks the pin. The frozen v0.6 results are unchanged.
+- The script's sha256 therefore changed. It is recorded here rather than by rewriting
+  the frozen results file:
+  - recorded in `results/trajectory-curvature-v0.6.0.json`:
+    `35c1e401e6bc8bccfaecbb9168708335e9a7d4fbd6498e35d635ed54da5e50d1`;
+  - from v0.7.0: `f80e8acc6bda802d65a00ea73e80e179ffcf7f8d0ddd9e23492220581b27e9f3`.
 
 Reproduce: `uv run python scripts/benchmark_engines_v0_7.py` (add `--profile` or
 `--training` for those sections alone).
