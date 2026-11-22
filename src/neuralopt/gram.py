@@ -266,17 +266,26 @@ def apply_gram_model(params: dict[str, Any], tokens: Any, pair_mask: Any,
     return {"A": A, "C": C, "delta": delta, "sigma": sigma}
 
 
-def gram_direction(params: dict[str, Any], config: GramConfig, history: TrajectoryHistory,
-                   g_u: Any, rejection: RejectionInfo,
-                   budget_fraction: Any) -> tuple[Any, dict[str, Any], Any]:
-    """``σ P g_u`` (u units), the model outputs and ``τ``."""
+def gram_step(params: dict[str, Any], config: GramConfig, history: TrajectoryHistory,
+              g_u: Any, rejection: RejectionInfo,
+              budget_fraction: Any) -> tuple[Any, Any, dict[str, Any], Any]:
+    """``P g_u`` (u units), ``σ``, the model outputs and ``τ``; the step is ``σ P g_u``."""
     basis = gram_basis(history)
     tau = tau_scale(basis, g_u, config.fallback_length)
     tokens = gram_tokens(history, g_u, rejection, budget_fraction, config)
     out = apply_gram_model(params, tokens, basis.mask, config)
     direction = apply_inverse_metric(g_u, basis, out["A"], out["C"], out["delta"], tau,
                                      config.eps_rel)
-    return out["sigma"] * direction, out, tau
+    return direction, out["sigma"], out, tau
+
+
+def gram_direction(params: dict[str, Any], config: GramConfig, history: TrajectoryHistory,
+                   g_u: Any, rejection: RejectionInfo,
+                   budget_fraction: Any) -> tuple[Any, dict[str, Any], Any]:
+    """``σ P g_u`` (u units), the model outputs and ``τ``."""
+    direction, sigma, out, tau = gram_step(params, config, history, g_u, rejection,
+                                           budget_fraction)
+    return sigma * direction, out, tau
 
 
 def save_gram_checkpoint(path: str | Path, params: dict[str, Any], config: GramConfig,

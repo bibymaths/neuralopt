@@ -1,6 +1,6 @@
 # v0.7 Track B: Gram-space history model, gates 1 and 2
 
-**Status (2026-11-22): gate 1 passes; gate 2 fails its pre-stated criterion.** Under the
+**Status (2026-11-22): gate 1 passes. Gate 2 FAILED as written, and also fails the amended criterion.** Under the
 round's stop rule, this means the shared loop rule, not the model, is the limit. No
 pre-registration was written and no training was run.
 
@@ -94,6 +94,85 @@ Further measurements:
   for every shrink factor. This is a loop-rule property, shared with v0.6, and it makes
   the rejection signal ambiguous near active bounds. These gate tasks have interior
   optima.
+
+## Gate 2 as written, and the amended criterion
+
+- **As written, gate 2 FAILED and stays failed.**
+- At κ=100 both arms are at the float64 floor, and the original criterion had no
+  regret floor.
+- For the reruns below, the user stated an **amended criterion** before any rerun was
+  made:
+  - per task, log10 regret below −12 counts as −12, so regrets below 1e-12 are equal;
+  - an arm passes iff its floored median is within one decade of SciPy L-BFGS-B's
+    floored median, at both κ=100 and κ=1000.
+
+## Loop-rule ablation (`results/loop-rule-ablation-v0.7.0.json`)
+
+### Setup
+- Same gate tasks as gate 2, float64, budget 100 objective+gradient units.
+- Every arm steps through `neuralopt.loop_rules.accept_step`, so all arms share one
+  step-acceptance rule. Only the BFGS oracle's *direction* lives in the harness.
+- The harness outer loop reproduces the package's compiled engine (fixed geometry) to
+  1e-10 under each rule before any number is reported.
+- "Initial unchanged" means the model's own step was accepted without correction.
+
+### The three rules
+- **halving (v0.6):** one trial per iteration; any decrease is accepted; a rejection
+  halves the next trial.
+- **armijo:** sufficient decrease with interpolating backtracking. Each trial costs 1
+  objective unit, and the accepted point costs 1 gradient unit.
+- **wolfe:** strong Wolfe conditions with bracketing and zoom, lengthening up to 10×.
+  Each trial costs 2 units.
+
+### Results
+
+| Arm | κ=100 median (floored) | 1e-6 | κ=1000 median | 1e-6 | Units | Accepted / iterations (κ=1000) | Initial unchanged (κ=1000) | Amended pass |
+|---|---:|---:|---:|---:|---:|---:|---:|---|
+| oracle K=8, halving | −13.80 (−12) | 12/12 | −5.49 | 5/12 | ≤100 | 0.91 | 0.86 | no |
+| oracle K=8, armijo | −13.71 (−12) | 12/12 | −5.70 | 5/12 | ≤100 | 1.00 | 0.92 | no |
+| oracle K=8, wolfe | −13.63 (−12) | 12/12 | −5.59 | 5/12 | 100 | 1.00 | 0.92 | no |
+| oracle K=10, halving | −14.47 (−12) | 12/12 | −6.19 | 7/12 | ≤100 | 0.92 | 0.87 | no |
+| oracle K=10, armijo (supplementary) | −14.96 (−12) | 12/12 | −6.68 | 7/12 | ≤100 | — | 0.92 | no |
+| oracle K=10, wolfe (supplementary) | −14.22 (−12) | 12/12 | −6.43 | 7/12 | 100 | — | 0.93 | no |
+| τ only, halving | −5.23 | 2/12 | −2.72 | 0/12 | ≤100 | 0.58 | 0.43 | no |
+| τ only, armijo | −3.52 | 0/12 | −2.61 | 0/12 | ≤100 | 0.99 | 0.63 | no |
+| τ only, wolfe | −3.32 | 0/12 | −2.32 | 0/12 | 100 | 0.99 | 0.57 | no |
+| fixed step, halving | −3.16 | 0/12 | −2.19 | 0/12 | ≤100 | 0.64 | 0.37 | no |
+| fixed step, armijo | −3.26 | 0/12 | −2.31 | 0/12 | ≤100 | 0.99 | 0.60 | no |
+| fixed step, wolfe | −3.22 | 0/12 | −2.18 | 0/12 | 100 | 0.98 | 0.62 | no |
+| SciPy L-BFGS-B, maxcor 10 | −15.96 (−12) | 12/12 | −8.79 | 8/12 | 100 | — | — | reference |
+| SciPy L-BFGS-B, maxcor 8 | −15.14 (−12) | 12/12 | −5.98 | 5/12 | 100 | — | — | — |
+
+"Supplementary" rows were not part of the requested ablation. They separate history
+length from the loop rule.
+
+### Reading
+
+- **The step-acceptance rule is not the bottleneck for good directions.**
+  - Under all three rules the oracle's own step is accepted unchanged 86–93% of the time
+    at κ=1000.
+  - Changing the rule moves the oracle by at most 0.5 decades.
+- **For the no-learning baselines the rule matters, in the other direction.** At κ=100,
+  τ-only does best under halving (−5.23, against −3.52 and −3.32).
+- **History length matters a lot.**
+  - SciPy loses 2.8 decades at κ=1000 when its memory drops from 10 to 8.
+  - At matched memory 8, every oracle loop is within 0.3–0.5 decades of SciPy.
+  - At K=10, a gap of 2.1–2.6 decades to SciPy (maxcor 10) remains under every rule.
+    The cause is not identified.
+- **The amended criterion fails.** Every arm is at the floor at κ=100, but at κ=1000
+  none comes within one decade of SciPy L-BFGS-B at its default memory.
+- **Uncertainty.** Medians over 12 tasks are coarse, and no paired intervals were
+  computed for this ablation.
+
+### Step-acceptance rules (scope)
+
+`loop_rule` is a step-acceptance rule in the sense of CLAUDE.md, not a solver.
+- It decides whether, and how far, to move along the model's proposed displacement.
+- The model's step is always the first trial.
+- No curvature is built: there is no BFGS update and no classical solver.
+- It is opt-in, on the compiled engine only (`loop_rule="halving" | "armijo" |
+  "wolfe"`, default `"halving"`).
+- The Python loop, the v0.6 rule and all frozen results are unchanged.
 
 ## tf-h8 anisotropy cap (the frozen v0.6 checkpoints)
 
