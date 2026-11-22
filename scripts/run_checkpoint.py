@@ -41,6 +41,35 @@ def _now() -> str:
     return datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
+THREAD_VARIABLES = ("OMP_NUM_THREADS", "OPENBLAS_NUM_THREADS", "MKL_NUM_THREADS", "XLA_FLAGS")
+
+
+def _git(*args: str) -> str:
+    import subprocess
+
+    root = Path(__file__).resolve().parents[1]
+    return subprocess.run(["git", *args], cwd=root, capture_output=True, text=True).stdout.strip()
+
+
+def command_record(argv: Sequence[str], extra: dict[str, str] | None = None) -> str:
+    """Provenance block for ``command.txt``: command, git state, uv.lock hash, start time,
+    thread settings and CPU affinity (CLAUDE.md rule 9), plus ``extra`` (e.g. the cap)."""
+    root = Path(__file__).resolve().parents[1]
+    lock = hashlib.sha256((root / "uv.lock").read_bytes()).hexdigest()
+    try:
+        affinity = sorted(os.sched_getaffinity(0))
+    except AttributeError:  # pragma: no cover - not on Linux
+        affinity = []
+    lines = [f"start_utc: {_now()}", f"command: {' '.join(argv)}",
+             f"git_sha: {_git('rev-parse', 'HEAD')}",
+             f"git_dirty: {bool(_git('status', '--porcelain', '--untracked-files=no'))}",
+             f"uv_lock_sha256: {lock}"]
+    lines += [f"{k}={os.environ.get(k, '')}" for k in THREAD_VARIABLES]
+    lines.append(f"cpu_affinity: {affinity}")
+    lines += [f"{k}: {v}" for k, v in (extra or {}).items()]
+    return "\n".join(lines) + "\n\n"
+
+
 def run_units(names: Sequence[str], run_dir: Path, compute: Callable[[str, Progress], Any], *,
               fingerprint: str, weights: dict[str, float] | None = None,
               min_interval: float = 30.0) -> list[Any]:

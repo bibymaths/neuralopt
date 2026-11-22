@@ -223,6 +223,8 @@ FAMILIES: dict[str, FamilySpec] = {
 
 def family_objective(name: str) -> Callable[[Any, Any], Any]:
     """The family's module-level objective ``f(x, c)`` (stable object: one compilation)."""
+    if name in SYNTHETIC:
+        return SYNTHETIC[name].objective
     return FAMILIES[name].objective
 
 
@@ -232,7 +234,12 @@ def _observe_batch(name: str, truths: Any, contexts: Any) -> Any:
 
 
 def make_split(name: str, split: str, n: int) -> tuple[dict[str, Any], Any]:
-    """``n`` instances of ``split``: stacked contexts (leading axis) and true parameters."""
+    """``n`` instances of ``split``: stacked contexts (leading axis) and true parameters.
+
+    For the synthetic (v0.8-B) families the "true parameters" are the global minimizers.
+    """
+    if name in SYNTHETIC:
+        return _synthetic_split(SYNTHETIC[name], split, n)
     spec = FAMILIES[name]
     if split not in spec.splits:
         raise ValueError(f"{name} has no split {split!r}; choose from {spec.splits}")
@@ -267,3 +274,103 @@ def split_digest(contexts: dict[str, Any], truths: Any) -> str:
         h.update(a.astype(np.int64 if a.dtype.kind in "biu" else np.float64).tobytes())
     h.update(np.asarray(truths, np.float64).tobytes())
     return h.hexdigest()
+
+
+# --- v0.8-B synthetic families (docs/plans/neuralopt-v08b-step-policy.md, section 2) -----
+#
+# Context: ``shift`` o (d,) = the global minimizer, ``rotation`` R (d, d), ``amplitude`` A
+# (Rastrigin only; 1 otherwise) and ``x0`` (d,), the shared first evaluation point drawn
+# uniformly in the box. Global minimum f* = 0 at x = o for every instance and split. The
+# policy must never read ``shift`` or ``rotation`` (they reveal the optimum).
+
+
+def rastrigin_rotated_objective(x: Any, c: dict[str, Any]) -> Any:
+    z = c["rotation"] @ (x - c["shift"])
+    a = c["amplitude"]
+    return a * z.shape[-1] + jnp.sum(z * z - a * jnp.cos(2 * jnp.pi * z))
+
+
+def ackley_rotated_objective(x: Any, c: dict[str, Any]) -> Any:
+    z = c["rotation"] @ (x - c["shift"])
+    return (-20.0 * jnp.exp(-0.2 * jnp.sqrt(jnp.mean(z * z) + 1e-300))
+            - jnp.exp(jnp.mean(jnp.cos(2 * jnp.pi * z))) + 20.0 + jnp.e)
+
+
+def rosenbrock_shifted_objective(x: Any, c: dict[str, Any]) -> Any:
+    z = x - c["shift"] + 1.0
+    return jnp.sum(100.0 * (z[1:] - z[:-1] ** 2) ** 2 + (1.0 - z[:-1]) ** 2)
+
+
+@dataclass(frozen=True)
+class SyntheticSpec:
+    name: str
+    dimension: int  # in distribution (ood-dimension uses 8)
+    half_width: float  # box [-h, h]^d
+    shift_half: float  # in-distribution shift o ~ U[-s, s]^d
+    ood_shift: tuple[float, float]  # ood-shift: |o_j| ~ U[a, b], random sign
+    rotated: bool
+    amplitude: tuple[float, float] | None  # Rastrigin A range in distribution
+    ood_amplitude: tuple[float, float] | None
+    splits: tuple[str, ...]
+    objective: Callable[[Any, Any], Any]
+
+    def dimension_for(self, split: str) -> int:
+        return 8 if split == "ood-dimension" else self.dimension
+
+    def bounds(self, split: str = "validation") -> tuple[Any, Any]:
+        d = self.dimension_for(split)
+        return -self.half_width * np.ones(d), self.half_width * np.ones(d)
+
+
+def _haar_rotation(rng: np.random.Generator, d: int) -> np.ndarray:
+    q, r = np.linalg.qr(rng.standard_normal((d, d)))
+    return q * np.sign(np.diag(r))
+
+
+def _synthetic_instance(spec: SyntheticSpec, rng: np.random.Generator,
+                        split: str) -> dict[str, Any]:
+    d = spec.dimension_for(split)
+    if split == "ood-shift":
+        a, b = spec.ood_shift
+        shift = rng.uniform(a, b, d) * rng.choice([-1.0, 1.0], d)
+    else:
+        shift = rng.uniform(-spec.shift_half, spec.shift_half, d)
+    rotation = _haar_rotation(rng, d) if spec.rotated else np.eye(d)
+    if spec.amplitude is None:
+        amplitude = 1.0
+    else:
+        lo, hi = spec.ood_amplitude if split == "ood-amplitude" and spec.ood_amplitude \
+            else spec.amplitude
+        amplitude = rng.uniform(lo, hi)
+    x0 = rng.uniform(-spec.half_width, spec.half_width, d)
+    return {"shift": shift, "rotation": rotation, "amplitude": amplitude, "x0": x0}
+
+
+def _synthetic_split(spec: SyntheticSpec, split: str, n: int) -> tuple[dict[str, Any], Any]:
+    if split not in spec.splits:
+        raise ValueError(f"{spec.name} has no split {split!r}; choose from {spec.splits}")
+    rows = [_synthetic_instance(spec, _rng(spec.name, split, i), split) for i in range(n)]
+    contexts = {k: jnp.asarray(np.stack([np.asarray(r[k], float) for r in rows]))
+                for k in ("shift", "rotation", "amplitude", "x0")}
+    return contexts, contexts["shift"]
+
+
+_SYNTHETIC_SPLITS = (*IN_DISTRIBUTION, "ood-shift", "ood-dimension")
+
+SYNTHETIC: dict[str, SyntheticSpec] = {
+    "rastrigin": SyntheticSpec(
+        name="rastrigin", dimension=4, half_width=5.12, shift_half=2.5, ood_shift=(2.5, 4.0),
+        rotated=True, amplitude=(5.0, 15.0), ood_amplitude=(15.0, 25.0),
+        splits=(*_SYNTHETIC_SPLITS, "ood-amplitude"), objective=rastrigin_rotated_objective,
+    ),
+    "ackley": SyntheticSpec(
+        name="ackley", dimension=4, half_width=32.768, shift_half=16.0, ood_shift=(16.0, 28.0),
+        rotated=True, amplitude=None, ood_amplitude=None, splits=_SYNTHETIC_SPLITS,
+        objective=ackley_rotated_objective,
+    ),
+    "rosenbrock-shifted": SyntheticSpec(
+        name="rosenbrock-shifted", dimension=4, half_width=5.0, shift_half=2.5,
+        ood_shift=(2.5, 4.0), rotated=False, amplitude=None, ood_amplitude=None,
+        splits=_SYNTHETIC_SPLITS, objective=rosenbrock_shifted_objective,
+    ),
+}
