@@ -26,6 +26,7 @@ nav = [
   { "Research reports" = [
     { "v0.8: amortized families (under test)" = [
       { "Claims register" = "research/v0.8-claims.md" },
+      { "Gate F0: headroom, no learning" = "research/f0-v0.8.md" },
     ] },
     { "v0.7: compiled engine and Gram-space model" = [
       { "Engine speed (Track A)" = "research/engine-speed-v0.7.md" },

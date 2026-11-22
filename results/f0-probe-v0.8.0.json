@@ -1,0 +1,114 @@
+{
+  "schema": "neuralopt-f0-probe/v0.8",
+  "environment": {
+    "jax": "0.12.0.1",
+    "python": "3.12.10",
+    "platform": "Linux-7.0.0-43-generic-x86_64-with-glibc2.43",
+    "cpu_count": 96,
+    "xla_flags": "--xla_cpu_multi_thread_eigen=false",
+    "float": "float64"
+  },
+  "protocol": {
+    "validation_instances": 200,
+    "train_instances": 2000,
+    "reference": "2 seeds x 64+1 starts, cap 2000",
+    "labels": "16 starts, cap 1000",
+    "budgets": [
+      25,
+      50,
+      100,
+      200,
+      400,
+      800
+    ],
+    "cap_cpu_hours": 6.0
+  },
+  "rows": [
+    {
+      "family": "sinusoid",
+      "us_per_objective_batched": 2.4833916540956125,
+      "us_per_gradient_batched": 6.100764949223958,
+      "gradient_to_objective_cost": 2.4566261786225176,
+      "us_per_scipy_call_value_and_grad": 315.18220028374344,
+      "local_solve_units_median": 95.5,
+      "local_solve_units_p90": 224.5,
+      "local_solve_hit_cap_fraction": 0.0,
+      "owned_us_per_unit": {
+        "vmap": 154.87568466550684,
+        "map": 2.755618483420822
+      },
+      "owned_first_call_s": {
+        "vmap": 2.292383018997498,
+        "map": 1.3697826659772545
+      },
+      "owned_strategy": "map",
+      "owned_batched_us_per_unit": 2.755618483420822,
+      "projection": {
+        "scipy_references_s": 782.597403304535,
+        "training_labels_s": 16.842340170668066,
+        "owned_arms_s": 0.9473816346000786,
+        "scipy_arms_s": 51.16983021606575,
+        "identifiability_s": 25.584915108032874,
+        "total_cpu_hours": 0.24365051956497272
+      }
+    },
+    {
+      "family": "cascade-clean",
+      "us_per_objective_batched": 27.473312002257444,
+      "us_per_gradient_batched": 275.2946256805444,
+      "gradient_to_objective_cost": 10.020438222298202,
+      "us_per_scipy_call_value_and_grad": 552.7542397612706,
+      "local_solve_units_median": 180.0,
+      "local_solve_units_p90": 458.8,
+      "local_solve_hit_cap_fraction": 0.0,
+      "owned_us_per_unit": {
+        "vmap": 516.8641308036617,
+        "map": 96.10794888993142
+      },
+      "owned_first_call_s": {
+        "vmap": 10.206578435958363,
+        "map": 3.352213647100143
+      },
+      "owned_strategy": "map",
+      "owned_batched_us_per_unit": 96.10794888993142,
+      "projection": {
+        "scipy_references_s": 2586.8898420827463,
+        "training_labels_s": 1107.1635712120099,
+        "owned_arms_s": 62.277950880675554,
+        "scipy_arms_s": 169.1427973669488,
+        "identifiability_s": 84.5713986834744,
+        "total_cpu_hours": 1.1139015445071818
+      }
+    },
+    {
+      "family": "cascade-realistic",
+      "us_per_objective_batched": 26.368281396571547,
+      "us_per_gradient_batched": 259.6588910819264,
+      "gradient_to_objective_cost": 9.847395329893883,
+      "us_per_scipy_call_value_and_grad": 554.3824302731082,
+      "local_solve_units_median": 197.5,
+      "local_solve_units_p90": 634.0,
+      "local_solve_hit_cap_fraction": 0.0,
+      "owned_us_per_unit": {
+        "vmap": 1013.9692638970921,
+        "map": 92.24395082121922
+      },
+      "owned_first_call_s": {
+        "vmap": 19.767517040017992,
+        "map": 3.6264419560320675
+      },
+      "owned_strategy": "map",
+      "owned_batched_us_per_unit": 92.24395082121922,
+      "projection": {
+        "scipy_references_s": 2846.75377945241,
+        "training_labels_s": 1165.9635383802108,
+        "owned_arms_s": 65.58544903388686,
+        "scipy_arms_s": 186.13390096419604,
+        "identifiability_s": 93.06695048209802,
+        "total_cpu_hours": 1.2104176717535562
+      }
+    }
+  ],
+  "projected_total_cpu_hours": 2.5679697358257108,
+  "within_cap": true
+}

@@ -218,3 +218,7 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# long-run directories and the session handoff note (not versioned)
+runs/
+HANDOFF.md
