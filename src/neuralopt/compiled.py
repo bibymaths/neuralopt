@@ -13,6 +13,11 @@ Diagnostics are written to preallocated arrays of length ``budget``. Under ``vma
 when the candidate was accepted.
 
 The Python loop stays the reference and the only path for host/NumPy gradients.
+
+``model_kind="gram"`` (v0.7 Track B, compiled engine only) uses a different candidate
+rule, ``u' = clip(u − shrink · σ · P g_u, −1, 1)`` with the un-normalized gradient and the
+Gram inverse metric; it has no Python-loop reference and is checked against an
+independent harness copy (``scripts/run_gram_gates_v0_7.py``).
 """
 
 from __future__ import annotations
@@ -73,6 +78,9 @@ class _State(NamedTuple):
     rejected_length: Any
     rejected_ratio: Any
     rejected_has: Any
+    # Gram model diagnostics per iteration (zero for other models).
+    taus: Any  # (budget,)
+    sigmas: Any  # (budget,)
 
 
 def _solve(
@@ -100,6 +108,8 @@ def _solve(
     grad_f = jax.grad(f)
     history_on = config.feature_set != "legacy"
     apply = apply_model if model_kind == "transformer" else apply_mlp_model
+    leaves = jax.tree_util.tree_leaves(params)
+    param_dtype = leaves[0].dtype if leaves else dtype
     if model_kind == "gram" and geometry != "learned":
         raise ValueError("the Gram model is a learned geometry")
 
@@ -143,6 +153,8 @@ def _solve(
         rejected_length=jnp.asarray(0.0, dtype),
         rejected_ratio=jnp.asarray(0.0, dtype),
         rejected_has=jnp.asarray(False),
+        taus=jnp.zeros((budget,), dtype),
+        sigmas=jnp.zeros((budget,), dtype),
     )
 
     def gradient_norm(grad: Any) -> Any:
@@ -163,11 +175,12 @@ def _solve(
             )
             direction = direction.astype(dtype)
             u_new = jnp.clip(u - s.shrink * direction, -1.0, 1.0)
-            # Records: step_lengths = shrink * σ; diag_min = τ; diag_max = σ;
-            # lowrank_frobenius = ‖A‖_F (see docs/research/gram-space-v0.7.md).
+            # Records: step_lengths = shrink * σ, taus = τ, sigmas = σ,
+            # lowrank_frobenius = ‖A‖_F; diag_min/diag_max are not meaningful here.
             length = gram_out["sigma"].astype(dtype)
-            diag = jnp.stack((tau, gram_out["sigma"])).astype(dtype)
+            diag = jnp.ones((1,), dtype)
             lowrank = gram_out["A"].astype(dtype)
+            gram_tau, gram_sigma = tau.astype(dtype), gram_out["sigma"].astype(dtype)
             geometry_ok = (
                 jnp.all(jnp.isfinite(direction))
                 & jnp.isfinite(tau)
@@ -180,7 +193,10 @@ def _solve(
                 tokens = history_token_features(s.x, s.grad, lo, hi, s.history)
             else:
                 tokens = parameter_features(s.x, s.grad, lo, hi, s.x, config.scale_aware)
-            out = apply(params, tokens, 1 - s.used.astype(dtype) / budget, config)
+            # Match the Python loop, which passes a Python float that adopts the
+            # parameters' dtype (float32 checkpoints on float64 problems).
+            fraction = (1 - s.used.astype(dtype) / budget).astype(param_dtype)
+            out = apply(params, tokens, fraction, config)
             diag, lowrank = out["diag"].astype(dtype), out["lowrank"].astype(dtype)
             if structure == "diagonal":
                 lowrank = jnp.zeros_like(lowrank)
@@ -199,6 +215,7 @@ def _solve(
             length = fixed_step
             geometry_ok = jnp.asarray(True)
         if model_kind != "gram":
+            gram_tau = gram_sigma = jnp.asarray(0.0, dtype)
             u_new = preconditioned_candidate(u, unit, diag, lowrank, length, s.shrink)
 
         def evaluate(s: _State) -> _State:
@@ -257,6 +274,8 @@ def _solve(
                 rejected_ratio=jnp.where(accepted, 0.0, jnp.clip(ratio, -10.0, 10.0)).astype(
                     dtype),
                 rejected_has=~accepted,
+                taus=s.taus.at[i].set(gram_tau),
+                sigmas=s.sigmas.at[i].set(gram_sigma),
             )
 
         def fail(s: _State) -> _State:

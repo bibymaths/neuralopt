@@ -720,8 +720,11 @@ def _minimize_preconditioned_compiled(
     history = out["history"]
     records = None
     if record_diagnostics:
+        gram = model_kind == "gram"
         records = [
             {
+                **({"tau": float(out["taus"][i]), "sigma": float(out["sigmas"][i])}
+                   if gram else {}),
                 "candidate": np.asarray(out["candidates"][i]).tolist(),
                 "candidate_objective": float(out["candidate_values"][i]),
                 "accepted": bool(out["accepted"][i]),

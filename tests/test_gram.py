@@ -70,6 +70,11 @@ def test_gram_metric_with_bfgs_coefficients_equals_lbfgs_two_loop(d, pairs, seed
         tau = tau_scale(basis, g, CONFIG.fallback_length)
         gamma = (S[:, -1] @ Y[:, -1]) / (Y[:, -1] @ Y[:, -1])
         A_hat, C_hat, delta = bfgs_coefficients(S, Y, tau, gamma)
+        # The BFGS values must lie inside the learned model's output ranges to count as
+        # expressible (bound * tanh(raw / bound) reaches every value strictly inside).
+        assert float(jnp.abs(A_hat).max()) < CONFIG.coefficient_bound
+        assert float(jnp.abs(C_hat).max()) < CONFIG.coefficient_bound
+        assert abs(float(delta)) < CONFIG.delta_bound
         ours = apply_inverse_metric(g, basis, A_hat, C_hat, delta, tau, eps_rel=0.0)
         reference = two_loop_direction(g, S, Y, gamma)
         np.testing.assert_allclose(ours, reference, rtol=1e-10, atol=1e-10 * float(
@@ -225,3 +230,19 @@ def test_trajectory_is_rotation_equivariant_and_objective_scale_invariant():
                                    rtol=1e-7)
         assert [r["accepted"] for r in scaled.diagnostics["records"]] == [
             r["accepted"] for r in base.diagnostics["records"]]
+
+
+def test_gram_records_report_tau_and_sigma_separately():
+    with jax.enable_x64(True):
+        d = 6
+        hessian = _spd(jax.random.PRNGKey(11), d, 50.0)
+        f = _quadratic(hessian, jnp.zeros(d))
+        params = init_gram_model(jax.random.PRNGKey(12), CONFIG)
+        base = _solve(f, jnp.ones(d), 10.0, params, CONFIG, budget=30)
+        tiny = _solve(lambda x: 1e-6 * f(x), jnp.ones(d), 10.0, params, CONFIG, budget=30)
+    rb, rt = base.diagnostics["records"], tiny.diagnostics["records"]
+    assert all(r["tau"] > 0 and 1 / CONFIG.sigma_bound <= r["sigma"] <= CONFIG.sigma_bound
+               for r in rb)
+    # tau carries the inverse objective units; sigma is dimensionless.
+    np.testing.assert_allclose([r["tau"] * 1e-6 for r in rt], [r["tau"] for r in rb], rtol=1e-6)
+    np.testing.assert_allclose([r["sigma"] for r in rt], [r["sigma"] for r in rb], rtol=1e-9)

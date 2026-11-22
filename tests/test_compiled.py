@@ -203,3 +203,18 @@ def test_batched_solve_matches_single_solves_and_charges_gradients_on_acceptance
     assert np.any(accepted < iterations)  # some rejections happened in the batch
     assert np.all(np.asarray(batch["objective_evaluations"])
                   + np.asarray(batch["gradient_evaluations"]) <= budget)
+
+
+def test_float32_checkpoint_on_float64_problem_matches_python_without_dtype_warnings():
+    import warnings
+
+    params, config = load_checkpoint("artifacts/trajectory-v0.6.0-tf-h8-seed0.npz")
+    with jax.enable_x64(True):
+        problem = _rotated(jnp.float64, d=5, seed=4, budget=40)
+        python = _run(problem, "python", params, config, "transformer", "learned", False)
+        with warnings.catch_warnings():
+            warnings.simplefilter("error", FutureWarning)
+            compiled = _run(problem, "compiled", params, config, "transformer", "learned",
+                            False)
+    np.testing.assert_allclose(compiled.trajectory, python.trajectory, rtol=1e-6)
+    assert compiled.diagnostics["accepted_steps"] == python.diagnostics["accepted_steps"]
