@@ -222,3 +222,46 @@ Source: curvature-reviewer, 2026-11-22.
   - The oracle handles all-valid histories; masking is tested only for the oldest slots.
   - Any change to the token layout must bump `GRAM_SCHEMA`.
   - The clip-induced ascent described under "Rejection signal under clipping".
+
+## Pre-registration (frozen) and infrastructure
+
+- **Frozen pre-registration:**
+  `docs/superpowers/specs/2026-11-22-gram-space-v07-preregistration.md`, sha256
+  `6d5489dab06d3bbc5b60f716ab65411e8626af65f3a97de0a0044e24b43cad3f`. The hash was
+  recorded in its own commit, and `scripts/run_gram_space_v0_7.py` checks it at startup.
+- **Infrastructure built after freezing (no training run):**
+  - Gram schema v2 (`neuralopt-policy/v0.7-gram-v2`), with history-v2 masks and the
+    `history_masked` no-history switch. v1 files load with v1 thresholds.
+  - The matched training unroll (`neuralopt.gram_training`, a 97-step scan at budget
+    100). It equals the compiled engine to 1e-10 for full, scalar and no-history
+    variants.
+  - `train_batched(model_kind="gram")`, with the NaN-skip test.
+  - The reference and evaluation harness (`scripts/run_gram_space_v0_7.py`): BB and
+    oracle through `accept_step`, a parity check against the package loop, SciPy, the
+    tf-h8 context arm, two-level paired intervals, the decision rules and the
+    outcome-to-claim table, all tested in `tests/test_gram_space_protocol.py`.
+- **Timing probe** (`results/gram-probe-v0.7.0.json`; gram-full, 20 updates, nothing
+  saved):
+  - 0.59 s per update; 13.5 task-gradients/s; about 5.5 s for the first pass including
+    the 6 compilations.
+  - Projected 19.9 minutes per run single-process, under the 45-minute limit, so the
+    **2,000 updates are kept**.
+  - 15 runs: **about 5.0 CPU-hours**, or about 20 minutes wall-clock per stage when the
+    runs execute in parallel.
+  - The draft's earlier estimate of about 11 minutes per run was low by roughly 2×.
+
+## Corrections
+
+Deviations from, or details not fixed by, the frozen pre-registration. The frozen file
+is never edited.
+
+1. **Training group sampling** (a pre-training implementation detail; the
+   pre-registration specifies only "batch 8 from one family and dimension group").
+   - The six groups are quadratic-d4/d8/d12 (28 tasks each) and Rastrigin-d4/d8/d12
+     (4 tasks each).
+   - They are cycled in proportion to their size, 7:1, so every training task is
+     equally likely.
+   - Uniform cycling would have put 50% of updates on Rastrigin, which is 12 of the 96
+     tasks.
+   - Fixed before any training.
+

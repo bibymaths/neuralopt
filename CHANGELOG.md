@@ -7,6 +7,10 @@
   batch API; parametric task families and a compiled, batched, NaN-guarded trainer
   (`train_batched`, skipped updates counted). Engine and training benchmarks in
   `results/engine-benchmark-v0.7.0.json`; Optimistix added to the `benchmark` extra only.
+- Track B (opt-in, research): Gram-space history model (`model_kind="gram"`, schema
+  gram-v2), opt-in step-acceptance rules (`loop_rule`), gates 1-2, loop-rule ablation,
+  mask diagnostic, a frozen pre-registration (sha256 recorded) and its training and
+  evaluation infrastructure. No training has been run.
 
 ## 0.6.0 - In development
 
