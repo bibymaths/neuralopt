@@ -63,7 +63,14 @@ def _cosine_alignment(direction: np.ndarray, gradient: np.ndarray) -> float:
     return 0.0 if denominator <= 1e-12 else float(direction @ (-gradient) / denominator)
 
 
-def _validate_policy_params(params: Params, model_kind: str, config: ModelConfig) -> None:
+def _validate_policy_params(params: Params, model_kind: str, config: Any) -> None:
+    if model_kind == "gram":
+        from .gram import init_gram_model
+
+        expected = init_gram_model(jax.random.PRNGKey(0), config)
+        if {k: v.shape for k, v in params.items()} != {k: v.shape for k, v in expected.items()}:
+            raise ValueError("gram parameters do not match the Gram configuration")
+        return
     common = {"direction", "proposal", "diag", "lowrank", "global"}
     if model_kind == "mlp":
         required = common | {"hidden"}
@@ -93,7 +100,7 @@ def minimize(
     config: ModelConfig = DEFAULT_CONFIG,
     absolute_gap: float = 1e-6,
     record_diagnostics: bool = False,
-    model_kind: Literal["transformer", "mlp"] = "transformer",
+    model_kind: Literal["transformer", "mlp", "gram"] = "transformer",
     candidate_method: Literal[
         "direct", "hamiltonian", "langevin", "underdamped", "preconditioned"
     ] = "direct",
@@ -105,6 +112,7 @@ def minimize(
     underdamped_config: UnderdampedConfig = DEFAULT_UNDERDAMPED_CONFIG,
     preconditioned_step: float | None = None,
     preconditioned_engine: Literal["python", "compiled"] = "python",
+    loop_rule: Literal["halving", "armijo", "wolfe"] = "halving",
 ) -> OptimizationResult:
     """Minimize a bounded objective with learned actions or rigorous certification."""
     budget = max_evaluations or problem.max_evaluations
@@ -134,8 +142,15 @@ def minimize(
         )
     if mode != "learned":
         raise ValueError("mode must be 'learned' or 'certified'")
-    if model_kind not in {"transformer", "mlp"}:
-        raise ValueError("model_kind must be 'transformer' or 'mlp'")
+    if model_kind not in {"transformer", "mlp", "gram"}:
+        raise ValueError("model_kind must be 'transformer', 'mlp', or 'gram'")
+    if model_kind == "gram" and (
+        candidate_method != "preconditioned" or preconditioned_engine != "compiled"
+    ):
+        raise ValueError(
+            "model_kind='gram' requires candidate_method='preconditioned' and "
+            "preconditioned_engine='compiled'"
+        )
     methods = {"direct", "hamiltonian", "langevin", "underdamped", "preconditioned"}
     if candidate_method not in methods:
         raise ValueError(
@@ -150,6 +165,8 @@ def minimize(
         raise ValueError(f"{candidate_method} proposals currently support box constraints only")
     checkpoint_name = "caller-provided"
     if params is None:
+        if model_kind == "gram":
+            raise ValueError("model_kind='gram' requires caller-provided Gram parameters")
         if model_kind != "transformer":
             raise ValueError("model_kind='mlp' requires caller-provided MLP parameters")
         from .training import load_checkpoint
@@ -174,6 +191,13 @@ def minimize(
             )
     if preconditioned_engine not in {"python", "compiled"}:
         raise ValueError("preconditioned_engine must be 'python' or 'compiled'")
+    if loop_rule != "halving" and (
+        candidate_method != "preconditioned" or preconditioned_engine != "compiled"
+    ):
+        raise ValueError(
+            "loop_rule other than 'halving' requires candidate_method='preconditioned' and "
+            "preconditioned_engine='compiled'"
+        )
     if candidate_method == "preconditioned" and preconditioned_engine == "compiled":
         return _minimize_preconditioned_compiled(
             problem,
@@ -188,6 +212,7 @@ def minimize(
             preconditioned_step,
             record_diagnostics,
             checkpoint_name,
+            loop_rule,
         )
     if candidate_method == "preconditioned":
         return _minimize_preconditioned(
@@ -675,8 +700,10 @@ def _minimize_preconditioned_compiled(
     preconditioned_step: float | None,
     record_diagnostics: bool,
     checkpoint_name: str,
+    loop_rule: str = "halving",
 ) -> OptimizationResult:
-    """Same rule as :func:`_minimize_preconditioned`, run by :mod:`neuralopt.compiled`."""
+    """Same rule as :func:`_minimize_preconditioned` (``loop_rule="halving"``), run by
+    :mod:`neuralopt.compiled`; other step-acceptance rules are opt-in."""
     from .compiled import STATUS_MESSAGES, preconditioned_solve
 
     if problem.gradient is not None:
@@ -696,6 +723,7 @@ def _minimize_preconditioned_compiled(
         structure=structure,
         fixed_metric_diag=fixed_metric_diag,
         preconditioned_step=preconditioned_step,
+        loop_rule=loop_rule,
     )
     status = int(out["status"])
     if status in STATUS_MESSAGES:
@@ -704,8 +732,14 @@ def _minimize_preconditioned_compiled(
     history = out["history"]
     records = None
     if record_diagnostics:
+        gram = model_kind == "gram"
         records = [
             {
+                **({"tau": float(out["taus"][i]), "sigma": float(out["sigmas"][i])}
+                   if gram else {}),
+                "trials": int(out["trials"][i]),
+                "initial_accepted": bool(out["initial_accepted"][i]),
+                "wolfe_satisfied": bool(out["wolfe_satisfied"][i]),
                 "candidate": np.asarray(out["candidates"][i]).tolist(),
                 "candidate_objective": float(out["candidate_values"][i]),
                 "accepted": bool(out["accepted"][i]),
@@ -727,6 +761,7 @@ def _minimize_preconditioned_compiled(
         diagnostics={
             "candidate_method": "preconditioned",
             "engine": "compiled",
+            "loop_rule": loop_rule,
             "geometry": geometry,
             "feature_set": config.feature_set,
             "history_length": config.history_length,

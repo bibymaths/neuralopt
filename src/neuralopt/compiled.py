@@ -13,6 +13,11 @@ Diagnostics are written to preallocated arrays of length ``budget``. Under ``vma
 when the candidate was accepted.
 
 The Python loop stays the reference and the only path for host/NumPy gradients.
+
+``model_kind="gram"`` (v0.7 Track B, compiled engine only) uses a different candidate
+rule, ``u' = clip(u − shrink · σ · P g_u, −1, 1)`` with the un-normalized gradient and the
+Gram inverse metric; it has no Python-loop reference and is checked against an
+independent harness copy (``scripts/run_gram_gates_v0_7.py``).
 """
 
 from __future__ import annotations
@@ -24,17 +29,17 @@ import jax
 import jax.numpy as jnp
 
 from .features import (
-    denormalize_coordinates,
     gradient_to_normalized,
     normalize_coordinates,
     parameter_features,
 )
+from .gram import RejectionInfo, gram_step
+from .loop_rules import LOOP_RULES, accept_step
 from .model import DEFAULT_CONFIG, ModelConfig, Params, apply_mlp_model, apply_model
 from .trajectory import (
     TrajectoryHistory,
     empty_history,
     history_token_features,
-    preconditioned_candidate,
     push_history,
     record_rejection,
 )
@@ -68,16 +73,27 @@ class _State(NamedTuple):
     diag_min: Any
     diag_max: Any
     lowrank_frobenius: Any
+    # Rejection information at the current point (used by the Gram model only).
+    rejected_length: Any
+    rejected_ratio: Any
+    rejected_has: Any
+    # Gram model diagnostics per iteration (zero for other models).
+    taus: Any  # (budget,)
+    sigmas: Any  # (budget,)
+    trials: Any  # (budget,) trials per iteration (step-acceptance rule)
+    initial_accepted: Any  # (budget,) the model's own step was accepted unchanged
+    wolfe_satisfied: Any  # (budget,)
 
 
 def _solve(
     objective: Any,
     parametric: bool,
     budget: int,
-    config: ModelConfig,
+    config: Any,  # ModelConfig, or GramConfig when model_kind == "gram"
     model_kind: str,
     geometry: str,
     structure: str,
+    loop_rule: str,
     theta: Any,
     x0: Any,
     lo: Any,
@@ -95,6 +111,10 @@ def _solve(
     grad_f = jax.grad(f)
     history_on = config.feature_set != "legacy"
     apply = apply_model if model_kind == "transformer" else apply_mlp_model
+    leaves = jax.tree_util.tree_leaves(params)
+    param_dtype = leaves[0].dtype if leaves else dtype
+    if model_kind == "gram" and geometry != "learned":
+        raise ValueError("the Gram model is a learned geometry")
 
     value0 = f(x0).astype(dtype)
     grad0 = grad_f(x0).astype(dtype)
@@ -133,6 +153,14 @@ def _solve(
         diag_min=jnp.zeros((budget,), dtype),
         diag_max=jnp.zeros((budget,), dtype),
         lowrank_frobenius=jnp.zeros((budget,), dtype),
+        rejected_length=jnp.asarray(0.0, dtype),
+        rejected_ratio=jnp.asarray(0.0, dtype),
+        rejected_has=jnp.asarray(False),
+        taus=jnp.zeros((budget,), dtype),
+        sigmas=jnp.zeros((budget,), dtype),
+        trials=jnp.zeros((budget,), jnp.int32),
+        initial_accepted=jnp.zeros((budget,), bool),
+        wolfe_satisfied=jnp.zeros((budget,), bool),
     )
 
     def gradient_norm(grad: Any) -> Any:
@@ -144,12 +172,37 @@ def _solve(
     def step(s: _State) -> _State:
         g_u = gradient_to_normalized(s.grad, lo, hi)
         unit = g_u / jnp.linalg.norm(g_u)
-        if geometry == "learned":
+        u = normalize_coordinates(s.x, lo, hi)
+        if model_kind == "gram":
+            rejection = RejectionInfo(s.history.rejections, s.rejected_length,
+                                      s.rejected_ratio, s.rejected_has)
+            base, sigma, gram_out, tau = gram_step(
+                params, config, s.history, g_u, rejection, 1 - s.used.astype(dtype) / budget
+            )
+            base = base.astype(dtype)
+            # Records: step_lengths = α · shrink · σ, taus = τ, sigmas = σ,
+            # lowrank_frobenius = ‖A‖_F; diag_min/diag_max are not meaningful here.
+            length = sigma.astype(dtype)
+            diag = jnp.ones((1,), dtype)
+            lowrank = gram_out["A"].astype(dtype)
+            gram_tau, gram_sigma = tau.astype(dtype), length
+            geometry_ok = (
+                jnp.all(jnp.isfinite(base))
+                & jnp.isfinite(length)
+                & jnp.isfinite(tau)
+                & (tau > 0)
+                & jnp.all(jnp.isfinite(gram_out["A"]))
+                & jnp.all(jnp.isfinite(gram_out["C"]))
+            )
+        elif geometry == "learned":
             if history_on:
                 tokens = history_token_features(s.x, s.grad, lo, hi, s.history)
             else:
                 tokens = parameter_features(s.x, s.grad, lo, hi, s.x, config.scale_aware)
-            out = apply(params, tokens, 1 - s.used.astype(dtype) / budget, config)
+            # Match the Python loop, which passes a Python float that adopts the
+            # parameters' dtype (float32 checkpoints on float64 problems).
+            fraction = (1 - s.used.astype(dtype) / budget).astype(param_dtype)
+            out = apply(params, tokens, fraction, config)
             diag, lowrank = out["diag"].astype(dtype), out["lowrank"].astype(dtype)
             if structure == "diagonal":
                 lowrank = jnp.zeros_like(lowrank)
@@ -167,54 +220,67 @@ def _solve(
             lowrank = jnp.zeros((dimension, 1), dtype)
             length = fixed_step
             geometry_ok = jnp.asarray(True)
+        if model_kind != "gram":
+            gram_tau = gram_sigma = jnp.asarray(0.0, dtype)
+            # Same operations as trajectory.preconditioned_candidate (the v0.6 rule).
+            base = diag * unit + lowrank @ (lowrank.T @ unit)
 
         def evaluate(s: _State) -> _State:
-            u = normalize_coordinates(s.x, lo, hi)
-            u_new = preconditioned_candidate(u, unit, diag, lowrank, length, s.shrink)
-            candidate = jnp.clip(denormalize_coordinates(u_new, lo, hi), lo, hi)
-            candidate_value = f(candidate).astype(dtype)
-            improved = jnp.isfinite(candidate_value) & (candidate_value < s.value)
-            candidate_grad = jax.lax.cond(
-                improved,
-                lambda c: grad_f(c).astype(dtype),
-                lambda c: jnp.zeros_like(c),
-                candidate,
-            )
-            accepted = improved & jnp.all(jnp.isfinite(candidate_grad))
+            outcome = accept_step(loop_rule, f, grad_f, s.x, s.value, s.grad, base, length,
+                                  s.shrink, budget - s.used, lo, hi)
+            accepted = outcome.accepted
             if history_on:
                 pushed = push_history(
                     s.history,
-                    normalize_coordinates(candidate, lo, hi),
-                    gradient_to_normalized(candidate_grad, lo, hi),
-                    candidate_value,
+                    normalize_coordinates(outcome.x, lo, hi),
+                    gradient_to_normalized(outcome.grad, lo, hi),
+                    outcome.value,
                 )
             else:
                 pushed = s.history
             history = jax.tree_util.tree_map(
                 lambda a, b: jnp.where(accepted, a, b), pushed, record_rejection(s.history)
             )
-            value = jnp.where(accepted, candidate_value, s.value)
+            candidate = jnp.where(accepted, outcome.x, outcome.trial_x)
+            candidate_value = jnp.where(accepted, outcome.value, outcome.trial_value)
+            step_u = normalize_coordinates(outcome.trial_x, lo, hi) - u
+            predicted = jnp.sum(g_u * step_u)
+            ratio = jnp.where(
+                jnp.isfinite(outcome.trial_value) & (predicted != 0),
+                (outcome.trial_value - s.value) / jnp.where(predicted != 0, predicted, 1.0),
+                10.0,
+            )
+            units = outcome.objective_evaluations + outcome.gradient_evaluations
             i = s.iteration
             return s._replace(
-                x=jnp.where(accepted, candidate, s.x),
-                value=value,
-                grad=jnp.where(accepted, candidate_grad, s.grad),
+                x=outcome.x,
+                value=outcome.value,
+                grad=outcome.grad,
                 history=history,
-                shrink=jnp.where(accepted, jnp.asarray(1.0, dtype), 0.5 * s.shrink),
-                used=s.used + 1 + improved.astype(jnp.int32),
-                objective_evaluations=s.objective_evaluations + 1,
-                gradient_evaluations=s.gradient_evaluations + improved.astype(jnp.int32),
+                shrink=outcome.next_shrink.astype(dtype),
+                used=s.used + units,
+                objective_evaluations=s.objective_evaluations + outcome.objective_evaluations,
+                gradient_evaluations=s.gradient_evaluations + outcome.gradient_evaluations,
                 accepted_steps=s.accepted_steps + accepted.astype(jnp.int32),
                 rejected_steps=s.rejected_steps + (~accepted).astype(jnp.int32),
                 iteration=i + 1,
-                trajectory=s.trajectory.at[i + 1].set(value),
+                trajectory=s.trajectory.at[i + 1].set(outcome.value),
                 candidates=s.candidates.at[i].set(candidate),
                 candidate_values=s.candidate_values.at[i].set(candidate_value),
                 accepted=s.accepted.at[i].set(accepted),
-                step_lengths=s.step_lengths.at[i].set(s.shrink * length),
+                step_lengths=s.step_lengths.at[i].set(outcome.applied_scale.astype(dtype)),
                 diag_min=s.diag_min.at[i].set(jnp.min(diag)),
                 diag_max=s.diag_max.at[i].set(jnp.max(diag)),
                 lowrank_frobenius=s.lowrank_frobenius.at[i].set(jnp.linalg.norm(lowrank)),
+                rejected_length=jnp.where(accepted, 0.0, jnp.linalg.norm(step_u)).astype(dtype),
+                rejected_ratio=jnp.where(accepted, 0.0, jnp.clip(ratio, -10.0, 10.0)).astype(
+                    dtype),
+                rejected_has=~accepted,
+                taus=s.taus.at[i].set(gram_tau),
+                sigmas=s.sigmas.at[i].set(gram_sigma),
+                trials=s.trials.at[i].set(outcome.trials),
+                initial_accepted=s.initial_accepted.at[i].set(outcome.initial_accepted),
+                wolfe_satisfied=s.wolfe_satisfied.at[i].set(outcome.wolfe_satisfied),
             )
 
         def fail(s: _State) -> _State:
@@ -228,7 +294,8 @@ def _solve(
     return final, stationary
 
 
-_STATIC = ("objective", "parametric", "budget", "config", "model_kind", "geometry", "structure")
+_STATIC = ("objective", "parametric", "budget", "config", "model_kind", "geometry", "structure",
+           "loop_rule")
 _solve_jit = jax.jit(_solve, static_argnames=_STATIC)
 
 
@@ -239,6 +306,7 @@ def _batched(
     model_kind: str,
     geometry: str,
     structure: str,
+    loop_rule: str,
     thetas: Any,
     x0: Any,
     lo: Any,
@@ -247,7 +315,8 @@ def _batched(
     fixed_diag: Any,
     fixed_step: Any,
 ) -> tuple[_State, Any]:
-    solve = partial(_solve, objective, True, budget, config, model_kind, geometry, structure)
+    solve = partial(_solve, objective, True, budget, config, model_kind, geometry, structure,
+                    loop_rule)
     return jax.vmap(solve, in_axes=(0, 0, 0, 0, None, None, None))(
         thetas, x0, lo, hi, params, fixed_diag, fixed_step
     )
@@ -255,13 +324,16 @@ def _batched(
 
 _batched_jit = jax.jit(
     _batched, static_argnames=("objective", "budget", "config", "model_kind", "geometry",
-                               "structure")
+                               "structure", "loop_rule")
 )
 
 
 def _geometry_inputs(
-    dimension: int, dtype: Any, geometry: str, fixed_metric_diag: Any, preconditioned_step: Any
+    dimension: int, dtype: Any, geometry: str, fixed_metric_diag: Any, preconditioned_step: Any,
+    loop_rule: str = "halving",
 ) -> tuple[Any, Any]:
+    if loop_rule not in LOOP_RULES:
+        raise ValueError(f"loop_rule must be one of {LOOP_RULES}")
     if geometry not in {"learned", "fixed", "identity"}:
         raise ValueError("geometry must be 'learned', 'fixed', or 'identity'")
     if geometry != "learned" and (preconditioned_step is None or not preconditioned_step > 0):
@@ -289,6 +361,7 @@ def preconditioned_solve(
     structure: str = "full",
     fixed_metric_diag: Any = None,
     preconditioned_step: float | None = None,
+    loop_rule: str = "halving",
 ) -> dict[str, Any]:
     """Run one compiled solve; returns host arrays (see :class:`_State`) plus status.
 
@@ -301,7 +374,7 @@ def preconditioned_solve(
     lo, hi = (jnp.asarray(b) for b in bounds)
     x0 = jnp.asarray(x0, lo.dtype)
     diag, step = _geometry_inputs(x0.shape[-1], lo.dtype, geometry, fixed_metric_diag,
-                                  preconditioned_step)
+                                  preconditioned_step, loop_rule)
     state, stationary = _solve_jit(
         objective=objective,
         parametric=theta is not None,
@@ -310,6 +383,7 @@ def preconditioned_solve(
         model_kind=model_kind,
         geometry=geometry,
         structure=structure,
+        loop_rule=loop_rule,
         theta=theta,
         x0=x0,
         lo=lo,
@@ -335,6 +409,7 @@ def preconditioned_solve_batch(
     structure: str = "full",
     fixed_metric_diag: Any = None,
     preconditioned_step: float | None = None,
+    loop_rule: str = "halving",
 ) -> dict[str, Any]:
     """``vmap`` the compiled solve over tasks ``objective(x, theta_i)`` of one dimension.
 
@@ -344,7 +419,7 @@ def preconditioned_solve_batch(
     lo, hi = (jnp.asarray(b) for b in bounds)
     x0 = jnp.asarray(x0, lo.dtype)
     diag, step = _geometry_inputs(x0.shape[-1], lo.dtype, geometry, fixed_metric_diag,
-                                  preconditioned_step)
+                                  preconditioned_step, loop_rule)
     state, stationary = _batched_jit(
         objective=objective,
         budget=budget,
@@ -352,6 +427,7 @@ def preconditioned_solve_batch(
         model_kind=model_kind,
         geometry=geometry,
         structure=structure,
+        loop_rule=loop_rule,
         thetas=thetas,
         x0=x0,
         lo=lo,

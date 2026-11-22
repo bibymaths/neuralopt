@@ -41,11 +41,18 @@ def rosenbrock_objective(x: Any, theta: dict[str, Any]) -> Any:
     return theta["scale"] * jnp.sum(100.0 * (y[1:] - y[:-1] ** 2) ** 2 + (1 - y[:-1]) ** 2)
 
 
+def shifted_rosenbrock_objective(x: Any, theta: dict[str, Any]) -> Any:
+    """Rosenbrock with a seeded shift: minimizer at ``x* = c (1 + shift)`` (inside the box)."""
+    y = x / theta["coordinate_scale"] - theta["shift"]
+    return theta["scale"] * jnp.sum(100.0 * (y[1:] - y[:-1] ** 2) ** 2 + (1 - y[:-1]) ** 2)
+
+
 _OBJECTIVES = {
     "quadratic": quadratic_objective,
     "rastrigin": rastrigin_objective,
     "ackley": ackley_objective,
     "rosenbrock": rosenbrock_objective,
+    "rosenbrock-shifted": shifted_rosenbrock_objective,
 }
 
 
@@ -96,6 +103,12 @@ def make_task(
         objective_family, half, label = family, 5.0, family
     elif family == "rosenbrock":
         theta = {"scale": a, "coordinate_scale": c}
+        objective_family, half, label = family, 2.0, family
+    elif family == "rosenbrock-shifted":
+        # v0.7: distinct replicates (v0.6's Rosenbrock ignored the seed). Shifts in
+        # [-0.5, 0.5] keep the minimizer c (1 + shift) in [0.5c, 1.5c], inside [-2c, 2c].
+        shift = jax.random.uniform(key, (dimension,), minval=-0.5, maxval=0.5)
+        theta = {"scale": a, "coordinate_scale": c, "shift": shift}
         objective_family, half, label = family, 2.0, family
     else:
         raise ValueError(f"unsupported family: {family}")

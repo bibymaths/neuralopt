@@ -1,0 +1,2534 @@
+{
+ "schema": "neuralopt-loop-rule-ablation/v1",
+ "amended_criterion": "per-task log10 regret floored at -12; pass iff floored median <= SciPy L-BFGS-B (maxcor 10) floored median + 1.0 at kappa 100 and 1000",
+ "environment": {
+  "jax": "0.12.0.1",
+  "python": "3.12.10",
+  "platform": "Linux-7.0.0-43-generic-x86_64-with-glibc2.43",
+  "float": "float64"
+ },
+ "harness_parity_with_package_engine": {
+  "halving": true,
+  "armijo": true,
+  "wolfe": true
+ },
+ "summary": {
+  "kappa_100": {
+   "oracle-K8-halving": {
+    "median_log10_regret": -13.797269810417076,
+    "median_log10_regret_floored_-12": -12.0,
+    "reached_1e-6": "12/12",
+    "mean_units": 99.16666666666667,
+    "amended_pass_vs_lbfgsb_m10": true,
+    "accepted_fraction_of_iterations": 0.8161993769470405,
+    "accepted_fraction_of_trials": 0.8161993769470405,
+    "initial_step_accepted_unchanged": 0.7492211838006231,
+    "mean_trials_per_iteration": 1.0
+   },
+   "oracle-K8-armijo": {
+    "median_log10_regret": -13.714114393077075,
+    "median_log10_regret_floored_-12": -12.0,
+    "reached_1e-6": "12/12",
+    "mean_units": 99.5,
+    "amended_pass_vs_lbfgsb_m10": true,
+    "accepted_fraction_of_iterations": 0.994475138121547,
+    "accepted_fraction_of_trials": 0.8571428571428571,
+    "initial_step_accepted_unchanged": 0.9097605893186004,
+    "mean_trials_per_iteration": 1.160220994475138
+   },
+   "oracle-K8-wolfe": {
+    "median_log10_regret": -13.634587924135547,
+    "median_log10_regret_floored_-12": -12.0,
+    "reached_1e-6": "12/12",
+    "mean_units": 100.0,
+    "amended_pass_vs_lbfgsb_m10": true,
+    "accepted_fraction_of_iterations": 0.9923076923076923,
+    "accepted_fraction_of_trials": 0.8775510204081632,
+    "initial_step_accepted_unchanged": 0.8961538461538462,
+    "mean_trials_per_iteration": 1.1307692307692307
+   },
+   "tau-only-K8-halving": {
+    "median_log10_regret": -5.2325295808303816,
+    "median_log10_regret_floored_-12": -5.2325295808303816,
+    "reached_1e-6": "2/12",
+    "mean_units": 99.5,
+    "amended_pass_vs_lbfgsb_m10": false,
+    "accepted_fraction_of_iterations": 0.627260083449235,
+    "accepted_fraction_of_trials": 0.627260083449235,
+    "initial_step_accepted_unchanged": 0.48261474269819193,
+    "mean_trials_per_iteration": 1.0
+   },
+   "tau-only-K8-armijo": {
+    "median_log10_regret": -3.5168149154150026,
+    "median_log10_regret_floored_-12": -3.5168149154150026,
+    "reached_1e-6": "0/12",
+    "mean_units": 99.25,
+    "amended_pass_vs_lbfgsb_m10": false,
+    "accepted_fraction_of_iterations": 0.9959432048681541,
+    "accepted_fraction_of_trials": 0.7263313609467456,
+    "initial_step_accepted_unchanged": 0.6288032454361054,
+    "mean_trials_per_iteration": 1.3711967545638946
+   },
+   "tau-only-K8-wolfe": {
+    "median_log10_regret": -3.321834419746584,
+    "median_log10_regret_floored_-12": -3.321834419746584,
+    "reached_1e-6": "0/12",
+    "mean_units": 100.0,
+    "amended_pass_vs_lbfgsb_m10": false,
+    "accepted_fraction_of_iterations": 0.9952153110047847,
+    "accepted_fraction_of_trials": 0.7074829931972789,
+    "initial_step_accepted_unchanged": 0.6100478468899522,
+    "mean_trials_per_iteration": 1.4066985645933014
+   },
+   "fixed-K8-halving": {
+    "median_log10_regret": -3.162801989598104,
+    "median_log10_regret_floored_-12": -3.162801989598104,
+    "reached_1e-6": "0/12",
+    "mean_units": 99.5,
+    "amended_pass_vs_lbfgsb_m10": false,
+    "accepted_fraction_of_iterations": 0.7231222385861561,
+    "accepted_fraction_of_trials": 0.7231222385861561,
+    "initial_step_accepted_unchanged": 0.5876288659793815,
+    "mean_trials_per_iteration": 1.0
+   },
+   "fixed-K8-armijo": {
+    "median_log10_regret": -3.2590806292224443,
+    "median_log10_regret_floored_-12": -3.2590806292224443,
+    "reached_1e-6": "0/12",
+    "mean_units": 99.5,
+    "amended_pass_vs_lbfgsb_m10": false,
+    "accepted_fraction_of_iterations": 0.9923518164435946,
+    "accepted_fraction_of_trials": 0.7972350230414746,
+    "initial_step_accepted_unchanged": 0.7648183556405354,
+    "mean_trials_per_iteration": 1.2447418738049714
+   },
+   "fixed-K8-wolfe": {
+    "median_log10_regret": -3.21546220328783,
+    "median_log10_regret_floored_-12": -3.21546220328783,
+    "reached_1e-6": "0/12",
+    "mean_units": 100.0,
+    "amended_pass_vs_lbfgsb_m10": false,
+    "accepted_fraction_of_iterations": 0.9882903981264637,
+    "accepted_fraction_of_trials": 0.717687074829932,
+    "initial_step_accepted_unchanged": 0.6908665105386417,
+    "mean_trials_per_iteration": 1.3770491803278688
+   },
+   "oracle-K10-halving": {
+    "median_log10_regret": -14.46778274968645,
+    "median_log10_regret_floored_-12": -12.0,
+    "reached_1e-6": "12/12",
+    "mean_units": 99.41666666666667,
+    "amended_pass_vs_lbfgsb_m10": true,
+    "accepted_fraction_of_iterations": 0.7929447852760736,
+    "accepted_fraction_of_trials": 0.7929447852760736,
+    "initial_step_accepted_unchanged": 0.7254601226993865,
+    "mean_trials_per_iteration": 1.0
+   },
+   "lbfgsb-m10": {
+    "median_log10_regret": -15.956223274524483,
+    "median_log10_regret_floored_-12": -12.0,
+    "reached_1e-6": "12/12",
+    "mean_units": 100.0,
+    "amended_pass_vs_lbfgsb_m10": true
+   },
+   "lbfgsb-m8": {
+    "median_log10_regret": -15.144818025368213,
+    "median_log10_regret_floored_-12": -12.0,
+    "reached_1e-6": "12/12",
+    "mean_units": 100.0,
+    "amended_pass_vs_lbfgsb_m10": true
+   }
+  },
+  "kappa_1000": {
+   "oracle-K8-halving": {
+    "median_log10_regret": -5.487447557396237,
+    "median_log10_regret_floored_-12": -5.487447557396237,
+    "reached_1e-6": "5/12",
+    "mean_units": 99.75,
+    "amended_pass_vs_lbfgsb_m10": false,
+    "accepted_fraction_of_iterations": 0.9135399673735726,
+    "accepted_fraction_of_trials": 0.9135399673735726,
+    "initial_step_accepted_unchanged": 0.8597063621533442,
+    "mean_trials_per_iteration": 1.0
+   },
+   "oracle-K8-armijo": {
+    "median_log10_regret": -5.703112042773901,
+    "median_log10_regret_floored_-12": -5.703112042773901,
+    "reached_1e-6": "5/12",
+    "mean_units": 99.66666666666667,
+    "amended_pass_vs_lbfgsb_m10": false,
+    "accepted_fraction_of_iterations": 0.9964664310954063,
+    "accepted_fraction_of_trials": 0.9276315789473685,
+    "initial_step_accepted_unchanged": 0.9222614840989399,
+    "mean_trials_per_iteration": 1.0742049469964665
+   },
+   "oracle-K8-wolfe": {
+    "median_log10_regret": -5.589899638893979,
+    "median_log10_regret_floored_-12": -5.589899638893979,
+    "reached_1e-6": "5/12",
+    "mean_units": 100.0,
+    "amended_pass_vs_lbfgsb_m10": false,
+    "accepted_fraction_of_iterations": 0.9981617647058824,
+    "accepted_fraction_of_trials": 0.923469387755102,
+    "initial_step_accepted_unchanged": 0.9191176470588235,
+    "mean_trials_per_iteration": 1.0808823529411764
+   },
+   "tau-only-K8-halving": {
+    "median_log10_regret": -2.718778535301206,
+    "median_log10_regret_floored_-12": -2.718778535301206,
+    "reached_1e-6": "0/12",
+    "mean_units": 99.25,
+    "amended_pass_vs_lbfgsb_m10": false,
+    "accepted_fraction_of_iterations": 0.5791610284167794,
+    "accepted_fraction_of_trials": 0.5791610284167794,
+    "initial_step_accepted_unchanged": 0.43031123139377536,
+    "mean_trials_per_iteration": 1.0
+   },
+   "tau-only-K8-armijo": {
+    "median_log10_regret": -2.6117293120668323,
+    "median_log10_regret_floored_-12": -2.6117293120668323,
+    "reached_1e-6": "0/12",
+    "mean_units": 99.33333333333333,
+    "amended_pass_vs_lbfgsb_m10": false,
+    "accepted_fraction_of_iterations": 0.9939024390243902,
+    "accepted_fraction_of_trials": 0.7201767304860088,
+    "initial_step_accepted_unchanged": 0.6280487804878049,
+    "mean_trials_per_iteration": 1.3800813008130082
+   },
+   "tau-only-K8-wolfe": {
+    "median_log10_regret": -2.3229643531222246,
+    "median_log10_regret_floored_-12": -2.3229643531222246,
+    "reached_1e-6": "0/12",
+    "mean_units": 100.0,
+    "amended_pass_vs_lbfgsb_m10": false,
+    "accepted_fraction_of_iterations": 0.9949238578680203,
+    "accepted_fraction_of_trials": 0.6666666666666666,
+    "initial_step_accepted_unchanged": 0.565989847715736,
+    "mean_trials_per_iteration": 1.4923857868020305
+   },
+   "fixed-K8-halving": {
+    "median_log10_regret": -2.1933762111937813,
+    "median_log10_regret_floored_-12": -2.1933762111937813,
+    "reached_1e-6": "0/12",
+    "mean_units": 99.33333333333333,
+    "amended_pass_vs_lbfgsb_m10": false,
+    "accepted_fraction_of_iterations": 0.638148667601683,
+    "accepted_fraction_of_trials": 0.638148667601683,
+    "initial_step_accepted_unchanged": 0.3702664796633941,
+    "mean_trials_per_iteration": 1.0
+   },
+   "fixed-K8-armijo": {
+    "median_log10_regret": -2.309261844045195,
+    "median_log10_regret_floored_-12": -2.309261844045195,
+    "reached_1e-6": "0/12",
+    "mean_units": 99.41666666666667,
+    "amended_pass_vs_lbfgsb_m10": false,
+    "accepted_fraction_of_iterations": 0.993801652892562,
+    "accepted_fraction_of_trials": 0.6991279069767442,
+    "initial_step_accepted_unchanged": 0.5971074380165289,
+    "mean_trials_per_iteration": 1.421487603305785
+   },
+   "fixed-K8-wolfe": {
+    "median_log10_regret": -2.1799435395252234,
+    "median_log10_regret_floored_-12": -2.1799435395252234,
+    "reached_1e-6": "0/12",
+    "mean_units": 100.0,
+    "amended_pass_vs_lbfgsb_m10": false,
+    "accepted_fraction_of_iterations": 0.983132530120482,
+    "accepted_fraction_of_trials": 0.6938775510204082,
+    "initial_step_accepted_unchanged": 0.6240963855421687,
+    "mean_trials_per_iteration": 1.416867469879518
+   },
+   "oracle-K10-halving": {
+    "median_log10_regret": -6.18670380136512,
+    "median_log10_regret_floored_-12": -6.18670380136512,
+    "reached_1e-6": "7/12",
+    "mean_units": 99.41666666666667,
+    "amended_pass_vs_lbfgsb_m10": false,
+    "accepted_fraction_of_iterations": 0.9163934426229509,
+    "accepted_fraction_of_trials": 0.9163934426229509,
+    "initial_step_accepted_unchanged": 0.8688524590163934,
+    "mean_trials_per_iteration": 1.0
+   },
+   "lbfgsb-m10": {
+    "median_log10_regret": -8.785415926398572,
+    "median_log10_regret_floored_-12": -8.785415926398572,
+    "reached_1e-6": "8/12",
+    "mean_units": 100.0,
+    "amended_pass_vs_lbfgsb_m10": true
+   },
+   "lbfgsb-m8": {
+    "median_log10_regret": -5.9847177723748946,
+    "median_log10_regret_floored_-12": -5.9847177723748946,
+    "reached_1e-6": "5/12",
+    "mean_units": 100.0,
+    "amended_pass_vs_lbfgsb_m10": false
+   }
+  }
+ },
+ "rows": [
+  {
+   "condition": 100.0,
+   "dimension": 7,
+   "replicate": 0,
+   "oracle-K8-halving": {
+    "log10_regret": -15.961899179857514,
+    "units": 99,
+    "iterations": 60,
+    "accepted": 37,
+    "trials": 60,
+    "initial": 35
+   },
+   "oracle-K8-armijo": {
+    "log10_regret": -15.975517424749766,
+    "units": 99,
+    "iterations": 39,
+    "accepted": 39,
+    "trials": 58,
+    "initial": 35
+   },
+   "oracle-K8-wolfe": {
+    "log10_regret": -15.03826985157364,
+    "units": 100,
+    "iterations": 38,
+    "accepted": 37,
+    "trials": 49,
+    "initial": 34
+   },
+   "tau-only-K8-halving": {
+    "log10_regret": -6.492958898090852,
+    "units": 99,
+    "iterations": 59,
+    "accepted": 38,
+    "trials": 59,
+    "initial": 29
+   },
+   "tau-only-K8-armijo": {
+    "log10_regret": -5.579813376224894,
+    "units": 99,
+    "iterations": 40,
+    "accepted": 40,
+    "trials": 57,
+    "initial": 23
+   },
+   "tau-only-K8-wolfe": {
+    "log10_regret": -5.371682332293724,
+    "units": 100,
+    "iterations": 35,
+    "accepted": 35,
+    "trials": 49,
+    "initial": 21
+   },
+   "fixed-K8-halving": {
+    "log10_regret": -3.5393948907712,
+    "units": 100,
+    "iterations": 58,
+    "accepted": 40,
+    "trials": 58,
+    "initial": 22
+   },
+   "fixed-K8-armijo": {
+    "log10_regret": -5.1863333339525095,
+    "units": 99,
+    "iterations": 38,
+    "accepted": 37,
+    "trials": 60,
+    "initial": 24
+   },
+   "fixed-K8-wolfe": {
+    "log10_regret": -5.077889143903168,
+    "units": 100,
+    "iterations": 30,
+    "accepted": 29,
+    "trials": 49,
+    "initial": 18
+   },
+   "oracle-K10-halving": {
+    "log10_regret": -15.996696647688148,
+    "units": 99,
+    "iterations": 61,
+    "accepted": 36,
+    "trials": 61,
+    "initial": 25
+   },
+   "lbfgsb-m10": {
+    "log10_regret": -16.0,
+    "units": 100
+   },
+   "lbfgsb-m8": {
+    "log10_regret": -15.999999997373752,
+    "units": 100
+   }
+  },
+  {
+   "condition": 100.0,
+   "dimension": 7,
+   "replicate": 1,
+   "oracle-K8-halving": {
+    "log10_regret": -13.587843596856787,
+    "units": 99,
+    "iterations": 52,
+    "accepted": 45,
+    "trials": 52,
+    "initial": 42
+   },
+   "oracle-K8-armijo": {
+    "log10_regret": -14.342673300018067,
+    "units": 99,
+    "iterations": 44,
+    "accepted": 43,
+    "trials": 54,
+    "initial": 40
+   },
+   "oracle-K8-wolfe": {
+    "log10_regret": -15.87146740966556,
+    "units": 100,
+    "iterations": 41,
+    "accepted": 40,
+    "trials": 49,
+    "initial": 37
+   },
+   "tau-only-K8-halving": {
+    "log10_regret": -5.264300509947221,
+    "units": 100,
+    "iterations": 62,
+    "accepted": 36,
+    "trials": 62,
+    "initial": 25
+   },
+   "tau-only-K8-armijo": {
+    "log10_regret": -3.6385015396106346,
+    "units": 100,
+    "iterations": 42,
+    "accepted": 42,
+    "trials": 56,
+    "initial": 28
+   },
+   "tau-only-K8-wolfe": {
+    "log10_regret": -3.4439130160558395,
+    "units": 100,
+    "iterations": 36,
+    "accepted": 36,
+    "trials": 49,
+    "initial": 24
+   },
+   "fixed-K8-halving": {
+    "log10_regret": -3.181877274086859,
+    "units": 99,
+    "iterations": 69,
+    "accepted": 28,
+    "trials": 69,
+    "initial": 15
+   },
+   "fixed-K8-armijo": {
+    "log10_regret": -3.3644029160850715,
+    "units": 99,
+    "iterations": 38,
+    "accepted": 37,
+    "trials": 60,
+    "initial": 15
+   },
+   "fixed-K8-wolfe": {
+    "log10_regret": -3.176323753395392,
+    "units": 100,
+    "iterations": 26,
+    "accepted": 25,
+    "trials": 49,
+    "initial": 15
+   },
+   "oracle-K10-halving": {
+    "log10_regret": -15.999943953989163,
+    "units": 99,
+    "iterations": 62,
+    "accepted": 35,
+    "trials": 62,
+    "initial": 33
+   },
+   "lbfgsb-m10": {
+    "log10_regret": -16.0,
+    "units": 100
+   },
+   "lbfgsb-m8": {
+    "log10_regret": -15.999999999994671,
+    "units": 100
+   }
+  },
+  {
+   "condition": 100.0,
+   "dimension": 7,
+   "replicate": 2,
+   "oracle-K8-halving": {
+    "log10_regret": -15.999551484782591,
+    "units": 99,
+    "iterations": 59,
+    "accepted": 38,
+    "trials": 59,
+    "initial": 34
+   },
+   "oracle-K8-armijo": {
+    "log10_regret": -15.998144433472747,
+    "units": 99,
+    "iterations": 40,
+    "accepted": 39,
+    "trials": 58,
+    "initial": 31
+   },
+   "oracle-K8-wolfe": {
+    "log10_regret": -15.808587621991324,
+    "units": 100,
+    "iterations": 38,
+    "accepted": 37,
+    "trials": 49,
+    "initial": 28
+   },
+   "tau-only-K8-halving": {
+    "log10_regret": -4.6522912622370205,
+    "units": 99,
+    "iterations": 62,
+    "accepted": 35,
+    "trials": 62,
+    "initial": 28
+   },
+   "tau-only-K8-armijo": {
+    "log10_regret": -3.39512829121937,
+    "units": 99,
+    "iterations": 41,
+    "accepted": 41,
+    "trials": 56,
+    "initial": 27
+   },
+   "tau-only-K8-wolfe": {
+    "log10_regret": -2.939627343565984,
+    "units": 100,
+    "iterations": 36,
+    "accepted": 35,
+    "trials": 49,
+    "initial": 22
+   },
+   "fixed-K8-halving": {
+    "log10_regret": -2.3783379342881705,
+    "units": 100,
+    "iterations": 49,
+    "accepted": 49,
+    "trials": 49,
+    "initial": 49
+   },
+   "fixed-K8-armijo": {
+    "log10_regret": -2.3783379342881705,
+    "units": 100,
+    "iterations": 49,
+    "accepted": 49,
+    "trials": 49,
+    "initial": 49
+   },
+   "fixed-K8-wolfe": {
+    "log10_regret": -3.324214426910741,
+    "units": 100,
+    "iterations": 42,
+    "accepted": 42,
+    "trials": 49,
+    "initial": 35
+   },
+   "oracle-K10-halving": {
+    "log10_regret": -15.994950947666991,
+    "units": 99,
+    "iterations": 61,
+    "accepted": 36,
+    "trials": 61,
+    "initial": 35
+   },
+   "lbfgsb-m10": {
+    "log10_regret": -15.999999999933994,
+    "units": 100
+   },
+   "lbfgsb-m8": {
+    "log10_regret": -16.0,
+    "units": 100
+   }
+  },
+  {
+   "condition": 100.0,
+   "dimension": 7,
+   "replicate": 3,
+   "oracle-K8-halving": {
+    "log10_regret": -13.708240414121255,
+    "units": 99,
+    "iterations": 60,
+    "accepted": 37,
+    "trials": 60,
+    "initial": 34
+   },
+   "oracle-K8-armijo": {
+    "log10_regret": -14.759610771699448,
+    "units": 99,
+    "iterations": 42,
+    "accepted": 41,
+    "trials": 56,
+    "initial": 36
+   },
+   "oracle-K8-wolfe": {
+    "log10_regret": -14.737154342903867,
+    "units": 100,
+    "iterations": 41,
+    "accepted": 40,
+    "trials": 49,
+    "initial": 36
+   },
+   "tau-only-K8-halving": {
+    "log10_regret": -5.200758651713542,
+    "units": 99,
+    "iterations": 60,
+    "accepted": 37,
+    "trials": 60,
+    "initial": 28
+   },
+   "tau-only-K8-armijo": {
+    "log10_regret": -5.213288431519775,
+    "units": 99,
+    "iterations": 42,
+    "accepted": 41,
+    "trials": 56,
+    "initial": 27
+   },
+   "tau-only-K8-wolfe": {
+    "log10_regret": -4.3312806710293845,
+    "units": 100,
+    "iterations": 33,
+    "accepted": 33,
+    "trials": 49,
+    "initial": 21
+   },
+   "fixed-K8-halving": {
+    "log10_regret": -3.1473037162828383,
+    "units": 99,
+    "iterations": 51,
+    "accepted": 46,
+    "trials": 51,
+    "initial": 44
+   },
+   "fixed-K8-armijo": {
+    "log10_regret": -3.2709241409075007,
+    "units": 99,
+    "iterations": 47,
+    "accepted": 47,
+    "trials": 50,
+    "initial": 44
+   },
+   "fixed-K8-wolfe": {
+    "log10_regret": -2.0721860731315047,
+    "units": 100,
+    "iterations": 32,
+    "accepted": 32,
+    "trials": 49,
+    "initial": 15
+   },
+   "oracle-K10-halving": {
+    "log10_regret": -13.957128979388836,
+    "units": 99,
+    "iterations": 60,
+    "accepted": 37,
+    "trials": 60,
+    "initial": 36
+   },
+   "lbfgsb-m10": {
+    "log10_regret": -16.0,
+    "units": 100
+   },
+   "lbfgsb-m8": {
+    "log10_regret": -15.999999999999998,
+    "units": 100
+   }
+  },
+  {
+   "condition": 100.0,
+   "dimension": 10,
+   "replicate": 0,
+   "oracle-K8-halving": {
+    "log10_regret": -13.886299206712897,
+    "units": 99,
+    "iterations": 51,
+    "accepted": 46,
+    "trials": 51,
+    "initial": 42
+   },
+   "oracle-K8-armijo": {
+    "log10_regret": -13.03980607049786,
+    "units": 100,
+    "iterations": 46,
+    "accepted": 46,
+    "trials": 52,
+    "initial": 40
+   },
+   "oracle-K8-wolfe": {
+    "log10_regret": -12.858076982334866,
+    "units": 100,
+    "iterations": 43,
+    "accepted": 43,
+    "trials": 49,
+    "initial": 37
+   },
+   "tau-only-K8-halving": {
+    "log10_regret": -5.5414595991607145,
+    "units": 100,
+    "iterations": 60,
+    "accepted": 38,
+    "trials": 60,
+    "initial": 31
+   },
+   "tau-only-K8-armijo": {
+    "log10_regret": -3.2672482446409066,
+    "units": 99,
+    "iterations": 42,
+    "accepted": 41,
+    "trials": 56,
+    "initial": 27
+   },
+   "tau-only-K8-wolfe": {
+    "log10_regret": -3.1216343202793047,
+    "units": 100,
+    "iterations": 37,
+    "accepted": 37,
+    "trials": 49,
+    "initial": 25
+   },
+   "fixed-K8-halving": {
+    "log10_regret": -2.3859206415129934,
+    "units": 100,
+    "iterations": 56,
+    "accepted": 42,
+    "trials": 56,
+    "initial": 28
+   },
+   "fixed-K8-armijo": {
+    "log10_regret": -2.5005366221608236,
+    "units": 100,
+    "iterations": 42,
+    "accepted": 42,
+    "trials": 56,
+    "initial": 28
+   },
+   "fixed-K8-wolfe": {
+    "log10_regret": -2.394114825562647,
+    "units": 100,
+    "iterations": 37,
+    "accepted": 36,
+    "trials": 49,
+    "initial": 24
+   },
+   "oracle-K10-halving": {
+    "log10_regret": -15.553288282342562,
+    "units": 99,
+    "iterations": 51,
+    "accepted": 46,
+    "trials": 51,
+    "initial": 45
+   },
+   "lbfgsb-m10": {
+    "log10_regret": -15.996070652600112,
+    "units": 100
+   },
+   "lbfgsb-m8": {
+    "log10_regret": -14.802776933860795,
+    "units": 100
+   }
+  },
+  {
+   "condition": 100.0,
+   "dimension": 10,
+   "replicate": 1,
+   "oracle-K8-halving": {
+    "log10_regret": -14.50612200830636,
+    "units": 99,
+    "iterations": 50,
+    "accepted": 47,
+    "trials": 50,
+    "initial": 44
+   },
+   "oracle-K8-armijo": {
+    "log10_regret": -13.599476322364186,
+    "units": 100,
+    "iterations": 48,
+    "accepted": 48,
+    "trials": 50,
+    "initial": 46
+   },
+   "oracle-K8-wolfe": {
+    "log10_regret": -13.596027732928492,
+    "units": 100,
+    "iterations": 44,
+    "accepted": 44,
+    "trials": 49,
+    "initial": 39
+   },
+   "tau-only-K8-halving": {
+    "log10_regret": -4.0208376971226825,
+    "units": 99,
+    "iterations": 60,
+    "accepted": 37,
+    "trials": 60,
+    "initial": 30
+   },
+   "tau-only-K8-armijo": {
+    "log10_regret": -3.0425365656546863,
+    "units": 100,
+    "iterations": 40,
+    "accepted": 40,
+    "trials": 58,
+    "initial": 22
+   },
+   "tau-only-K8-wolfe": {
+    "log10_regret": -2.7645251228328553,
+    "units": 100,
+    "iterations": 34,
+    "accepted": 34,
+    "trials": 49,
+    "initial": 19
+   },
+   "fixed-K8-halving": {
+    "log10_regret": -3.0258896241723345,
+    "units": 100,
+    "iterations": 58,
+    "accepted": 40,
+    "trials": 58,
+    "initial": 34
+   },
+   "fixed-K8-armijo": {
+    "log10_regret": -3.1396596026580235,
+    "units": 100,
+    "iterations": 44,
+    "accepted": 44,
+    "trials": 54,
+    "initial": 34
+   },
+   "fixed-K8-wolfe": {
+    "log10_regret": -2.796783877536977,
+    "units": 100,
+    "iterations": 40,
+    "accepted": 40,
+    "trials": 49,
+    "initial": 31
+   },
+   "oracle-K10-halving": {
+    "log10_regret": -15.557423457209055,
+    "units": 100,
+    "iterations": 50,
+    "accepted": 48,
+    "trials": 50,
+    "initial": 46
+   },
+   "lbfgsb-m10": {
+    "log10_regret": -15.854350144721845,
+    "units": 100
+   },
+   "lbfgsb-m8": {
+    "log10_regret": -15.803525188571431,
+    "units": 100
+   }
+  },
+  {
+   "condition": 100.0,
+   "dimension": 10,
+   "replicate": 2,
+   "oracle-K8-halving": {
+    "log10_regret": -14.303042625189354,
+    "units": 99,
+    "iterations": 56,
+    "accepted": 41,
+    "trials": 56,
+    "initial": 34
+   },
+   "oracle-K8-armijo": {
+    "log10_regret": -14.625987934303001,
+    "units": 100,
+    "iterations": 48,
+    "accepted": 48,
+    "trials": 50,
+    "initial": 46
+   },
+   "oracle-K8-wolfe": {
+    "log10_regret": -14.55131417967478,
+    "units": 100,
+    "iterations": 47,
+    "accepted": 47,
+    "trials": 49,
+    "initial": 45
+   },
+   "tau-only-K8-halving": {
+    "log10_regret": -6.198449585831151,
+    "units": 100,
+    "iterations": 59,
+    "accepted": 39,
+    "trials": 59,
+    "initial": 30
+   },
+   "tau-only-K8-armijo": {
+    "log10_regret": -5.479767242483861,
+    "units": 99,
+    "iterations": 42,
+    "accepted": 42,
+    "trials": 55,
+    "initial": 30
+   },
+   "tau-only-K8-wolfe": {
+    "log10_regret": -4.305538133634653,
+    "units": 100,
+    "iterations": 32,
+    "accepted": 32,
+    "trials": 49,
+    "initial": 19
+   },
+   "fixed-K8-halving": {
+    "log10_regret": -4.154514305104948,
+    "units": 99,
+    "iterations": 60,
+    "accepted": 37,
+    "trials": 60,
+    "initial": 31
+   },
+   "fixed-K8-armijo": {
+    "log10_regret": -4.138517979507998,
+    "units": 100,
+    "iterations": 43,
+    "accepted": 43,
+    "trials": 55,
+    "initial": 31
+   },
+   "fixed-K8-wolfe": {
+    "log10_regret": -3.9734944921680664,
+    "units": 100,
+    "iterations": 35,
+    "accepted": 34,
+    "trials": 49,
+    "initial": 27
+   },
+   "oracle-K10-halving": {
+    "log10_regret": -14.978436519984061,
+    "units": 100,
+    "iterations": 51,
+    "accepted": 47,
+    "trials": 51,
+    "initial": 44
+   },
+   "lbfgsb-m10": {
+    "log10_regret": -15.999986685517372,
+    "units": 100
+   },
+   "lbfgsb-m8": {
+    "log10_regret": -15.480191371426047,
+    "units": 100
+   }
+  },
+  {
+   "condition": 100.0,
+   "dimension": 10,
+   "replicate": 3,
+   "oracle-K8-halving": {
+    "log10_regret": -14.677789854240132,
+    "units": 100,
+    "iterations": 52,
+    "accepted": 46,
+    "trials": 52,
+    "initial": 43
+   },
+   "oracle-K8-armijo": {
+    "log10_regret": -13.828752463789964,
+    "units": 99,
+    "iterations": 47,
+    "accepted": 47,
+    "trials": 50,
+    "initial": 44
+   },
+   "oracle-K8-wolfe": {
+    "log10_regret": -13.6731481153426,
+    "units": 100,
+    "iterations": 46,
+    "accepted": 46,
+    "trials": 49,
+    "initial": 43
+   },
+   "tau-only-K8-halving": {
+    "log10_regret": -5.543318504476452,
+    "units": 100,
+    "iterations": 57,
+    "accepted": 41,
+    "trials": 57,
+    "initial": 33
+   },
+   "tau-only-K8-armijo": {
+    "log10_regret": -4.674070726247128,
+    "units": 99,
+    "iterations": 41,
+    "accepted": 41,
+    "trials": 56,
+    "initial": 26
+   },
+   "tau-only-K8-wolfe": {
+    "log10_regret": -3.827440657619541,
+    "units": 100,
+    "iterations": 35,
+    "accepted": 35,
+    "trials": 49,
+    "initial": 21
+   },
+   "fixed-K8-halving": {
+    "log10_regret": -4.056013648362052,
+    "units": 99,
+    "iterations": 58,
+    "accepted": 39,
+    "trials": 58,
+    "initial": 34
+   },
+   "fixed-K8-armijo": {
+    "log10_regret": -4.132513520047202,
+    "units": 100,
+    "iterations": 44,
+    "accepted": 44,
+    "trials": 54,
+    "initial": 34
+   },
+   "fixed-K8-wolfe": {
+    "log10_regret": -4.560443156043217,
+    "units": 100,
+    "iterations": 35,
+    "accepted": 35,
+    "trials": 49,
+    "initial": 27
+   },
+   "oracle-K10-halving": {
+    "log10_regret": -13.810173926472604,
+    "units": 99,
+    "iterations": 51,
+    "accepted": 46,
+    "trials": 51,
+    "initial": 41
+   },
+   "lbfgsb-m10": {
+    "log10_regret": -15.916375896448853,
+    "units": 100
+   },
+   "lbfgsb-m8": {
+    "log10_regret": -14.809444679310381,
+    "units": 100
+   }
+  },
+  {
+   "condition": 100.0,
+   "dimension": 16,
+   "replicate": 0,
+   "oracle-K8-halving": {
+    "log10_regret": -9.814181012874457,
+    "units": 99,
+    "iterations": 51,
+    "accepted": 46,
+    "trials": 51,
+    "initial": 42
+   },
+   "oracle-K8-armijo": {
+    "log10_regret": -10.375633751102589,
+    "units": 100,
+    "iterations": 47,
+    "accepted": 47,
+    "trials": 51,
+    "initial": 43
+   },
+   "oracle-K8-wolfe": {
+    "log10_regret": -10.53916168550776,
+    "units": 100,
+    "iterations": 46,
+    "accepted": 46,
+    "trials": 49,
+    "initial": 43
+   },
+   "tau-only-K8-halving": {
+    "log10_regret": -3.9519012644738494,
+    "units": 99,
+    "iterations": 59,
+    "accepted": 38,
+    "trials": 59,
+    "initial": 29
+   },
+   "tau-only-K8-armijo": {
+    "log10_regret": -3.3887442543475057,
+    "units": 99,
+    "iterations": 42,
+    "accepted": 42,
+    "trials": 55,
+    "initial": 29
+   },
+   "tau-only-K8-wolfe": {
+    "log10_regret": -2.8044305621739154,
+    "units": 100,
+    "iterations": 35,
+    "accepted": 35,
+    "trials": 49,
+    "initial": 21
+   },
+   "fixed-K8-halving": {
+    "log10_regret": -2.853829410795895,
+    "units": 100,
+    "iterations": 54,
+    "accepted": 44,
+    "trials": 54,
+    "initial": 35
+   },
+   "fixed-K8-armijo": {
+    "log10_regret": -2.973433169337004,
+    "units": 99,
+    "iterations": 44,
+    "accepted": 44,
+    "trials": 53,
+    "initial": 35
+   },
+   "fixed-K8-wolfe": {
+    "log10_regret": -2.8485755751419415,
+    "units": 100,
+    "iterations": 38,
+    "accepted": 38,
+    "trials": 49,
+    "initial": 27
+   },
+   "oracle-K10-halving": {
+    "log10_regret": -10.165092594197391,
+    "units": 99,
+    "iterations": 52,
+    "accepted": 45,
+    "trials": 52,
+    "initial": 39
+   },
+   "lbfgsb-m10": {
+    "log10_regret": -10.102798335620893,
+    "units": 100
+   },
+   "lbfgsb-m8": {
+    "log10_regret": -11.526714682783195,
+    "units": 100
+   }
+  },
+  {
+   "condition": 100.0,
+   "dimension": 16,
+   "replicate": 1,
+   "oracle-K8-halving": {
+    "log10_regret": -10.599154724824588,
+    "units": 100,
+    "iterations": 51,
+    "accepted": 47,
+    "trials": 51,
+    "initial": 43
+   },
+   "oracle-K8-armijo": {
+    "log10_regret": -12.234821672945861,
+    "units": 100,
+    "iterations": 48,
+    "accepted": 48,
+    "trials": 50,
+    "initial": 46
+   },
+   "oracle-K8-wolfe": {
+    "log10_regret": -12.074443304128518,
+    "units": 100,
+    "iterations": 47,
+    "accepted": 47,
+    "trials": 49,
+    "initial": 45
+   },
+   "tau-only-K8-halving": {
+    "log10_regret": -4.546404637366057,
+    "units": 99,
+    "iterations": 60,
+    "accepted": 37,
+    "trials": 60,
+    "initial": 27
+   },
+   "tau-only-K8-armijo": {
+    "log10_regret": -3.765007896416995,
+    "units": 99,
+    "iterations": 40,
+    "accepted": 40,
+    "trials": 57,
+    "initial": 23
+   },
+   "tau-only-K8-wolfe": {
+    "log10_regret": -3.5511606695472917,
+    "units": 100,
+    "iterations": 34,
+    "accepted": 34,
+    "trials": 49,
+    "initial": 19
+   },
+   "fixed-K8-halving": {
+    "log10_regret": -3.4217086824548506,
+    "units": 99,
+    "iterations": 55,
+    "accepted": 42,
+    "trials": 55,
+    "initial": 36
+   },
+   "fixed-K8-armijo": {
+    "log10_regret": -3.5759898528607335,
+    "units": 99,
+    "iterations": 45,
+    "accepted": 44,
+    "trials": 53,
+    "initial": 36
+   },
+   "fixed-K8-wolfe": {
+    "log10_regret": -3.4954618233167607,
+    "units": 100,
+    "iterations": 37,
+    "accepted": 36,
+    "trials": 49,
+    "initial": 24
+   },
+   "oracle-K10-halving": {
+    "log10_regret": -11.177225141540454,
+    "units": 100,
+    "iterations": 52,
+    "accepted": 46,
+    "trials": 52,
+    "initial": 40
+   },
+   "lbfgsb-m10": {
+    "log10_regret": -10.574214312084841,
+    "units": 100
+   },
+   "lbfgsb-m8": {
+    "log10_regret": -11.253449638349373,
+    "units": 100
+   }
+  },
+  {
+   "condition": 100.0,
+   "dimension": 16,
+   "replicate": 2,
+   "oracle-K8-halving": {
+    "log10_regret": -10.336002124418876,
+    "units": 99,
+    "iterations": 50,
+    "accepted": 47,
+    "trials": 50,
+    "initial": 44
+   },
+   "oracle-K8-armijo": {
+    "log10_regret": -10.118470262959956,
+    "units": 99,
+    "iterations": 46,
+    "accepted": 46,
+    "trials": 51,
+    "initial": 41
+   },
+   "oracle-K8-wolfe": {
+    "log10_regret": -9.796712929910809,
+    "units": 100,
+    "iterations": 43,
+    "accepted": 43,
+    "trials": 49,
+    "initial": 37
+   },
+   "tau-only-K8-halving": {
+    "log10_regret": -3.1338062185298985,
+    "units": 100,
+    "iterations": 61,
+    "accepted": 37,
+    "trials": 61,
+    "initial": 27
+   },
+   "tau-only-K8-armijo": {
+    "log10_regret": -2.69761734200173,
+    "units": 100,
+    "iterations": 40,
+    "accepted": 40,
+    "trials": 58,
+    "initial": 22
+   },
+   "tau-only-K8-wolfe": {
+    "log10_regret": -2.452938339740118,
+    "units": 100,
+    "iterations": 34,
+    "accepted": 34,
+    "trials": 49,
+    "initial": 19
+   },
+   "fixed-K8-halving": {
+    "log10_regret": -2.586290696085963,
+    "units": 99,
+    "iterations": 56,
+    "accepted": 41,
+    "trials": 56,
+    "initial": 34
+   },
+   "fixed-K8-armijo": {
+    "log10_regret": -2.4931100259294676,
+    "units": 99,
+    "iterations": 44,
+    "accepted": 43,
+    "trials": 54,
+    "initial": 33
+   },
+   "fixed-K8-wolfe": {
+    "log10_regret": -2.0177136939527482,
+    "units": 100,
+    "iterations": 40,
+    "accepted": 40,
+    "trials": 49,
+    "initial": 31
+   },
+   "oracle-K10-halving": {
+    "log10_regret": -10.80854116349899,
+    "units": 100,
+    "iterations": 50,
+    "accepted": 48,
+    "trials": 50,
+    "initial": 46
+   },
+   "lbfgsb-m10": {
+    "log10_regret": -10.693791751585072,
+    "units": 100
+   },
+   "lbfgsb-m8": {
+    "log10_regret": -9.91056662374857,
+    "units": 100
+   }
+  },
+  {
+   "condition": 100.0,
+   "dimension": 16,
+   "replicate": 3,
+   "oracle-K8-halving": {
+    "log10_regret": -10.552178997924521,
+    "units": 99,
+    "iterations": 50,
+    "accepted": 47,
+    "trials": 50,
+    "initial": 44
+   },
+   "oracle-K8-armijo": {
+    "log10_regret": -10.903412886198948,
+    "units": 100,
+    "iterations": 48,
+    "accepted": 48,
+    "trials": 50,
+    "initial": 46
+   },
+   "oracle-K8-wolfe": {
+    "log10_regret": -10.271859163072206,
+    "units": 100,
+    "iterations": 46,
+    "accepted": 46,
+    "trials": 49,
+    "initial": 42
+   },
+   "tau-only-K8-halving": {
+    "log10_regret": -5.44452738277107,
+    "units": 100,
+    "iterations": 60,
+    "accepted": 38,
+    "trials": 60,
+    "initial": 30
+   },
+   "tau-only-K8-armijo": {
+    "log10_regret": -3.3645097294741158,
+    "units": 99,
+    "iterations": 41,
+    "accepted": 41,
+    "trials": 56,
+    "initial": 26
+   },
+   "tau-only-K8-wolfe": {
+    "log10_regret": -3.1997558234373287,
+    "units": 100,
+    "iterations": 37,
+    "accepted": 36,
+    "trials": 49,
+    "initial": 24
+   },
+   "fixed-K8-halving": {
+    "log10_regret": -3.1783002629133694,
+    "units": 100,
+    "iterations": 55,
+    "accepted": 43,
+    "trials": 55,
+    "initial": 37
+   },
+   "fixed-K8-armijo": {
+    "log10_regret": -3.247237117537388,
+    "units": 100,
+    "iterations": 45,
+    "accepted": 45,
+    "trials": 53,
+    "initial": 37
+   },
+   "fixed-K8-wolfe": {
+    "log10_regret": -3.2546006531802685,
+    "units": 100,
+    "iterations": 35,
+    "accepted": 35,
+    "trials": 49,
+    "initial": 21
+   },
+   "oracle-K10-halving": {
+    "log10_regret": -11.264108672479944,
+    "units": 100,
+    "iterations": 51,
+    "accepted": 47,
+    "trials": 51,
+    "initial": 43
+   },
+   "lbfgsb-m10": {
+    "log10_regret": -10.757509964679834,
+    "units": 100
+   },
+   "lbfgsb-m8": {
+    "log10_regret": -10.35676407095886,
+    "units": 100
+   }
+  },
+  {
+   "condition": 1000.0,
+   "dimension": 7,
+   "replicate": 0,
+   "oracle-K8-halving": {
+    "log10_regret": -14.607291421275104,
+    "units": 99,
+    "iterations": 56,
+    "accepted": 41,
+    "trials": 56,
+    "initial": 37
+   },
+   "oracle-K8-armijo": {
+    "log10_regret": -15.538231176418282,
+    "units": 99,
+    "iterations": 44,
+    "accepted": 44,
+    "trials": 53,
+    "initial": 35
+   },
+   "oracle-K8-wolfe": {
+    "log10_regret": -15.467744211634958,
+    "units": 100,
+    "iterations": 42,
+    "accepted": 41,
+    "trials": 49,
+    "initial": 35
+   },
+   "tau-only-K8-halving": {
+    "log10_regret": -2.461211191876775,
+    "units": 99,
+    "iterations": 61,
+    "accepted": 36,
+    "trials": 61,
+    "initial": 27
+   },
+   "tau-only-K8-armijo": {
+    "log10_regret": -1.827536275424558,
+    "units": 99,
+    "iterations": 40,
+    "accepted": 39,
+    "trials": 58,
+    "initial": 21
+   },
+   "tau-only-K8-wolfe": {
+    "log10_regret": -1.7824642301858593,
+    "units": 100,
+    "iterations": 34,
+    "accepted": 34,
+    "trials": 49,
+    "initial": 19
+   },
+   "fixed-K8-halving": {
+    "log10_regret": -1.7093759710766259,
+    "units": 100,
+    "iterations": 60,
+    "accepted": 38,
+    "trials": 60,
+    "initial": 16
+   },
+   "fixed-K8-armijo": {
+    "log10_regret": -2.151348971442153,
+    "units": 99,
+    "iterations": 40,
+    "accepted": 40,
+    "trials": 57,
+    "initial": 23
+   },
+   "fixed-K8-wolfe": {
+    "log10_regret": -2.126892323857673,
+    "units": 100,
+    "iterations": 36,
+    "accepted": 35,
+    "trials": 49,
+    "initial": 23
+   },
+   "oracle-K10-halving": {
+    "log10_regret": -15.999742817095925,
+    "units": 99,
+    "iterations": 52,
+    "accepted": 45,
+    "trials": 52,
+    "initial": 41
+   },
+   "lbfgsb-m10": {
+    "log10_regret": -15.936678978531239,
+    "units": 100
+   },
+   "lbfgsb-m8": {
+    "log10_regret": -9.505663876990205,
+    "units": 100
+   }
+  },
+  {
+   "condition": 1000.0,
+   "dimension": 7,
+   "replicate": 1,
+   "oracle-K8-halving": {
+    "log10_regret": -12.816697166973917,
+    "units": 100,
+    "iterations": 50,
+    "accepted": 48,
+    "trials": 50,
+    "initial": 46
+   },
+   "oracle-K8-armijo": {
+    "log10_regret": -14.978991241422381,
+    "units": 99,
+    "iterations": 48,
+    "accepted": 47,
+    "trials": 50,
+    "initial": 45
+   },
+   "oracle-K8-wolfe": {
+    "log10_regret": -14.978991241422381,
+    "units": 100,
+    "iterations": 47,
+    "accepted": 47,
+    "trials": 49,
+    "initial": 44
+   },
+   "tau-only-K8-halving": {
+    "log10_regret": -2.1875102101051445,
+    "units": 99,
+    "iterations": 64,
+    "accepted": 33,
+    "trials": 64,
+    "initial": 23
+   },
+   "tau-only-K8-armijo": {
+    "log10_regret": -2.47743603171316,
+    "units": 100,
+    "iterations": 41,
+    "accepted": 41,
+    "trials": 57,
+    "initial": 27
+   },
+   "tau-only-K8-wolfe": {
+    "log10_regret": -1.9084680942889511,
+    "units": 100,
+    "iterations": 29,
+    "accepted": 29,
+    "trials": 49,
+    "initial": 13
+   },
+   "fixed-K8-halving": {
+    "log10_regret": -1.6487774648867828,
+    "units": 99,
+    "iterations": 61,
+    "accepted": 36,
+    "trials": 61,
+    "initial": 12
+   },
+   "fixed-K8-armijo": {
+    "log10_regret": -1.9956686669365389,
+    "units": 99,
+    "iterations": 39,
+    "accepted": 38,
+    "trials": 59,
+    "initial": 18
+   },
+   "fixed-K8-wolfe": {
+    "log10_regret": -1.9517293693730933,
+    "units": 100,
+    "iterations": 33,
+    "accepted": 33,
+    "trials": 49,
+    "initial": 18
+   },
+   "oracle-K10-halving": {
+    "log10_regret": -13.812721592517782,
+    "units": 100,
+    "iterations": 53,
+    "accepted": 45,
+    "trials": 53,
+    "initial": 41
+   },
+   "lbfgsb-m10": {
+    "log10_regret": -15.999997836342368,
+    "units": 100
+   },
+   "lbfgsb-m8": {
+    "log10_regret": -14.322985344664577,
+    "units": 100
+   }
+  },
+  {
+   "condition": 1000.0,
+   "dimension": 7,
+   "replicate": 2,
+   "oracle-K8-halving": {
+    "log10_regret": -13.891094635749148,
+    "units": 100,
+    "iterations": 52,
+    "accepted": 46,
+    "trials": 52,
+    "initial": 42
+   },
+   "oracle-K8-armijo": {
+    "log10_regret": -14.97238889920576,
+    "units": 99,
+    "iterations": 47,
+    "accepted": 46,
+    "trials": 51,
+    "initial": 42
+   },
+   "oracle-K8-wolfe": {
+    "log10_regret": -12.279348886330574,
+    "units": 100,
+    "iterations": 43,
+    "accepted": 43,
+    "trials": 49,
+    "initial": 37
+   },
+   "tau-only-K8-halving": {
+    "log10_regret": -3.1432341746366115,
+    "units": 99,
+    "iterations": 62,
+    "accepted": 35,
+    "trials": 62,
+    "initial": 26
+   },
+   "tau-only-K8-armijo": {
+    "log10_regret": -4.160475750006035,
+    "units": 99,
+    "iterations": 41,
+    "accepted": 41,
+    "trials": 56,
+    "initial": 28
+   },
+   "tau-only-K8-wolfe": {
+    "log10_regret": -3.074494265491832,
+    "units": 100,
+    "iterations": 28,
+    "accepted": 28,
+    "trials": 49,
+    "initial": 13
+   },
+   "fixed-K8-halving": {
+    "log10_regret": -2.6484724533670945,
+    "units": 99,
+    "iterations": 63,
+    "accepted": 34,
+    "trials": 63,
+    "initial": 19
+   },
+   "fixed-K8-armijo": {
+    "log10_regret": -2.741834748688388,
+    "units": 100,
+    "iterations": 39,
+    "accepted": 39,
+    "trials": 59,
+    "initial": 19
+   },
+   "fixed-K8-wolfe": {
+    "log10_regret": -2.670223117327821,
+    "units": 100,
+    "iterations": 34,
+    "accepted": 33,
+    "trials": 49,
+    "initial": 19
+   },
+   "oracle-K10-halving": {
+    "log10_regret": -15.999302333472485,
+    "units": 100,
+    "iterations": 50,
+    "accepted": 48,
+    "trials": 50,
+    "initial": 46
+   },
+   "lbfgsb-m10": {
+    "log10_regret": -15.838470589732,
+    "units": 100
+   },
+   "lbfgsb-m8": {
+    "log10_regret": -12.676991074961391,
+    "units": 100
+   }
+  },
+  {
+   "condition": 1000.0,
+   "dimension": 7,
+   "replicate": 3,
+   "oracle-K8-halving": {
+    "log10_regret": -11.914221770480209,
+    "units": 99,
+    "iterations": 50,
+    "accepted": 47,
+    "trials": 50,
+    "initial": 44
+   },
+   "oracle-K8-armijo": {
+    "log10_regret": -15.775254323097283,
+    "units": 100,
+    "iterations": 47,
+    "accepted": 47,
+    "trials": 51,
+    "initial": 43
+   },
+   "oracle-K8-wolfe": {
+    "log10_regret": -15.70950690163978,
+    "units": 100,
+    "iterations": 45,
+    "accepted": 45,
+    "trials": 49,
+    "initial": 41
+   },
+   "tau-only-K8-halving": {
+    "log10_regret": -3.355009892500536,
+    "units": 100,
+    "iterations": 61,
+    "accepted": 37,
+    "trials": 61,
+    "initial": 28
+   },
+   "tau-only-K8-armijo": {
+    "log10_regret": -3.239344287028413,
+    "units": 100,
+    "iterations": 40,
+    "accepted": 40,
+    "trials": 58,
+    "initial": 22
+   },
+   "tau-only-K8-wolfe": {
+    "log10_regret": -3.113082644808485,
+    "units": 100,
+    "iterations": 34,
+    "accepted": 34,
+    "trials": 49,
+    "initial": 19
+   },
+   "fixed-K8-halving": {
+    "log10_regret": -2.829484123839932,
+    "units": 99,
+    "iterations": 65,
+    "accepted": 32,
+    "trials": 65,
+    "initial": 16
+   },
+   "fixed-K8-armijo": {
+    "log10_regret": -3.3363986605253872,
+    "units": 99,
+    "iterations": 35,
+    "accepted": 34,
+    "trials": 63,
+    "initial": 18
+   },
+   "fixed-K8-wolfe": {
+    "log10_regret": -3.3090600845762492,
+    "units": 100,
+    "iterations": 27,
+    "accepted": 26,
+    "trials": 49,
+    "initial": 18
+   },
+   "oracle-K10-halving": {
+    "log10_regret": -15.997062850184692,
+    "units": 99,
+    "iterations": 51,
+    "accepted": 46,
+    "trials": 51,
+    "initial": 44
+   },
+   "lbfgsb-m10": {
+    "log10_regret": -15.998409027415693,
+    "units": 100
+   },
+   "lbfgsb-m8": {
+    "log10_regret": -11.736213299351364,
+    "units": 100
+   }
+  },
+  {
+   "condition": 1000.0,
+   "dimension": 10,
+   "replicate": 0,
+   "oracle-K8-halving": {
+    "log10_regret": -4.8329538213750265,
+    "units": 100,
+    "iterations": 50,
+    "accepted": 48,
+    "trials": 50,
+    "initial": 47
+   },
+   "oracle-K8-armijo": {
+    "log10_regret": -4.42693210490613,
+    "units": 100,
+    "iterations": 47,
+    "accepted": 47,
+    "trials": 51,
+    "initial": 43
+   },
+   "oracle-K8-wolfe": {
+    "log10_regret": -4.934161268091135,
+    "units": 100,
+    "iterations": 47,
+    "accepted": 47,
+    "trials": 49,
+    "initial": 45
+   },
+   "tau-only-K8-halving": {
+    "log10_regret": -1.9575581961246449,
+    "units": 99,
+    "iterations": 63,
+    "accepted": 34,
+    "trials": 63,
+    "initial": 27
+   },
+   "tau-only-K8-armijo": {
+    "log10_regret": -1.3654776657365049,
+    "units": 99,
+    "iterations": 41,
+    "accepted": 41,
+    "trials": 56,
+    "initial": 26
+   },
+   "tau-only-K8-wolfe": {
+    "log10_regret": -1.002585125965811,
+    "units": 100,
+    "iterations": 31,
+    "accepted": 30,
+    "trials": 49,
+    "initial": 15
+   },
+   "fixed-K8-halving": {
+    "log10_regret": -0.8263921929850653,
+    "units": 100,
+    "iterations": 63,
+    "accepted": 35,
+    "trials": 63,
+    "initial": 7
+   },
+   "fixed-K8-armijo": {
+    "log10_regret": -0.8421827698012171,
+    "units": 100,
+    "iterations": 35,
+    "accepted": 35,
+    "trials": 63,
+    "initial": 7
+   },
+   "fixed-K8-wolfe": {
+    "log10_regret": -0.7745456106844871,
+    "units": 100,
+    "iterations": 28,
+    "accepted": 28,
+    "trials": 49,
+    "initial": 7
+   },
+   "oracle-K10-halving": {
+    "log10_regret": -6.047438955530079,
+    "units": 100,
+    "iterations": 52,
+    "accepted": 46,
+    "trials": 52,
+    "initial": 43
+   },
+   "lbfgsb-m10": {
+    "log10_regret": -8.4844534153232,
+    "units": 100
+   },
+   "lbfgsb-m8": {
+    "log10_regret": -5.973207337449347,
+    "units": 100
+   }
+  },
+  {
+   "condition": 1000.0,
+   "dimension": 10,
+   "replicate": 1,
+   "oracle-K8-halving": {
+    "log10_regret": -6.584584966511773,
+    "units": 100,
+    "iterations": 51,
+    "accepted": 47,
+    "trials": 51,
+    "initial": 43
+   },
+   "oracle-K8-armijo": {
+    "log10_regret": -5.929173016410501,
+    "units": 100,
+    "iterations": 48,
+    "accepted": 48,
+    "trials": 50,
+    "initial": 46
+   },
+   "oracle-K8-wolfe": {
+    "log10_regret": -5.8292162002356624,
+    "units": 100,
+    "iterations": 47,
+    "accepted": 47,
+    "trials": 49,
+    "initial": 45
+   },
+   "tau-only-K8-halving": {
+    "log10_regret": -3.301189693550223,
+    "units": 99,
+    "iterations": 60,
+    "accepted": 37,
+    "trials": 60,
+    "initial": 28
+   },
+   "tau-only-K8-armijo": {
+    "log10_regret": -2.811211287184888,
+    "units": 99,
+    "iterations": 41,
+    "accepted": 41,
+    "trials": 56,
+    "initial": 27
+   },
+   "tau-only-K8-wolfe": {
+    "log10_regret": -2.7664505351832243,
+    "units": 100,
+    "iterations": 30,
+    "accepted": 30,
+    "trials": 49,
+    "initial": 17
+   },
+   "fixed-K8-halving": {
+    "log10_regret": -2.4391135820352035,
+    "units": 99,
+    "iterations": 62,
+    "accepted": 35,
+    "trials": 62,
+    "initial": 22
+   },
+   "fixed-K8-armijo": {
+    "log10_regret": -2.574941691670286,
+    "units": 100,
+    "iterations": 40,
+    "accepted": 40,
+    "trials": 58,
+    "initial": 22
+   },
+   "fixed-K8-wolfe": {
+    "log10_regret": -2.500269936954894,
+    "units": 100,
+    "iterations": 36,
+    "accepted": 35,
+    "trials": 49,
+    "initial": 22
+   },
+   "oracle-K10-halving": {
+    "log10_regret": -6.32596864720016,
+    "units": 99,
+    "iterations": 53,
+    "accepted": 44,
+    "trials": 53,
+    "initial": 41
+   },
+   "lbfgsb-m10": {
+    "log10_regret": -9.086378437473945,
+    "units": 100
+   },
+   "lbfgsb-m8": {
+    "log10_regret": -5.996228207300441,
+    "units": 100
+   }
+  },
+  {
+   "condition": 1000.0,
+   "dimension": 10,
+   "replicate": 2,
+   "oracle-K8-halving": {
+    "log10_regret": -5.642861331016414,
+    "units": 100,
+    "iterations": 51,
+    "accepted": 47,
+    "trials": 51,
+    "initial": 44
+   },
+   "oracle-K8-armijo": {
+    "log10_regret": -5.4770510691373,
+    "units": 100,
+    "iterations": 47,
+    "accepted": 47,
+    "trials": 51,
+    "initial": 43
+   },
+   "oracle-K8-wolfe": {
+    "log10_regret": -5.231498772583695,
+    "units": 100,
+    "iterations": 45,
+    "accepted": 45,
+    "trials": 49,
+    "initial": 41
+   },
+   "tau-only-K8-halving": {
+    "log10_regret": -2.50657350091933,
+    "units": 100,
+    "iterations": 60,
+    "accepted": 38,
+    "trials": 60,
+    "initial": 28
+   },
+   "tau-only-K8-armijo": {
+    "log10_regret": -2.230989577166464,
+    "units": 99,
+    "iterations": 43,
+    "accepted": 42,
+    "trials": 55,
+    "initial": 30
+   },
+   "tau-only-K8-wolfe": {
+    "log10_regret": -2.184799748533524,
+    "units": 100,
+    "iterations": 38,
+    "accepted": 37,
+    "trials": 49,
+    "initial": 27
+   },
+   "fixed-K8-halving": {
+    "log10_regret": -2.2473778821248023,
+    "units": 99,
+    "iterations": 60,
+    "accepted": 37,
+    "trials": 60,
+    "initial": 25
+   },
+   "fixed-K8-armijo": {
+    "log10_regret": -2.3467107939599896,
+    "units": 99,
+    "iterations": 42,
+    "accepted": 41,
+    "trials": 56,
+    "initial": 27
+   },
+   "fixed-K8-wolfe": {
+    "log10_regret": -2.324967587878085,
+    "units": 100,
+    "iterations": 38,
+    "accepted": 37,
+    "trials": 49,
+    "initial": 27
+   },
+   "oracle-K10-halving": {
+    "log10_regret": -5.76934639751531,
+    "units": 99,
+    "iterations": 51,
+    "accepted": 46,
+    "trials": 51,
+    "initial": 42
+   },
+   "lbfgsb-m10": {
+    "log10_regret": -6.5064022896398095,
+    "units": 100
+   },
+   "lbfgsb-m8": {
+    "log10_regret": -5.139758924663782,
+    "units": 100
+   }
+  },
+  {
+   "condition": 1000.0,
+   "dimension": 10,
+   "replicate": 3,
+   "oracle-K8-halving": {
+    "log10_regret": -5.33203378377606,
+    "units": 100,
+    "iterations": 53,
+    "accepted": 45,
+    "trials": 53,
+    "initial": 42
+   },
+   "oracle-K8-armijo": {
+    "log10_regret": -6.105063215400584,
+    "units": 100,
+    "iterations": 47,
+    "accepted": 47,
+    "trials": 51,
+    "initial": 43
+   },
+   "oracle-K8-wolfe": {
+    "log10_regret": -6.063522235742255,
+    "units": 100,
+    "iterations": 42,
+    "accepted": 42,
+    "trials": 49,
+    "initial": 36
+   },
+   "tau-only-K8-halving": {
+    "log10_regret": -3.416718123999638,
+    "units": 99,
+    "iterations": 63,
+    "accepted": 34,
+    "trials": 63,
+    "initial": 24
+   },
+   "tau-only-K8-armijo": {
+    "log10_regret": -2.890004933164045,
+    "units": 99,
+    "iterations": 40,
+    "accepted": 40,
+    "trials": 57,
+    "initial": 23
+   },
+   "tau-only-K8-wolfe": {
+    "log10_regret": -2.7986359476488123,
+    "units": 100,
+    "iterations": 34,
+    "accepted": 34,
+    "trials": 49,
+    "initial": 19
+   },
+   "fixed-K8-halving": {
+    "log10_regret": -2.730819366847545,
+    "units": 99,
+    "iterations": 58,
+    "accepted": 39,
+    "trials": 58,
+    "initial": 29
+   },
+   "fixed-K8-armijo": {
+    "log10_regret": -2.9286708376311923,
+    "units": 99,
+    "iterations": 42,
+    "accepted": 42,
+    "trials": 55,
+    "initial": 29
+   },
+   "fixed-K8-wolfe": {
+    "log10_regret": -3.3703694595363967,
+    "units": 100,
+    "iterations": 33,
+    "accepted": 33,
+    "trials": 49,
+    "initial": 23
+   },
+   "oracle-K10-halving": {
+    "log10_regret": -6.916638054099058,
+    "units": 100,
+    "iterations": 49,
+    "accepted": 49,
+    "trials": 49,
+    "initial": 49
+   },
+   "lbfgsb-m10": {
+    "log10_regret": -9.832285677360233,
+    "units": 100
+   },
+   "lbfgsb-m8": {
+    "log10_regret": -6.099812059661308,
+    "units": 100
+   }
+  },
+  {
+   "condition": 1000.0,
+   "dimension": 16,
+   "replicate": 0,
+   "oracle-K8-halving": {
+    "log10_regret": -4.844419296251386,
+    "units": 100,
+    "iterations": 51,
+    "accepted": 47,
+    "trials": 51,
+    "initial": 43
+   },
+   "oracle-K8-armijo": {
+    "log10_regret": -5.388240517970554,
+    "units": 100,
+    "iterations": 48,
+    "accepted": 48,
+    "trials": 50,
+    "initial": 46
+   },
+   "oracle-K8-wolfe": {
+    "log10_regret": -5.350583077552295,
+    "units": 100,
+    "iterations": 47,
+    "accepted": 47,
+    "trials": 49,
+    "initial": 45
+   },
+   "tau-only-K8-halving": {
+    "log10_regret": -2.6490960442384974,
+    "units": 99,
+    "iterations": 62,
+    "accepted": 35,
+    "trials": 62,
+    "initial": 25
+   },
+   "tau-only-K8-armijo": {
+    "log10_regret": -2.1104766372059136,
+    "units": 100,
+    "iterations": 40,
+    "accepted": 40,
+    "trials": 58,
+    "initial": 22
+   },
+   "tau-only-K8-wolfe": {
+    "log10_regret": -2.014550168850157,
+    "units": 100,
+    "iterations": 34,
+    "accepted": 34,
+    "trials": 49,
+    "initial": 19
+   },
+   "fixed-K8-halving": {
+    "log10_regret": -2.0269948127254707,
+    "units": 99,
+    "iterations": 55,
+    "accepted": 42,
+    "trials": 55,
+    "initial": 29
+   },
+   "fixed-K8-armijo": {
+    "log10_regret": -2.047773395661952,
+    "units": 99,
+    "iterations": 42,
+    "accepted": 42,
+    "trials": 55,
+    "initial": 29
+   },
+   "fixed-K8-wolfe": {
+    "log10_regret": -2.0126852136890707,
+    "units": 100,
+    "iterations": 39,
+    "accepted": 39,
+    "trials": 49,
+    "initial": 29
+   },
+   "oracle-K10-halving": {
+    "log10_regret": -4.935611164295045,
+    "units": 99,
+    "iterations": 51,
+    "accepted": 46,
+    "trials": 51,
+    "initial": 43
+   },
+   "lbfgsb-m10": {
+    "log10_regret": -5.053188750510229,
+    "units": 100
+   },
+   "lbfgsb-m8": {
+    "log10_regret": -4.443638504879022,
+    "units": 100
+   }
+  },
+  {
+   "condition": 1000.0,
+   "dimension": 16,
+   "replicate": 1,
+   "oracle-K8-halving": {
+    "log10_regret": -5.292584157238117,
+    "units": 100,
+    "iterations": 50,
+    "accepted": 48,
+    "trials": 50,
+    "initial": 46
+   },
+   "oracle-K8-armijo": {
+    "log10_regret": -5.198809501216701,
+    "units": 99,
+    "iterations": 47,
+    "accepted": 47,
+    "trials": 50,
+    "initial": 44
+   },
+   "oracle-K8-wolfe": {
+    "log10_regret": -5.129690619989061,
+    "units": 100,
+    "iterations": 45,
+    "accepted": 45,
+    "trials": 49,
+    "initial": 41
+   },
+   "tau-only-K8-halving": {
+    "log10_regret": -2.9161500019302786,
+    "units": 100,
+    "iterations": 61,
+    "accepted": 37,
+    "trials": 61,
+    "initial": 28
+   },
+   "tau-only-K8-armijo": {
+    "log10_regret": -2.6702650003094393,
+    "units": 99,
+    "iterations": 41,
+    "accepted": 41,
+    "trials": 56,
+    "initial": 26
+   },
+   "tau-only-K8-wolfe": {
+    "log10_regret": -2.5975180131516407,
+    "units": 100,
+    "iterations": 36,
+    "accepted": 36,
+    "trials": 49,
+    "initial": 23
+   },
+   "fixed-K8-halving": {
+    "log10_regret": -2.1406459179582678,
+    "units": 100,
+    "iterations": 56,
+    "accepted": 42,
+    "trials": 56,
+    "initial": 28
+   },
+   "fixed-K8-armijo": {
+    "log10_regret": -2.1666311584549764,
+    "units": 100,
+    "iterations": 42,
+    "accepted": 42,
+    "trials": 56,
+    "initial": 28
+   },
+   "fixed-K8-wolfe": {
+    "log10_regret": -2.10538113878223,
+    "units": 100,
+    "iterations": 39,
+    "accepted": 38,
+    "trials": 49,
+    "initial": 28
+   },
+   "oracle-K10-halving": {
+    "log10_regret": -5.519448828443517,
+    "units": 100,
+    "iterations": 50,
+    "accepted": 48,
+    "trials": 50,
+    "initial": 46
+   },
+   "lbfgsb-m10": {
+    "log10_regret": -4.9659299179472125,
+    "units": 100
+   },
+   "lbfgsb-m8": {
+    "log10_regret": -5.134987265517145,
+    "units": 100
+   }
+  },
+  {
+   "condition": 1000.0,
+   "dimension": 16,
+   "replicate": 2,
+   "oracle-K8-halving": {
+    "log10_regret": -4.776217714002215,
+    "units": 100,
+    "iterations": 50,
+    "accepted": 48,
+    "trials": 50,
+    "initial": 46
+   },
+   "oracle-K8-armijo": {
+    "log10_regret": -4.962556293638478,
+    "units": 100,
+    "iterations": 48,
+    "accepted": 48,
+    "trials": 50,
+    "initial": 46
+   },
+   "oracle-K8-wolfe": {
+    "log10_regret": -4.815634637320751,
+    "units": 100,
+    "iterations": 47,
+    "accepted": 47,
+    "trials": 49,
+    "initial": 45
+   },
+   "tau-only-K8-halving": {
+    "log10_regret": -2.7884610263639145,
+    "units": 99,
+    "iterations": 60,
+    "accepted": 37,
+    "trials": 60,
+    "initial": 27
+   },
+   "tau-only-K8-armijo": {
+    "log10_regret": -3.0117616471962037,
+    "units": 99,
+    "iterations": 42,
+    "accepted": 41,
+    "trials": 56,
+    "initial": 28
+   },
+   "tau-only-K8-wolfe": {
+    "log10_regret": -2.461128957710925,
+    "units": 100,
+    "iterations": 33,
+    "accepted": 33,
+    "trials": 49,
+    "initial": 20
+   },
+   "fixed-K8-halving": {
+    "log10_regret": -2.246106504429295,
+    "units": 99,
+    "iterations": 53,
+    "accepted": 44,
+    "trials": 53,
+    "initial": 35
+   },
+   "fixed-K8-armijo": {
+    "log10_regret": -2.2718128941303997,
+    "units": 99,
+    "iterations": 44,
+    "accepted": 44,
+    "trials": 53,
+    "initial": 35
+   },
+   "fixed-K8-wolfe": {
+    "log10_regret": -2.2329947551927742,
+    "units": 100,
+    "iterations": 36,
+    "accepted": 36,
+    "trials": 49,
+    "initial": 23
+   },
+   "oracle-K10-halving": {
+    "log10_regret": -4.94972972667174,
+    "units": 99,
+    "iterations": 49,
+    "accepted": 48,
+    "trials": 49,
+    "initial": 47
+   },
+   "lbfgsb-m10": {
+    "log10_regret": -4.944612218089036,
+    "units": 100
+   },
+   "lbfgsb-m8": {
+    "log10_regret": -4.578768244154141,
+    "units": 100
+   }
+  },
+  {
+   "condition": 1000.0,
+   "dimension": 16,
+   "replicate": 3,
+   "oracle-K8-halving": {
+    "log10_regret": -4.676054139107704,
+    "units": 99,
+    "iterations": 49,
+    "accepted": 48,
+    "trials": 49,
+    "initial": 47
+   },
+   "oracle-K8-armijo": {
+    "log10_regret": -4.6921549588650215,
+    "units": 100,
+    "iterations": 48,
+    "accepted": 48,
+    "trials": 50,
+    "initial": 46
+   },
+   "oracle-K8-wolfe": {
+    "log10_regret": -4.6280685138448,
+    "units": 100,
+    "iterations": 47,
+    "accepted": 47,
+    "trials": 49,
+    "initial": 45
+   },
+   "tau-only-K8-halving": {
+    "log10_regret": -2.3107547305450655,
+    "units": 99,
+    "iterations": 62,
+    "accepted": 35,
+    "trials": 62,
+    "initial": 27
+   },
+   "tau-only-K8-armijo": {
+    "log10_regret": -2.553193623824226,
+    "units": 100,
+    "iterations": 42,
+    "accepted": 42,
+    "trials": 56,
+    "initial": 29
+   },
+   "tau-only-K8-wolfe": {
+    "log10_regret": -2.0371985790926077,
+    "units": 100,
+    "iterations": 33,
+    "accepted": 33,
+    "trials": 49,
+    "initial": 19
+   },
+   "fixed-K8-halving": {
+    "log10_regret": -1.9138041568684063,
+    "units": 100,
+    "iterations": 57,
+    "accepted": 41,
+    "trials": 57,
+    "initial": 26
+   },
+   "fixed-K8-armijo": {
+    "log10_regret": -2.4689667306879404,
+    "units": 100,
+    "iterations": 44,
+    "accepted": 44,
+    "trials": 54,
+    "initial": 34
+   },
+   "fixed-K8-wolfe": {
+    "log10_regret": -1.814635908940465,
+    "units": 100,
+    "iterations": 36,
+    "accepted": 35,
+    "trials": 49,
+    "initial": 22
+   },
+   "oracle-K10-halving": {
+    "log10_regret": -4.884112619662028,
+    "units": 99,
+    "iterations": 49,
+    "accepted": 48,
+    "trials": 49,
+    "initial": 47
+   },
+   "lbfgsb-m10": {
+    "log10_regret": -4.781500383092139,
+    "units": 100
+   },
+   "lbfgsb-m8": {
+    "log10_regret": -4.65565057455505,
+    "units": 100
+   }
+  }
+ ],
+ "supplementary_not_requested": {
+  "note": "oracle K=10 under armijo and wolfe (same tasks), added to separate history length from loop rule",
+  "oracle-K10-armijo/kappa_100": {
+   "median": -14.964602305464329,
+   "floored": -12.0,
+   "reached_1e-6": "12/12",
+   "mean_units": 99.33333333333333,
+   "initial_unchanged": 0.8735632183908046
+  },
+  "oracle-K10-armijo/kappa_1000": {
+   "median": -6.68172401138885,
+   "floored": -6.68172401138885,
+   "reached_1e-6": "7/12",
+   "mean_units": 99.41666666666667,
+   "initial_unchanged": 0.9215686274509803
+  },
+  "oracle-K10-wolfe/kappa_100": {
+   "median": -14.217473634172183,
+   "floored": -12.0,
+   "reached_1e-6": "12/12",
+   "mean_units": 100.0,
+   "initial_unchanged": 0.8797595190380761
+  },
+  "oracle-K10-wolfe/kappa_1000": {
+   "median": -6.433303024609783,
+   "floored": -6.433303024609783,
+   "reached_1e-6": "7/12",
+   "mean_units": 100.0,
+   "initial_unchanged": 0.9264705882352942
+  }
+ }
+}

@@ -1,0 +1,14 @@
+{
+ "reference_parity": true,
+ "preregistration_sha256": "6d5489dab06d3bbc5b60f716ab65411e8626af65f3a97de0a0044e24b43cad3f",
+ "distinct_compilations": 6,
+ "first_pass_seconds_incl_compile": 5.455538911977783,
+ "steady_seconds_per_update": 0.5945530622499063,
+ "steady_task_gradients_per_second": 13.455485318209309,
+ "skipped_updates_in_probe": 0,
+ "projected_minutes_per_run_single_process": 19.909361056863176,
+ "runs": 15,
+ "projected_cpu_hours_total": 4.977340264215794,
+ "probe_rule": "lower UPDATES uniformly only if a run exceeds 45.0 min",
+ "updates_kept": 2000
+}

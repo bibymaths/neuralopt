@@ -14,6 +14,25 @@
 | *A Stochastic Quasi-Newton Method for Large-Scale Optimization* (2015), https://doi.org/10.1137/140954362 | Noise-robust stochastic curvature updates | Negative control for naive secant aggregation from independent noisy gradients. |
 | *Learned Optimizers that Scale and Generalize* (2017), https://research.google/pubs/learned-optimizers-that-scale-and-generalize/ | Cross-scale generalization and hierarchical conditioning | Design variable-dimensional transfer protocol, not a claim of automatic mesh/rotation invariance. |
 
+## v0.7 additions (Gram-space model; verified 2026-11-22 against OpenAlex)
+
+Each entry below was checked by identifier: arXiv id or DOI, title, authors and year.
+Where OpenAlex holds only the arXiv record, the conference venue is the one given in
+the v0.7 brief and was **not independently verified**.
+
+| Source (verified record) | Transferable contribution | NeuralOpt application / novelty caveat |
+| --- | --- | --- |
+| Villar, Hogg, Storey-Fisher, Yao & Blum-Smith, *Scalars are universal: Equivariant machine learning, structured like classical physics*, arXiv:2106.06610 (2021; OpenAlex W3171432109; NeurIPS 2021 per brief) | O(d)-equivariant functions of vectors can be written using invariant scalars (inner products) | The Gram model's tokens are inner products among the columns of S, Y and g_u, and its output is linear in those vectors. This is an application of that principle, **not a new invariance result**. |
+| Fu, Chen, Jia & Sharan, arXiv:2310.17086. Brief title: *Transformers Learn Higher-Order Optimization Methods for In-Context Learning*. Published NeurIPS 2024 as *Transformers Learn to Achieve Second-Order Convergence Rates for In-Context Linear Regression* (doi 10.52202/079017-3132; OpenAlex W4415796413) | Transformers can implement k iterations of Newton's method in k + O(1) layers for in-context linear regression, and match its convergence on ill-conditioned data | Prior evidence that attention can represent second-order updates in context. Our setting (arbitrary objectives, a fixed evaluation budget, step acceptance) differs, but expressivity of second-order behaviour is **not ours to claim**. |
+| Giannou, Liu, Wang, Papailiopoulos & Lee, *How Well Can Transformers Emulate In-context Newton's Method?*, arXiv:2403.03183 (2024; OpenAlex W4392538912) | Constructions and bounds for transformers emulating Newton iterations in context | Same caveat as above. Gate 1 (the Gram model expresses L-BFGS exactly) is an algebraic identity, not evidence of learning. |
+| Liu, Chen, Wang, Yin & Cai, *Towards Constituting Mathematical Structures for Learning to Optimize*, arXiv:2305.18577 (2023; OpenAlex W4378942586; ICML 2023 per brief) | Learned optimizers whose update rule is constrained to a mathematically derived structure | Closest conceptual precedent for embedding quasi-Newton structure in a learned update. Our structure is the BNS compact form; **not a new principle**. |
+| Byrd, Nocedal & Schnabel, *Representations of quasi-Newton matrices and their use in limited memory methods*, Mathematical Programming 63 (1994), doi 10.1007/BF01582063 (OpenAlex W2058839679) | Compact representation H = γI + [S, γY] M [S, γY]ᵀ of the limited-memory BFGS inverse Hessian | Source of the identity behind gate 1 (A = R⁻ᵀ, C = R⁻ᵀD^{1/2}/√τ, τe^δ = γ). |
+| Rader, Lyons & Kidger, *Optimistix: modular optimisation in JAX and Equinox*, arXiv:2402.09983 (2024; OpenAlex W4391899943) | JAX-native BFGS and L-BFGS solvers | **Benchmark reference only** (`neuralopt[benchmark]`), never used in inference. Its multivariate minimisers have no box bounds. |
+
+Already listed above and still the closest prior work: L-SR1 (learned SR1
+preconditioning), Optimus (transformer rank-one updates) and LODO (online learned
+inverse-Hessian action). The v0.7 Gram model must not claim novelty over any of these.
+
 ## Core algebra and caution
 
 Let `u=2(x-lo)/(hi-lo)-1`, `x=lo + J(u+1)` with `J=diag((hi-lo)/2)`; `g_u=J^T g_x`. On quadratic `f(x)=0.5(x-x*)^T H_x (x-x*)`, `H_u=J^T H_x J`. From evaluated, coherent states, `s=Δu`, `y=Δg_u=H_u s`. A small history identifies `H_u` only on span of the observed displacements; full Hessian recovery is not implied. For inverse preconditioning, the corresponding ideal secant is `P y ≈ s`, **not** `P s≈y`. With indefinite objectives, `s^T y` can be negative; an SPD mass/mobility is still required for existing stochastic kernels.

@@ -7,6 +7,18 @@
   batch API; parametric task families and a compiled, batched, NaN-guarded trainer
   (`train_batched`, skipped updates counted). Engine and training benchmarks in
   `results/engine-benchmark-v0.7.0.json`; Optimistix added to the `benchmark` extra only.
+- Track B (opt-in, research): Gram-space history model (`model_kind="gram"`, schema
+  gram-v2), opt-in step-acceptance rules (`loop_rule`), gates 1-2, loop-rule ablation,
+  mask diagnostic, a frozen pre-registration (sha256 recorded) and its training and
+  evaluation infrastructure. Pre-registered result (negative): Stage 1 passed, but
+  gram-full did not beat the untrained BB step on the curvature domain (H1 fails), the
+  reliability guard trips on Rastrigin and Ackley, and the model is far from the
+  oracle-BFGS ceiling. BB stays the bar.
+  Exploratory post-mortem (training and validation tasks only): wider models imitate
+  the oracle better but none performs well in the loop, and A/C gradients reach the
+  heads without a saddle, so the cause is undetermined (leaning optimization signal).
+  By plan gate G7 the line is not expanded; the next work is learned guidance for
+  certified global search.
 
 ## 0.6.0 - In development
 
