@@ -1,8 +1,41 @@
 {
-  "title": "neuralopt: learned optimization with restricted native certification",
-  "description": "An alpha JAX research framework for transformer-generated numerical updates and independently replayable interval certificates.",
+  "title": "NeuralOpt: a JAX research package for learned optimization, with replayable interval certification",
+  "upload_type": "software",
+  "description": "NeuralOpt is an alpha JAX research package in which a compact transformer proposes the update steps of a bounded numerical optimizer, with every objective and gradient evaluation counted against a shared budget. An opt-in compiled loop runs the learned rule as a single XLA program. A separate certified mode, which uses no learned component, proves bounds by interval branch-and-bound with outward rounding for a restricted expression subset, and its certificates can be replayed independently. Status: in the studies from v0.4 to v0.7 (pre-registered for v0.6 and v0.7), the learned geometries did not beat validation-tuned fixed-diagonal or Barzilai-Borwein baselines, and classical L-BFGS outperforms the learned optimizer on the reported benchmarks; these negative results are documented in the release notes. Users should cite the exact software version or commit used. No claim of performance superiority, and no certification of arbitrary JAX programs, is made.",
+  "creators": [
+    {
+      "name": "Mishra, Abhinav",
+      "affiliation": "Independent Researcher",
+      "orcid": "0009-0005-3179-7408"
+    }
+  ],
   "license": "MIT",
-  "creators": [{"name": "Mishra, Abhinav", "orcid": "0009-0005-3179-7408"}],
-  "keywords": ["learned optimization", "JAX", "interval arithmetic", "global optimization"]
+  "access_right": "open",
+  "language": "eng",
+  "keywords": [
+    "learned optimization",
+    "learned optimizers",
+    "meta-learning",
+    "JAX",
+    "transformer",
+    "preconditioning",
+    "quasi-Newton methods",
+    "interval arithmetic",
+    "certified optimization",
+    "global optimization",
+    "Langevin dynamics",
+    "Hamiltonian Monte Carlo"
+  ],
+  "related_identifiers": [
+    {
+      "identifier": "https://github.com/bibymaths/neuralopt",
+      "relation": "isSupplementTo",
+      "resource_type": "software"
+    },
+    {
+      "identifier": "https://bibymaths.github.io/neuralopt/",
+      "relation": "isDocumentedBy",
+      "resource_type": "other"
+    }
+  ]
 }
-

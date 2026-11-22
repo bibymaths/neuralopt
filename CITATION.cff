@@ -1,12 +1,43 @@
 cff-version: 1.2.0
-message: "If you use this research software, please cite it."
-title: "neuralopt"
-version: 0.5.0
+message: >-
+  If you use NeuralOpt, please cite the exact version or commit you used.
+  NeuralOpt is an alpha research package. It makes no performance claims,
+  and several of its research results are negative (see the release notes).
 type: software
+title: "NeuralOpt: a JAX research package for learned optimization, with replayable interval certification"
+version: 0.7.0
+date-released: "2026-11-22"
 authors:
   - family-names: Mishra
     given-names: Abhinav
+    affiliation: Independent Researcher
+    email: mishraabhinav36@gmail.com
     orcid: "https://orcid.org/0009-0005-3179-7408"
 repository-code: "https://github.com/bibymaths/neuralopt"
+url: "https://bibymaths.github.io/neuralopt/"
 license: MIT
-
+keywords:
+  - learned optimization
+  - learned optimizers
+  - meta-learning
+  - JAX
+  - transformer
+  - preconditioning
+  - quasi-Newton methods
+  - interval arithmetic
+  - certified optimization
+  - global optimization
+  - Langevin dynamics
+  - Hamiltonian Monte Carlo
+abstract: >-
+  NeuralOpt is a JAX research package in which a compact transformer proposes
+  the update steps of a bounded numerical optimizer, with every objective and
+  gradient evaluation counted against a shared budget. An opt-in compiled loop
+  runs the learned rule as a single XLA program. A separate certified mode,
+  which uses no learned component, proves bounds by interval branch-and-bound
+  with outward rounding for a restricted expression subset, and its
+  certificates can be replayed independently. The package is alpha research
+  software. In the studies from v0.4 to v0.7 (pre-registered for v0.6
+  and v0.7), the learned geometries did not beat validation-tuned fixed-diagonal or
+  Barzilai-Borwein baselines, and classical L-BFGS outperforms the learned
+  optimizer on the reported benchmarks.
