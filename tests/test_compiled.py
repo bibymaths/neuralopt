@@ -218,3 +218,42 @@ def test_float32_checkpoint_on_float64_problem_matches_python_without_dtype_warn
                             False)
     np.testing.assert_allclose(compiled.trajectory, python.trajectory, rtol=1e-6)
     assert compiled.diagnostics["accepted_steps"] == python.diagnostics["accepted_steps"]
+
+
+def test_default_preconditioned_engine_is_compiled():
+    """v0.7.0 release: the compiled engine is the default for traceable objectives."""
+    problem = _rotated(jnp.float32)
+    result = minimize(problem, params=init_model(jax.random.PRNGKey(0), LEGACY), config=LEGACY,
+                      candidate_method="preconditioned", hamiltonian_metric="fixed",
+                      fixed_metric_diag=np.full(problem.dimension, 1.5),
+                      preconditioned_step=0.2, record_diagnostics=True)
+    assert result.diagnostics["engine"] == "compiled"
+
+
+def test_default_engine_with_host_gradient_fails_closed_and_names_python():
+    problem = Problem(lambda x: float(np.sum(np.asarray(x) ** 2)), (-1.0, 1.0), 2,
+                      gradient=lambda x: 2 * jnp.asarray(x))
+    with pytest.raises(ValueError, match="preconditioned_engine='python'"):
+        minimize(problem, params=None, config=LEGACY, candidate_method="preconditioned",
+                 hamiltonian_metric="fixed", fixed_metric_diag=np.ones(2),
+                 preconditioned_step=0.2)
+
+
+def test_v06_reproduction_script_pins_the_python_engine():
+    """Frozen v0.6 results must keep reproducing: every preconditioned ``minimize`` call
+    in the v0.6 script names ``preconditioned_engine="python"`` explicitly."""
+    import ast
+    from pathlib import Path
+
+    path = Path(__file__).parents[1] / "scripts" / "run_trajectory_curvature_v0_6.py"
+    calls = [
+        node for node in ast.walk(ast.parse(path.read_text()))
+        if isinstance(node, ast.Call) and getattr(node.func, "id", None) == "minimize"
+    ]
+    preconditioned = [
+        {k.arg: k.value.value for k in c.keywords if isinstance(k.value, ast.Constant)}
+        for c in calls
+    ]
+    preconditioned = [k for k in preconditioned if k.get("candidate_method") == "preconditioned"]
+    assert len(preconditioned) == 2
+    assert all(k.get("preconditioned_engine") == "python" for k in preconditioned)

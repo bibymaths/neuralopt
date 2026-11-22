@@ -439,6 +439,7 @@ def test_preconditioned_loop_counts_every_objective_and_gradient_call(geometry):
         hamiltonian_metric=geometry,
         fixed_metric_diag=np.ones(d),
         preconditioned_step=0.2,
+        preconditioned_engine="python",  # host/NumPy gradient: Python loop only
     )
     diag = result.diagnostics
     assert diag["objective_evaluations"] == counted.objective_calls
@@ -495,6 +496,7 @@ def test_all_rejected_candidates_terminate_without_pushing_history():
         config=config,
         candidate_method="preconditioned",
         record_diagnostics=True,
+        preconditioned_engine="python",  # host gradient: Python loop only
     )
     diag = result.diagnostics
     assert diag["accepted_steps"] == 0
@@ -697,6 +699,7 @@ def test_recorded_step_length_is_the_applied_length():
         fixed_metric_diag=np.ones(d),
         preconditioned_step=0.2,
         record_diagnostics=True,
+        preconditioned_engine="python",  # host gradient: Python loop only
     )
     lengths = [r["step_length"] for r in result.diagnostics["records"]]
     np.testing.assert_allclose(lengths, [0.2, 0.1, 0.05, 0.025, 0.0125][: len(lengths)])

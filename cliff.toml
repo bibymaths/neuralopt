@@ -1,9 +1,81 @@
-[changelog]
-header = "# Changelog\n"
-body = """
-{% for group, commits in commits | group_by(attribute="group") %}
-## {{ group }}
-{% for commit in commits %}- {{ commit.message | upper_first }}
-{% endfor %}{% endfor %}
-"""
+# git-cliff configuration: drafts release notes from conventional commits.
+# It never writes CHANGELOG.md or docs/release-notes/ directly; a human curates the
+# draft (see CONTRIBUTING.md, "Releasing"). Draft with:
+#   scripts/draft_release_notes.sh vX.Y.Z
+# Commits before v0.7.0 are not conventional and are grouped under "Other".
 
+[changelog]
+body = """
+{% if version %}\
+## [{{ version | trim_start_matches(pat="v") }}] - {{ timestamp | date(format="%Y-%m-%d") }}
+{% else %}\
+## [Unreleased]
+{% endif %}\
+
+{% for group, commits in commits | group_by(attribute="group") %}
+### {{ group | striptags | trim | upper_first }}
+
+{% for commit in commits %}
+- {% if commit.scope %}*({{ commit.scope }})* {% endif %}\
+{% if commit.breaking %}[**breaking**] {% endif %}\
+{{ commit.message | upper_first }}
+{% endfor %}
+
+{% endfor %}
+"""
+trim = true
+render_always = true
+
+postprocessors = [
+    { pattern = '<REPO>', replace = "https://github.com/bibymaths/neuralopt" },
+]
+
+[git]
+conventional_commits = true
+filter_unconventional = false
+require_conventional = false
+split_commits = false
+protect_breaking_commits = true
+
+commit_preprocessors = [
+    { pattern = '\((\w+\s)?#([0-9]+)\)', replace = "([#${2}](<REPO>/pull/${2}))" },
+]
+
+commit_parsers = [
+    { message = "^feat", group = "<!-- 0 -->🚀 Features" },
+    { message = "^fix", group = "<!-- 1 -->🐛 Bug Fixes" },
+    { message = "^research", group = "<!-- 2 -->🔬 Research" },
+    { message = "^refactor", group = "<!-- 3 -->🚜 Refactor" },
+    { message = "^docs?", group = "<!-- 4 -->📚 Documentation" },
+    { message = "^perf", group = "<!-- 5 -->⚡ Performance" },
+    { message = "^style", group = "<!-- 6 -->🎨 Styling" },
+    { message = "^test", group = "<!-- 7 -->🧪 Testing" },
+
+    { message = "^chore\\(release\\):", skip = true },
+    { message = "^chore\\(deps.*\\)", skip = true },
+    { message = "^chore\\(pr\\)", skip = true },
+    { message = "^chore\\(pull\\)", skip = true },
+
+    { message = "^build", group = "<!-- 8 -->⚙️ Build and CI" },
+    { message = "^ci", group = "<!-- 8 -->⚙️ Build and CI" },
+    { message = "^chore", group = "<!-- 9 -->🧹 Maintenance" },
+
+    { body = "(?i).*security.*", group = "<!-- 10 -->🛡️ Security" },
+    { message = "^revert", group = "<!-- 11 -->◀️ Reverts" },
+
+    { message = ".*", group = "<!-- 12 -->💼 Other" },
+]
+
+filter_commits = false
+fail_on_unmatched_commit = false
+
+link_parsers = [
+    { pattern = "#(\\d+)", href = "https://github.com/bibymaths/neuralopt/pull/$1" },
+]
+
+tag_pattern = "v[0-9].*"
+use_branch_tags = false
+topo_order = false
+topo_order_commits = true
+sort_commits = "oldest"
+recurse_submodules = false

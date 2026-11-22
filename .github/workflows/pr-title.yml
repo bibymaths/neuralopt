@@ -1,0 +1,30 @@
+name: PR title
+# PRs are squash-merged with the PR title as the commit message, so the title must be a
+# Conventional Commit (see CONTRIBUTING.md). Runs on pull_request (not
+# pull_request_target): no write access and no secrets for fork code.
+on:
+  pull_request:
+    types: [opened, edited, reopened, synchronize]
+permissions:
+  pull-requests: read
+jobs:
+  conventional-title:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: amannn/action-semantic-pull-request@v6.1.3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          types: |
+            feat
+            fix
+            research
+            docs
+            perf
+            refactor
+            test
+            build
+            ci
+            chore
+            revert
+          requireScope: false

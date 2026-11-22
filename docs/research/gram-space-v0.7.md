@@ -203,6 +203,12 @@ future v0.8 pre-registration, not to v0.7.
   independent and model-free.
 - Any changed model or training setup for the Gram line, including the post-mortem
   ideas above, needs a new pre-registration (v0.8). It is not added to v0.7.
+- **Update, 2026-11-22: direction changed.** After the bullet above was written, the
+  user chose **amortized optimization over problem families** ("train an optimizer for
+  your problem family": a learned start or step policy, refined by NeuralOpt's own loop)
+  as the next direction. Learned guidance for certified global search (plan gate G6) is
+  **deferred, not cancelled**. The earlier bullet is kept as written for the record; the
+  v0.8 plan will be written in `docs/plans/neuralopt-v08-amortized-families.md`.
 
 ## Training and compute
 

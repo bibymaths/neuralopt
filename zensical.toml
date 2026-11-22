@@ -1,8 +1,186 @@
 [project]
-site_name = "neuralopt"
-site_description = "Learned optimization with restricted native certification"
+site_name = "NeuralOpt"
+site_description = "A JAX research package for learned optimization, with replayable interval certification"
+site_author = "Abhinav Mishra"
+site_url = "https://bibymaths.github.io/neuralopt/"
 docs_dir = "docs"
+repo_name = "bibymaths/neuralopt"
+repo_url = "https://github.com/bibymaths/neuralopt"
+edit_uri = "edit/main/docs/"
+copyright = "Copyright © 2026 Abhinav Mishra · MIT License"
+use_directory_urls = true
+
+# Internal working documents (docs/plans, docs/superpowers) are built but not listed.
+nav = [
+  { "Home" = "index.md" },
+  { "Getting started" = [
+    { "Installation" = "installation.md" },
+    { "Quickstart" = "quickstart.md" },
+    { "When to use NeuralOpt" = "when-to-use.md" },
+  ] },
+  { "User guide" = [
+    { "Learned mode" = "guide/learned-mode.md" },
+    { "Certified mode" = "guide/certified-mode.md" },
+    { "Compiled engine" = "guide/compiled-engine.md" },
+  ] },
+  { "Research reports" = [
+    { "v0.7: compiled engine and Gram-space model" = [
+      { "Engine speed (Track A)" = "research/engine-speed-v0.7.md" },
+      { "Gram-space model (Track B, negative)" = "research/gram-space-v0.7.md" },
+    ] },
+    { "v0.6: trajectory curvature" = [
+      { "Pre-registered study (negative)" = "research/trajectory-curvature-v0.6.md" },
+      { "Experiments" = "research/trajectory-curvature-experiments.md" },
+      { "Literature" = "research/trajectory-curvature-literature.md" },
+    ] },
+    { "v0.5: transferable geometry" = [
+      { "Transferable geometry (negative)" = "research/transferable-geometry.md" },
+    ] },
+    { "v0.4: distribution-aware training" = [
+      { "Distribution-aware training (negative)" = "research/distribution-aware-training.md" },
+    ] },
+    { "v0.3: stochastic geometry" = [
+      { "Langevin theory" = "research/langevin-theory.md" },
+      { "Fokker–Planck diagnostics" = "research/fokker-planck.md" },
+      { "Gibbs measures" = "research/gibbs-measures.md" },
+      { "Function spaces" = "research/function-spaces.md" },
+      { "Stochastic novelty" = "research/stochastic-novelty.md" },
+      { "Stochastic limitations" = "research/stochastic-limitations.md" },
+    ] },
+    { "v0.2: outcome-driven foundation" = [
+      { "Training" = "research/training.md" },
+      { "Benchmarks" = "research/benchmarks.md" },
+      { "Certified scheduling" = "research/certification.md" },
+      { "Generalization" = "research/generalization.md" },
+      { "Trajectory diagnostics" = "research/trajectory-diagnostics.md" },
+      { "Hamiltonian theory" = "research/hamiltonian-theory.md" },
+      { "Hamiltonian correctness" = "research/hamiltonian-correctness.md" },
+      { "Hamiltonian related work" = "research/hamiltonian-related-work.md" },
+    ] },
+    { "v0.1: first prototype" = [
+      { "Theory" = "research/theory.md" },
+      { "Experiment plan" = "research/experiment-plan.md" },
+      { "Literature" = "research/literature.md" },
+      { "Novelty" = "research/novelty.md" },
+      { "Limitations (v0.1–v0.2)" = "research/limitations.md" },
+      { "Smoke benchmark" = "benchmarks/smoke.md" },
+    ] },
+  ] },
+  { "Release notes" = [
+    { "All releases" = "release-notes/index.md" },
+    { "v0.7.0" = "release-notes/v0.7.0.md" },
+    { "v0.6.0" = "release-notes/v0.6.0.md" },
+    { "v0.5.0" = "release-notes/v0.5.0.md" },
+    { "v0.4.0" = "release-notes/v0.4.0.md" },
+    { "v0.3.0" = "release-notes/v0.3.0.md" },
+    { "v0.2.0" = "release-notes/v0.2.0.md" },
+    { "v0.1.0" = "release-notes/v0.1.0.md" },
+  ] },
+  { "Changelog" = "changelog.md" },
+  { "Limitations" = "limitations.md" },
+  { "Citing NeuralOpt" = "citing.md" },
+  { "API reference" = "api.md" },
+]
 
 [project.theme]
 name = "material"
+language = "en"
+logo = "assets/images/icon.svg"
+favicon = "assets/images/favicon/favicon-32x32.png"
+features = [
+  "navigation.instant",
+  "navigation.tracking",
+  "navigation.sections",
+  "navigation.path",
+  "navigation.footer",
+  "navigation.top",
+  "navigation.indexes",
+  "search.highlight",
+  "content.action.edit",
+  "content.action.view",
+  "content.code.copy",
+  "content.tooltips",
+]
 
+[project.theme.icon]
+repo = "fontawesome/brands/github"
+
+[[project.theme.palette]]
+media = "(prefers-color-scheme)"
+toggle.icon = "lucide/sun-moon"
+toggle.name = "Switch to light mode"
+
+[[project.theme.palette]]
+media = "(prefers-color-scheme: light)"
+scheme = "default"
+primary = "indigo"
+accent = "deep purple"
+toggle.icon = "lucide/sun"
+toggle.name = "Switch to dark mode"
+
+[[project.theme.palette]]
+media = "(prefers-color-scheme: dark)"
+scheme = "slate"
+primary = "indigo"
+accent = "deep purple"
+toggle.icon = "lucide/moon"
+toggle.name = "Switch to system preference"
+
+[project.theme.font]
+text = "Inter"
+code = "JetBrains Mono"
+
+[project.extra]
+generator = false
+
+# Versioned docs: Zensical's mike fork (pinned in pyproject's docs group) deploys one
+# folder per minor version to gh-pages, with aliases "latest" (newest release, default)
+# and "dev" (main).
+[project.extra.version]
+provider = "mike"
+default = "latest"
+alias = true
+
+[[project.extra.social]]
+icon = "fontawesome/brands/github"
+link = "https://github.com/bibymaths/neuralopt"
+name = "NeuralOpt on GitHub"
+
+[project.markdown_extensions]
+admonition = {}
+attr_list = {}
+md_in_html = {}
+tables = {}
+
+[project.markdown_extensions.toc]
+permalink = true
+
+[project.markdown_extensions.pymdownx.details]
+
+[project.markdown_extensions.pymdownx.highlight]
+anchor_linenums = true
+
+[project.markdown_extensions.pymdownx.inlinehilite]
+
+[project.markdown_extensions.pymdownx.snippets]
+check_paths = true
+
+[project.markdown_extensions.pymdownx.superfences]
+
+[project.markdown_extensions.pymdownx.arithmatex]
+generic = true
+
+[project.plugins.mkdocstrings]
+default_handler = "python"
+
+[project.plugins.mkdocstrings.handlers.python]
+paths = ["src"]
+
+[project.plugins.mkdocstrings.handlers.python.options]
+show_source = false
+show_root_heading = true
+show_root_full_path = false
+show_signature_annotations = true
+separate_signature = true
+merge_init_into_class = true
+members_order = "source"

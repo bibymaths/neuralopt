@@ -1,5 +1,7 @@
 """Public API for neuralopt."""
 
+from importlib.metadata import PackageNotFoundError, version
+
 from .certification import Certificate, Expr, Variable, verify_certificate
 from .hamiltonian import HamiltonianConfig
 from .langevin import OverdampedConfig, UnderdampedConfig
@@ -23,4 +25,7 @@ __all__ = [
     "minimize",
     "verify_certificate",
 ]
-__version__ = "0.5.0"
+try:
+    __version__ = version("neuralopt")
+except PackageNotFoundError:  # pragma: no cover - running from an uninstalled source tree
+    __version__ = "0+unknown"
