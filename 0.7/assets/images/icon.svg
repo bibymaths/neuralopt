@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="560" height="560" viewBox="30 260 560 560">
+  <defs>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#22D3EE"/>
+      <stop offset="0.5" stop-color="#2563EB"/>
+      <stop offset="1" stop-color="#8B5CF6"/>
+    </linearGradient>
+    <linearGradient id="accentText" x1="0" y1="0" x2="1" y2="0.35">
+      <stop offset="0" stop-color="#22D3EE"/>
+      <stop offset="0.55" stop-color="#2563EB"/>
+      <stop offset="1" stop-color="#8B5CF6"/>
+    </linearGradient>
+    <radialGradient id="basin" cx="0.5" cy="0.62" r="0.62">
+      <stop offset="0" stop-color="#1E3A8A"/>
+      <stop offset="0.55" stop-color="#14286B"/>
+      <stop offset="1" stop-color="#0B1B3F"/>
+    </radialGradient>
+    <linearGradient id="path" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#A5F3FC"/>
+      <stop offset="1" stop-color="#C4B5FD"/>
+    </linearGradient>
+  </defs>
+  <g transform="rotate(-14 300 560)">
+    <ellipse cx="300" cy="560" rx="250" ry="168" fill="url(#basin)"/>
+    <ellipse cx="300" cy="560" rx="250" ry="168" fill="none" stroke="url(#accent)" stroke-width="16"/>
+    <ellipse cx="306" cy="566" rx="182" ry="120" fill="none" stroke="url(#accent)" stroke-width="11" opacity="0.85"/>
+    <ellipse cx="312" cy="572" rx="118" ry="76" fill="none" stroke="url(#accent)" stroke-width="9" opacity="0.75"/>
+    <ellipse cx="318" cy="576" rx="58" ry="36" fill="none" stroke="url(#accent)" stroke-width="7" opacity="0.65"/>
+  </g>
+  <!-- descent path: connected nodes from the rim into the minimum -->
+  <g stroke="url(#path)" stroke-linecap="round" fill="none">
+    <path d="M 92 360 L 168 452 L 236 512 L 284 556 L 320 590" stroke-width="10"/>
+    <path d="M 168 452 L 128 520" stroke-width="5" opacity="0.7"/>
+    <path d="M 236 512 L 214 590" stroke-width="5" opacity="0.7"/>
+    <path d="M 168 452 L 250 430" stroke-width="5" opacity="0.7"/>
+  </g>
+  <circle cx="92" cy="360" r="22" fill="#22D3EE"/>
+  <circle cx="168" cy="452" r="19" fill="#2DB4F0"/>
+  <circle cx="236" cy="512" r="16" fill="#2563EB"/>
+  <circle cx="284" cy="556" r="13" fill="#6366F1"/>
+  <circle cx="128" cy="520" r="9" fill="#38BDF8" opacity="0.9"/>
+  <circle cx="214" cy="590" r="9" fill="#7C3AED" opacity="0.9"/>
+  <circle cx="250" cy="430" r="9" fill="#60A5FA" opacity="0.9"/>
+  <circle cx="320" cy="590" r="24" fill="#FFFFFF"/>
+  <circle cx="320" cy="590" r="12" fill="#8B5CF6"/>
+</svg>
