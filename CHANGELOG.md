@@ -91,8 +91,8 @@ PR #4 · [release notes](https://bibymaths.github.io/neuralopt/latest/release-no
   experiment across four resolutions.
 - Add an optional Diffrax reference extra and retain negative learned-geometry
   smoke results with explicit objective, gradient, integration, and timing costs.
-- Record the blocked distributional-training, learned function-space transfer,
-  and certification-injection gates without changing certification lower bounds.
+- Record the gate status: distributional training and learned function-space transfer
+  partial, certification injection blocked; certification lower bounds unchanged.
 
 PR #3 · [release notes](https://bibymaths.github.io/neuralopt/latest/release-notes/v0.3.0/)
 
