@@ -144,8 +144,9 @@ def family_power(row: dict[str, Any]) -> dict[str, Any]:
                             "b95_stability": stability}
     claims["C4/C10"] = {"note": "timing claims: per-instance warm times are measured with "
                                 "small relative noise; not powered by instance count"}
+    # C2 (B95 ratios on the coarse grid) is checked by B95 stability, not by an n
     primary_n = [claims[c]["n_required"] for c in PRIMARY[name]
-                 if claims[c].get("n_required") is not None]
+                 if c in claims and claims[c].get("n_required") is not None]
     test_size = max(200, int(math.ceil(max(primary_n) / 100.0) * 100)) if primary_n else 200
     out.update({"claims": claims, "primary_claims": list(PRIMARY[name]),
                 "test_size": test_size,

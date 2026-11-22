@@ -1,0 +1,380 @@
+{
+ "schema": "neuralopt-power/v0.8",
+ "k_power": 2.801585218112968,
+ "effects": {
+  "superiority": 0.05,
+  "C3-noninferiority": 0.02,
+  "C5-noninferiority": 0.01
+ },
+ "matched_budgets": {
+  "sinusoid": 200,
+  "cascade-clean": 400,
+  "cascade-realistic": 800
+ },
+ "families": [
+  {
+   "family": "sinusoid",
+   "matched_budget": 200,
+   "rates_at_B": {
+    "A0": 0.52,
+    "A3": 0.745,
+    "A2o(K=2)": 0.465,
+    "A2_full(K=2)": 0.21,
+    "A2o(K=4)": 0.14
+   },
+   "claims": {
+    "C1": {
+     "proxy": "A3 \u2212 A0 success at B",
+     "effect": 0.05,
+     "sd_empirical": 0.5967878843395469,
+     "sd_used": 0.5967878843395469,
+     "n_required": 1119
+    },
+    "C3-success": {
+     "proxy": "A3 \u2212 A0 success at B (non-inferiority margin 2 pp, true difference 0)",
+     "effect": 0.02,
+     "sd_empirical": 0.5967878843395469,
+     "sd_used": 0.5967878843395469,
+     "n_required": 6989
+    },
+    "C6": {
+     "proxy": "A3 \u2212 A2o(K=4) success at B",
+     "effect": 0.05,
+     "sd_empirical": 0.5661959814827691,
+     "sd_used": 0.5661959814827691,
+     "n_required": 1007
+    },
+    "C7": {
+     "proxy": "A3 \u2212 A0 success at B (two A4 variants)",
+     "effect": 0.05,
+     "sd_empirical": 0.5967878843395469,
+     "sd_used": 0.5967878843395469,
+     "n_required": 1119
+    },
+    "C5-success": {
+     "proxy": "A0 \u2212 A2_full success at B (margin 1 pp, true difference 0)",
+     "effect": 0.01,
+     "sd_empirical": 0.629189476219147,
+     "sd_used": 0.629189476219147,
+     "n_required": 31073
+    },
+    "C5-silent-miss@0.001": {
+     "proxy": "exact binomial; assumed true silent-miss rate 0.001",
+     "rule": "Clopper-Pearson 95% upper bound <= 0.01 with probability >= 0.8",
+     "n_required": 600
+    },
+    "C5-silent-miss@0.0025": {
+     "proxy": "exact binomial; assumed true silent-miss rate 0.0025",
+     "rule": "Clopper-Pearson 95% upper bound <= 0.01 with probability >= 0.8",
+     "n_required": 900
+    },
+    "C5-silent-miss@0.005": {
+     "proxy": "exact binomial; assumed true silent-miss rate 0.005",
+     "rule": "Clopper-Pearson 95% upper bound <= 0.01 with probability >= 0.8",
+     "n_required": 2500
+    },
+    "C5-silent-miss": {
+     "proxy": "exact binomial; assumed true silent-miss rate 0.0025",
+     "rule": "Clopper-Pearson 95% upper bound <= 0.01 with probability >= 0.8",
+     "n_required": 900
+    },
+    "C9": {
+     "proxy": "A3 success at B (p = 0.745); ratio 1 vs margin 0.8; quartile size n/4 (conservative delta method)",
+     "n_required": 272
+    },
+    "C8": {
+     "proxy": "Hanley-McNeil at AUROC 0.5, 200 OOD vs 200 test instances",
+     "auroc_detectable": 0.581
+    },
+    "C2/C3-cost": {
+     "proxy": "bootstrap of each bar's B95 on validation (n = 200)",
+     "b95_stability": {
+      "A0": {
+       "b95": null,
+       "bootstrap_share_equal_to_point": 1.0,
+       "bootstrap_values": [
+        "none"
+       ]
+      },
+      "A3": {
+       "b95": null,
+       "bootstrap_share_equal_to_point": 1.0,
+       "bootstrap_values": [
+        "none"
+       ]
+      },
+      "A2o(best K)": {
+       "b95": null,
+       "bootstrap_share_equal_to_point": 1.0,
+       "bootstrap_values": [
+        "none"
+       ]
+      },
+      "A2_full(best K)": {
+       "b95": null,
+       "bootstrap_share_equal_to_point": 1.0,
+       "bootstrap_values": [
+        "none"
+       ]
+      }
+     }
+    },
+    "C4/C10": {
+     "note": "timing claims: per-instance warm times are measured with small relative noise; not powered by instance count"
+    }
+   },
+   "primary_claims": [
+    "C1",
+    "C3-success",
+    "C6"
+   ],
+   "test_size": 7000,
+   "c5_budget_note": "C5 is decided at the larger of the arms' B95; B is used as the proxy budget here"
+  },
+  {
+   "family": "cascade-clean",
+   "matched_budget": 400,
+   "rates_at_B": {
+    "A0": 1.0,
+    "A3": 1.0,
+    "A2o(K=2)": 0.995,
+    "A2_full(K=2)": 0.985,
+    "A2o(K=4)": 0.95
+   },
+   "claims": {
+    "C1": {
+     "proxy": "A3 \u2212 A0 success at B",
+     "effect": 0.05,
+     "sd_empirical": 0.0,
+     "sd_used": 0.21794494717703367,
+     "n_required": 150
+    },
+    "C3-success": {
+     "proxy": "A3 \u2212 A0 success at B (non-inferiority margin 2 pp, true difference 0)",
+     "effect": 0.02,
+     "sd_empirical": 0.0,
+     "sd_used": 0.13999999999999999,
+     "n_required": 385
+    },
+    "C6": {
+     "proxy": "A3 \u2212 A2o(K=4) success at B",
+     "effect": 0.05,
+     "sd_empirical": 0.21849186132974535,
+     "sd_used": 0.21849186132974535,
+     "n_required": 150
+    },
+    "C7": {
+     "proxy": "A3 \u2212 A0 success at B (two A4 variants)",
+     "effect": 0.05,
+     "sd_empirical": 0.0,
+     "sd_used": 0.21794494717703367,
+     "n_required": 150
+    },
+    "C5-success": {
+     "proxy": "A0 \u2212 A2_full success at B (margin 1 pp, true difference 0)",
+     "effect": 0.01,
+     "sd_empirical": 0.12185748327926266,
+     "sd_used": 0.12185748327926266,
+     "n_required": 1166
+    },
+    "C5-silent-miss@0.001": {
+     "proxy": "exact binomial; assumed true silent-miss rate 0.001",
+     "rule": "Clopper-Pearson 95% upper bound <= 0.01 with probability >= 0.8",
+     "n_required": 600
+    },
+    "C5-silent-miss@0.0025": {
+     "proxy": "exact binomial; assumed true silent-miss rate 0.0025",
+     "rule": "Clopper-Pearson 95% upper bound <= 0.01 with probability >= 0.8",
+     "n_required": 900
+    },
+    "C5-silent-miss@0.005": {
+     "proxy": "exact binomial; assumed true silent-miss rate 0.005",
+     "rule": "Clopper-Pearson 95% upper bound <= 0.01 with probability >= 0.8",
+     "n_required": 2500
+    },
+    "C5-silent-miss": {
+     "proxy": "exact binomial; assumed true silent-miss rate 0.0025",
+     "rule": "Clopper-Pearson 95% upper bound <= 0.01 with probability >= 0.8",
+     "n_required": 900
+    },
+    "C9": {
+     "proxy": "A3 success at B (p = 1.000); ratio 1 vs margin 0.8; quartile size n/4 (conservative delta method)",
+     "n_required": 4
+    },
+    "C8": {
+     "proxy": "Hanley-McNeil at AUROC 0.5, 200 OOD vs 200 test instances",
+     "auroc_detectable": 0.581
+    },
+    "C2/C3-cost": {
+     "proxy": "bootstrap of each bar's B95 on validation (n = 200)",
+     "b95_stability": {
+      "A0": {
+       "b95": 100,
+       "bootstrap_share_equal_to_point": 0.58,
+       "bootstrap_values": [
+        100,
+        200
+       ]
+      },
+      "A3": {
+       "b95": 200,
+       "bootstrap_share_equal_to_point": 0.994,
+       "bootstrap_values": [
+        100,
+        200
+       ]
+      },
+      "A2o(best K)": {
+       "b95": 400,
+       "bootstrap_share_equal_to_point": 0.9885,
+       "bootstrap_values": [
+        200,
+        400
+       ]
+      },
+      "A2_full(best K)": {
+       "b95": 400,
+       "bootstrap_share_equal_to_point": 1.0,
+       "bootstrap_values": [
+        400
+       ]
+      }
+     }
+    },
+    "C4/C10": {
+     "note": "timing claims: per-instance warm times are measured with small relative noise; not powered by instance count"
+    }
+   },
+   "primary_claims": [
+    "C5-success",
+    "C5-silent-miss"
+   ],
+   "test_size": 1200,
+   "c5_budget_note": "C5 is decided at the larger of the arms' B95; B is used as the proxy budget here"
+  },
+  {
+   "family": "cascade-realistic",
+   "matched_budget": 800,
+   "rates_at_B": {
+    "A0": 0.98,
+    "A3": 0.955,
+    "A2o(K=2)": 0.985,
+    "A2_full(K=4)": 0.985,
+    "A2o(K=4)": 0.93
+   },
+   "claims": {
+    "C1": {
+     "proxy": "A3 \u2212 A0 success at B",
+     "effect": 0.05,
+     "sd_empirical": 0.25435898345116803,
+     "sd_used": 0.25435898345116803,
+     "n_required": 204
+    },
+    "C3-success": {
+     "proxy": "A3 \u2212 A0 success at B (non-inferiority margin 2 pp, true difference 0)",
+     "effect": 0.02,
+     "sd_empirical": 0.25435898345116803,
+     "sd_used": 0.25435898345116803,
+     "n_required": 1270
+    },
+    "C6": {
+     "proxy": "A3 \u2212 A2o(K=4) success at B",
+     "effect": 0.05,
+     "sd_empirical": 0.32388191904988645,
+     "sd_used": 0.32388191904988645,
+     "n_required": 330
+    },
+    "C7": {
+     "proxy": "A3 \u2212 A0 success at B (two A4 variants)",
+     "effect": 0.05,
+     "sd_empirical": 0.25435898345116803,
+     "sd_used": 0.25435898345116803,
+     "n_required": 204
+    },
+    "C5-success": {
+     "proxy": "A0 \u2212 A2_full success at B (margin 1 pp, true difference 0)",
+     "effect": 0.01,
+     "sd_empirical": 0.12267946550373214,
+     "sd_used": 0.12267946550373214,
+     "n_required": 1182
+    },
+    "C5-silent-miss@0.001": {
+     "proxy": "exact binomial; assumed true silent-miss rate 0.001",
+     "rule": "Clopper-Pearson 95% upper bound <= 0.01 with probability >= 0.8",
+     "n_required": 600
+    },
+    "C5-silent-miss@0.0025": {
+     "proxy": "exact binomial; assumed true silent-miss rate 0.0025",
+     "rule": "Clopper-Pearson 95% upper bound <= 0.01 with probability >= 0.8",
+     "n_required": 900
+    },
+    "C5-silent-miss@0.005": {
+     "proxy": "exact binomial; assumed true silent-miss rate 0.005",
+     "rule": "Clopper-Pearson 95% upper bound <= 0.01 with probability >= 0.8",
+     "n_required": 2500
+    },
+    "C5-silent-miss": {
+     "proxy": "exact binomial; assumed true silent-miss rate 0.0025",
+     "rule": "Clopper-Pearson 95% upper bound <= 0.01 with probability >= 0.8",
+     "n_required": 900
+    },
+    "C9": {
+     "proxy": "A3 success at B (p = 0.955); ratio 1 vs margin 0.8; quartile size n/4 (conservative delta method)",
+     "n_required": 40
+    },
+    "C8": {
+     "proxy": "Hanley-McNeil at AUROC 0.5, 200 OOD vs 200 test instances",
+     "auroc_detectable": 0.581
+    },
+    "C2/C3-cost": {
+     "proxy": "bootstrap of each bar's B95 on validation (n = 200)",
+     "b95_stability": {
+      "A0": {
+       "b95": 800,
+       "bootstrap_share_equal_to_point": 0.5525,
+       "bootstrap_values": [
+        400,
+        800,
+        "none"
+       ]
+      },
+      "A3": {
+       "b95": 800,
+       "bootstrap_share_equal_to_point": 0.5465,
+       "bootstrap_values": [
+        400,
+        800,
+        "none"
+       ]
+      },
+      "A2o(best K)": {
+       "b95": 800,
+       "bootstrap_share_equal_to_point": 0.9995,
+       "bootstrap_values": [
+        800,
+        "none"
+       ]
+      },
+      "A2_full(best K)": {
+       "b95": 400,
+       "bootstrap_share_equal_to_point": 0.736,
+       "bootstrap_values": [
+        400,
+        800
+       ]
+      }
+     }
+    },
+    "C4/C10": {
+     "note": "timing claims: per-instance warm times are measured with small relative noise; not powered by instance count"
+    }
+   },
+   "primary_claims": [
+    "C2",
+    "C7"
+   ],
+   "test_size": 300,
+   "c5_budget_note": "C5 is decided at the larger of the arms' B95; B is used as the proxy budget here"
+  }
+ ]
+}
