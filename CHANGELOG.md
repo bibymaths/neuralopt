@@ -1,6 +1,13 @@
 # Changelog
 
-## 0.7.0 - In development
+All notable changes to NeuralOpt. Each version has curated [release notes](https://bibymaths.github.io/neuralopt/latest/release-notes/);
+dates are UTC merge dates. Versions before 0.7.0 were tagged retroactively and are not on PyPI.
+
+## [Unreleased]
+
+- Nothing yet.
+
+## [0.7.0] - 2026-11-22
 
 - Track A (speed only, opt-in): `preconditioned_engine="compiled"` runs the v0.6 loop as
   one `lax.while_loop` (float64 parity with the Python loop to 1e-10), with a vmapped
@@ -17,10 +24,23 @@
   Exploratory post-mortem (training and validation tasks only): wider models imitate
   the oracle better but none performs well in the loop, and A/C gradients reach the
   heads without a saddle, so the cause is undetermined (leaning optimization signal).
-  By plan gate G7 the line is not expanded; the next work is learned guidance for
-  certified global search.
+  By plan gate G7 the line is not expanded.
+- **Breaking:** `minimize(..., preconditioned_engine=...)` now defaults to `"compiled"`;
+  `candidate_method="preconditioned"` with a host/NumPy `gradient=` raises a `ValueError`
+  naming `preconditioned_engine="python"`. The v0.6 reproduction script pins
+  `"python"` (its sha256 changed; frozen v0.6 results unchanged).
+- **Breaking:** `neuralopt.__version__` comes from the package metadata;
+  `pyproject.toml` is the single version source (`.bumpversion.toml` removed).
+- Next direction (2026-11-22): amortized optimization over problem families; learned
+  guidance for certified search is deferred, not cancelled.
+- Release engineering: first PyPI release (trusted publishing), tag-driven GitHub
+  releases, versioned docs (Zensical with its mike fork), curated release notes for
+  every version, git-cliff with conventional PR titles, release-metadata checks on every
+  PR, updated `CITATION.cff` and `.zenodo.json`, Citing page and logo.
 
-## 0.6.0 - In development
+PRs #7, #8 and the release-engineering PR · [release notes](https://bibymaths.github.io/neuralopt/latest/release-notes/v0.7.0/)
+
+## [0.6.0] - 2026-11-21
 
 - Add opt-in `history-v1` trajectory features (`neuralopt.trajectory`): a bounded buffer
   of actually evaluated normalized `(u, g_u, f)` records, masked secant pairs and twelve
@@ -34,7 +54,9 @@
   (H1); under a 3.5x anisotropy cap, learned geometry does not beat the tuned fixed step
   under the reliability rule (H3). Fixed geometry stays the default.
 
-## 0.5.0 - In development
+PR #6 · [release notes](https://bibymaths.github.io/neuralopt/latest/release-notes/v0.6.0/)
+
+## [0.5.0] - 2026-11-20
 
 - Add scale-aware, bounded diagonal-plus-low-rank geometry while preserving
   legacy checkpoint behavior.
@@ -44,7 +66,9 @@
 - Retain the negative result that learned geometry did not beat tuned fixed
   geometry overall, with family-level failure analysis.
 
-## 0.4.0 - In development
+PR #5 · [release notes](https://bibymaths.github.io/neuralopt/latest/release-notes/v0.5.0/)
+
+## [0.4.0] - 2026-11-15
 
 - Train transformer diagonal-plus-low-rank mobility and mass heads through
   differentiable overdamped and BAOAB trajectories.
@@ -55,7 +79,9 @@
 - Preserve negative results: learned BAOAB geometry does not beat the fixed
   diagonal baseline, and Fokker--Planck transfer to BAOAB is inconclusive.
 
-## 0.3.0 - In development
+PR #4 · [release notes](https://bibymaths.github.io/neuralopt/latest/release-notes/v0.4.0/)
+
+## [0.3.0] - 2026-11-15
 
 - Add opt-in overdamped Euler--Maruyama and underdamped BAOAB candidate
   trajectories with identity or learned diagonal-plus-low-rank geometry.
@@ -68,7 +94,9 @@
 - Record the blocked distributional-training, learned function-space transfer,
   and certification-injection gates without changing certification lower bounds.
 
-## 0.2.0 - In development
+PR #3 · [release notes](https://bibymaths.github.io/neuralopt/latest/release-notes/v0.3.0/)
+
+## [0.2.0] - 2026-11-15
 
 - Add evaluation-neutral trajectory diagnostics and correct stale state after rejection.
 - Add normalized coordinate transforms, differentiable multi-horizon regret unrolling,
@@ -80,8 +108,20 @@
   fixed or learned mass geometry, separate exploration/incumbent state, explicit
   cost accounting, correctness tests, and matched-budget smoke evidence.
 
-## 0.1.0 - Unreleased
+PR #2 · [release notes](https://bibymaths.github.io/neuralopt/latest/release-notes/v0.2.0/)
+
+## [0.1.0] - 2026-11-14
 
 - Add direct transformer optimization policy, deterministic synthetic training, portable checkpoints, bounded problem API, and restricted interval certificates.
 - Add model-independent certificate replay, tests, research audit, honest smoke benchmark, and packaging metadata.
 
+PR #1 · [release notes](https://bibymaths.github.io/neuralopt/latest/release-notes/v0.1.0/)
+
+[Unreleased]: https://github.com/bibymaths/neuralopt/compare/v0.7.0...HEAD
+[0.7.0]: https://github.com/bibymaths/neuralopt/compare/v0.6.0...v0.7.0
+[0.6.0]: https://github.com/bibymaths/neuralopt/compare/v0.5.0...v0.6.0
+[0.5.0]: https://github.com/bibymaths/neuralopt/compare/v0.4.0...v0.5.0
+[0.4.0]: https://github.com/bibymaths/neuralopt/compare/v0.3.0...v0.4.0
+[0.3.0]: https://github.com/bibymaths/neuralopt/compare/v0.2.0...v0.3.0
+[0.2.0]: https://github.com/bibymaths/neuralopt/compare/v0.1.0...v0.2.0
+[0.1.0]: https://github.com/bibymaths/neuralopt/releases/tag/v0.1.0
