@@ -77,7 +77,8 @@ def run(name: str, run_dir: Path) -> int:
 def combine(dirs: list[Path], output: Path) -> int:
     if output.exists():
         raise SystemExit(f"{output} exists; results are never overwritten")
-    rows = [json.loads(p.read_text())["row"] for d in dirs for p in sorted((d / "units").glob("*.json"))]
+    rows = [json.loads(p.read_text())["row"]
+            for d in dirs for p in sorted((d / "units").glob("*.json"))]
     run_checkpoint.write_atomic(output, json.dumps({"schema": "neuralopt-c2-validation/v0.8",
                                                     "families": rows}) + "\n")
     print(f"wrote {output}")

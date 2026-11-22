@@ -1,0 +1,115 @@
+{
+ "schema": "neuralopt-power-c2/v0.8",
+ "grid": [
+  10,
+  800,
+  10
+ ],
+ "effect": 0.05,
+ "caps": [
+  25,
+  50,
+  100,
+  200,
+  400,
+  800
+ ],
+ "families": [
+  {
+   "family": "sinusoid",
+   "mean_area": {
+    "A0": 0.4866249999999999,
+    "A3": 0.7096250000000001,
+    "A2o": 0.6380625,
+    "A2_full": 0.371
+   },
+   "chosen_per_start_cap": {
+    "A2o": 100,
+    "A2_full": 100
+   },
+   "better_multistart": "A2o",
+   "comparisons": {
+    "vs A0 (proxy A3 \u2212 A0)": {
+     "mean_difference": 0.22299999999999998,
+     "sd": 0.5591580511185127,
+     "n_required": 982
+    },
+    "vs better multistart A2o (proxy A3 \u2212 A2o)": {
+     "mean_difference": 0.07156249999999999,
+     "sd": 0.5274767158582576,
+     "n_required": 874
+    },
+    "vs A3 (proxy A0 \u2212 A3)": {
+     "mean_difference": -0.22299999999999998,
+     "sd": 0.5591580511185127,
+     "n_required": 982
+    }
+   },
+   "n_required_max": 982
+  },
+  {
+   "family": "cascade-clean",
+   "mean_area": {
+    "A0": 0.924125,
+    "A3": 0.9208124999999999,
+    "A2o": 0.9093125000000001,
+    "A2_full": 0.8789375000000001
+   },
+   "chosen_per_start_cap": {
+    "A2o": 400,
+    "A2_full": 200
+   },
+   "better_multistart": "A2o",
+   "comparisons": {
+    "vs A0 (proxy A3 \u2212 A0)": {
+     "mean_difference": -0.0033125000000000025,
+     "sd": 0.03419198080701873,
+     "n_required": 4
+    },
+    "vs better multistart A2o (proxy A3 \u2212 A2o)": {
+     "mean_difference": 0.011499999999999996,
+     "sd": 0.049674821989600444,
+     "n_required": 8
+    },
+    "vs A3 (proxy A0 \u2212 A3)": {
+     "mean_difference": 0.0033125000000000025,
+     "sd": 0.03419198080701873,
+     "n_required": 4
+    }
+   },
+   "n_required_max": 8
+  },
+  {
+   "family": "cascade-realistic",
+   "mean_area": {
+    "A0": 0.8382499999999999,
+    "A3": 0.8029375000000001,
+    "A2o": 0.8278749999999999,
+    "A2_full": 0.8101875
+   },
+   "chosen_per_start_cap": {
+    "A2o": 400,
+    "A2_full": 400
+   },
+   "better_multistart": "A2o",
+   "comparisons": {
+    "vs A0 (proxy A3 \u2212 A0)": {
+     "mean_difference": -0.0353125,
+     "sd": 0.22477807837138314,
+     "n_required": 159
+    },
+    "vs better multistart A2o (proxy A3 \u2212 A2o)": {
+     "mean_difference": -0.024937499999999998,
+     "sd": 0.23487038517640865,
+     "n_required": 174
+    },
+    "vs A3 (proxy A0 \u2212 A3)": {
+     "mean_difference": 0.0353125,
+     "sd": 0.22477807837138314,
+     "n_required": 159
+    }
+   },
+   "n_required_max": 174
+  }
+ ]
+}
