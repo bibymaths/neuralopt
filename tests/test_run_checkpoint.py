@@ -96,3 +96,15 @@ def test_fingerprint_changes_with_file_contents(tmp_path):
     first = rc.fingerprint([f])
     f.write_text("a = 2\n")
     assert rc.fingerprint([f]) != first
+
+
+def test_command_record_lists_thread_settings_affinity_and_provenance(monkeypatch):
+    rc = _module()
+    monkeypatch.setenv("OMP_NUM_THREADS", "1")
+    monkeypatch.setenv("XLA_FLAGS", "--xla_cpu_multi_thread_eigen=false")
+    text = rc.command_record(["prog", "--flag"], extra={"cap": "2 CPU-hours (process CPU)"})
+    for key in ("start_utc:", "command: prog --flag", "git_sha:", "git_dirty:",
+                "uv_lock_sha256:", "OMP_NUM_THREADS=1", "OPENBLAS_NUM_THREADS=",
+                "MKL_NUM_THREADS=", "XLA_FLAGS=--xla_cpu_multi_thread_eigen=false",
+                "cpu_affinity:", "cap: 2 CPU-hours (process CPU)"):
+        assert key in text, key
