@@ -1,9 +1,9 @@
 # NeuralOpt v0.8-B: a learned step policy in its plausible regime (plan)
 
-**Status: proposed, awaiting the user's approval.** No implementation, training or heavy
-compute happens before approval. Implementation starts only after the main track's gate F0
-(stop point 2) is reported and this plan is approved, so v0.8-B builds on the verified
-families, owned L-BFGS and baselines.
+**Status: approved on 2026-11-22, with the decisions in §14.** Implementation still waits
+for the main track's gate F0 (stop point 2) to be reported and for the user's go-ahead, so
+v0.8-B builds on the verified families, owned L-BFGS and baselines. No training or heavy
+compute happens before then.
 
 This plan expands section 15 of `neuralopt-v08-amortized-families.md`. It keeps the v0.8
 release freeze (CLAUDE.md rule 8), the same Families 1 and 2b with their hashed splits, the
@@ -95,13 +95,14 @@ chosen configuration is frozen in the pre-registration.
 | CMA-ES | `cma` (pycma), harness only; mean at `x0_i`, in `u` coordinates, box bounds | σ0 ∈ {0.1, 0.2, 0.3} of the `u` box width; popsize ∈ {default, 2× default} |
 | TPE | `optuna.samplers.TPESampler`, in-memory storage, harness only; first trial enqueued at `x0_i` | n_startup_trials ∈ {5, 10}; multivariate ∈ {False, True} |
 | BB | NeuralOpt's compiled-loop BB step, projected onto the box | initial step ∈ {1e-3, 1e-2, 1e-1}; step clip ∈ {1, 10} |
+| Quasi-random search | scrambled Sobol points in the box, the first at `x0_i`; harness only | none |
 
-**Proposed addition, needs approval:** quasi-random search (Sobol points, including `x0_i`)
-as a sixth baseline in the "every baseline" set. At 20–100 evaluations it is a natural
-floor; without it, a policy could beat the other baselines and still lose to sampling.
+**Quasi-random search is in the "every baseline" set** (decision 1). At 20–100 evaluations
+it is the natural floor; a policy that beat the other baselines but lost to sampling would
+not support C11 or C12.
 
-Stochastic baselines (CMA-ES, TPE, random search) are run with 5 seeds; each instance's
-outcome is the mean over seeds, as for the policy.
+Stochastic baselines (CMA-ES, TPE, quasi-random search with its scramble seed) are run with
+5 seeds; each instance's outcome is the mean over seeds, as for the policy.
 
 ## 4. Cost accounting and matching
 
@@ -192,15 +193,26 @@ For instance `i`:
     the global basin; positive is better for the policy.
 - **Intervals:** a two-level percentile bootstrap resamples training seeds, then instances
   (paired). It uses 10,000 resamples and a fixed RNG seed.
-  - The intervals are **two-sided 99%**: Bonferroni over the 5 families, so that a false
-    "supported" anywhere in a claim's row has probability ≤ 0.025.
-- **"Beats all baselines" is an intersection-union test** (Berger 1982). The claim holds
-  for a family only if *every* comparison is individually significant:
-  5 (or 6) baselines × 3 budgets × 2 matchings = 30 (or 36) comparisons. Because the claim
-  is a conjunction, the family-level error is at most the per-comparison level, so no
-  further correction is needed within a family.
+  - Each comparison uses a **two-sided 95% interval**.
+- **"Beats all baselines" is an intersection-union test** (Berger 1982), decided **per
+  family.** The claim holds for a family only if *every* comparison is individually
+  significant: 6 baselines × 3 budgets × 2 matchings = **36 comparisons**.
+  - Because the claim is a conjunction, its error rate is at most the level of each
+    comparison: a one-sided 2.5% chance of a false "supported" for the family.
+  - No multiplicity correction is applied within a family, and none to the per-family
+    statuses in the register.
+- **Joint claims across families need a multiplicity correction.** Any statement made
+  jointly about several families must apply **Holm–Bonferroni** over the families it
+  covers, at a family-wise one-sided level of 2.5%. Examples: "C11 holds on the multimodal
+  families", "on k of 5 families", or a pooled summary.
+  - Each family's IUT p-value is the largest one-sided bootstrap p-value among its 36
+    comparisons.
+  - A family counts toward the joint statement only if it passes at its Holm-adjusted
+    level.
+  - Without that correction, the per-family statuses are reported side by side and no
+    joint claim is made.
 - **C11 status per family:**
-  - **Supported:** for every baseline, budget and matching, the 99% interval of `d` lies
+  - **Supported:** for every baseline, budget and matching, the 95% interval of `d` lies
     entirely below 0.
   - **Not supported:** for some baseline, budget and matching, the interval lies entirely
     above 0 (that baseline is better).
@@ -208,14 +220,38 @@ For instance `i`:
 - **C12 status per family:** the same rules with the sign reversed. Supported requires
   every lower bound > 0; not supported requires some upper bound < 0. Degenerate cases
   (all rates 0 or all 1) are inconclusive.
-- **No pooled claim** across families. Each family's status is recorded separately; OOD
-  results are reported (C8 conventions) and do not change the status.
-- **Power:** before freezing, the minimal detectable effect at 200 test instances is
-  estimated from validation variance. If it is larger than the effect the plan deems
-  meaningful (proposed: 0.25 decades of AUC; 10 percentage points of basin rate), the
-  pre-registration raises the test size instead of loosening criteria.
+- Each family's status is recorded separately. OOD results are reported (C8 conventions)
+  and do not change the status.
+- **Power** (meaningful effects approved: 0.25 decades of AUC; 10 percentage points of
+  basin rate):
+  - **Rule:** each comparison is powered at 80% for the threshold effect at the 95%
+    two-sided level. Required paired instances `n = ((z_0.975 + z_0.8)·SD_d / δ)²`, with
+    `z_0.975 + z_0.8 = 2.80`.
+  - Under the IUT, the claim's power is at most the weakest comparison's, so `n` is set by
+    the comparison with the largest `SD_d`. That is usually the closest baseline.
+  - **A priori (normal approximation, assumed SDs; no data yet).** At n = 200 the minimal
+    detectable effect is 0.198·SD_d. The 99% rule of the first draft needed 0.242·SD_d.
+
+    | Effect δ | SD_d | n needed (95%) | n needed (99%, superseded) | MDE at n = 200 (95%) |
+    |---|---|---|---|---|
+    | 0.25 decades | 0.5 | 32 | 47 | 0.099 |
+    | 0.25 decades | 1.0 | 126 | 187 | 0.198 |
+    | 0.25 decades | 1.5 | 283 | 421 | 0.297 |
+    | 0.25 decades | 2.0 | 503 | 748 | 0.396 |
+    | 10 points | 0.2 | 32 | 47 | 0.040 |
+    | 10 points | 0.3 | 71 | 106 | 0.059 |
+    | 10 points | 0.5 | 197 | 292 | 0.099 |
+    | 10 points | 0.7 | 385 | 573 | 0.139 |
+
+    So 200 test instances suffice when `SD_d ≤ 1.26` decades (C11) or `SD_d ≤ 0.50`
+    (C12).
+  - **The binding check uses data:** at B-S2/B-S3, `SD_d` is estimated per family,
+    comparison and budget from validation (baselines plus a pilot policy where available).
+    The pre-registration sets each family's test size to the largest required `n`. Test
+    sizes are raised, never the criteria loosened. If a family needs more than 1,000
+    instances, that is reported before freezing.
 - **Also reported, not criteria:** per-seed results, including the worst seed; failure and
-  nonfinite counts; the per-comparison table of all 30 or 36 intervals.
+  nonfinite counts; the table of all 36 per-family intervals.
 
 ## 7. Training
 
@@ -224,8 +260,8 @@ For instance `i`:
   estimate.
   - ES needs no backpropagation through unrolls, so there are **no second-order unrolls**.
     It also accepts the non-differentiable, clipped metric directly.
-  - PPO (as in POP) is not run unless approved separately, to avoid two training methods
-    becoming a forking path.
+  - PPO is a **pre-declared fallback** (decision 2), triggered only by the validation
+    rule below.
 - **Reward: clipped best-so-far regret at every unit.**
   - Per unit, `r_t = −L_i(t)` (§5.1), so an episode's mean reward is `−AUC_i(B)`, the
     evaluation metric itself.
@@ -238,12 +274,45 @@ For instance `i`:
     starts × 1,000 units, owned).
   - Validation is used only for selection (best checkpoint every 25 generations) and early
     stopping. Test and OOD splits stay closed until the single final evaluation.
-- **Proposed settings:**
+- **Settings:**
   - population P = 64 (32 antithetic pairs), ES noise 0.02;
   - M = 16 training instances per generation, common to the population;
   - budget sampled per episode from {20, 50, 100};
   - G ≤ 500 generations;
   - one policy per family; 5 seeds.
+
+### 7.1 Pre-registered PPO fallback (validation only)
+
+- **Validation checkpoints:** every 25 generations, each ES seed's current policy is
+  evaluated on the family's validation split. The tracked score is the mean `AUC(B)` over
+  B ∈ {20, 50, 100} under unit matching.
+- **Plateau:** a seed has plateaued when either
+  - **at least 200 generations** have run, and its best validation score improved by
+    **less than 0.02 decades** over the last **4 checkpoints** (100 generations); or
+  - it reaches G = 500.
+
+  A family's ES training has plateaued when at least 3 of its 5 seeds have.
+- **"Beats quasi-random search and BB on validation":** the seed-mean policy (best
+  validation checkpoint per seed) has a lower mean validation `AUC(B)` than **both**
+  quasi-random search and BB at **every** B ∈ {20, 50, 100}, under unit **and**
+  wall-clock matching. These are point estimates on validation; no intervals are used for
+  this switch.
+- **Trigger:** PPO runs for a family if its ES training has plateaued **and** the ES policy
+  does not beat quasi-random search and BB on validation. The trigger is evaluated once,
+  when the family's ES runs stop.
+- **PPO arm (pre-declared now):**
+  - the same policy network as actor, plus a value head;
+  - clipped surrogate 0.2, GAE λ = 0.95, γ = 1 (finite horizon);
+  - the same per-unit reward `−L_i(t)`, the same training split and validation selection;
+  - 5 seeds;
+  - no new dependencies (JAX and optax).
+  - It differentiates through the policy network per step, never through the optimization
+    trajectory, so there are no second-order unrolls.
+- **Which arm goes to test:** exactly one policy arm per family. It is ES if PPO was not
+  triggered, PPO if it was, fixed before any test data is opened. The other arm's
+  validation results are reported. **Test data never informs this choice.**
+- **Compute:** PPO counts against the same 24 CPU-hour cap. If the projection exceeds the
+  cap, PPO's update count is cut first; seeds are never cut.
 
 ## 8. Compute estimate and cap
 
@@ -304,7 +373,7 @@ Every run expected to exceed 10 minutes follows CLAUDE.md rule 9:
 
 | Stop | Content | Then |
 |---|---|---|
-| B-S1 | this plan | **STOP for approval** (this PR) |
+| B-S1 | this plan | approved 2026-11-22 (PR #15) |
 | B-S2 | the synthetic families with tests and hashed splits; baseline wrappers with call-accounting tests; B0 probe (timing, policy forward cost, projection against the cap); **headroom check with no learning** | **STOP and report** |
 | B-S3 | pre-registration: grids, chosen configurations, frozen `C_a` curves, criteria, seeds, sizes; hashed | **STOP before any training** |
 | B-S4 | training (tmux), validation-only selection, single test evaluation; register updated | **STOP and report**; the release decision is the user's |
@@ -325,7 +394,8 @@ Every run expected to exceed 10 minutes follows CLAUDE.md rule 9:
 | Python overhead (TPE, CMA-ES) dominates wall matching | reported per arm; unit matching is also required, so neither matching alone decides |
 | Overfitting to a family | OOD splits reported; per-family claims only; no pooling |
 | ES variance across seeds | ≥ 5 seeds; seeds resampled in the bootstrap; worst seed reported |
-| Many comparisons | intersection-union within a family; Bonferroni across families |
+| Many comparisons | intersection-union within a family (95% per comparison); Holm–Bonferroni for any joint claim across families |
+| ES fails to train | pre-declared PPO fallback on a validation-only trigger (§7.1) |
 | `f*` not global (Families 1, 2b) | two-seed reproduction; updated when beaten |
 | Context leaks the optimum | synthetic families get no context |
 | The polish defines the basin | operational definition stated; zero-search sanity rows |
@@ -362,12 +432,15 @@ arxiv.org earlier.
   - **Berger, R. L.** *Multiparameter Hypothesis Testing and Acceptance Sampling.*
     Technometrics 24(4):295–300, 1982. doi:10.1080/00401706.1982.10487790.
 
-## 14. Decisions requested at approval
+## 14. Decisions (approved 2026-11-22)
 
-1. Add quasi-random search to the "every baseline" set (§3.2)? Recommended: yes.
-2. ES only, with PPO deferred (§7)? Recommended: yes.
-3. A compute cap of 24 CPU-hours and the reduction order (§8)?
-4. `optuna` for TPE (heavier dependencies) or `hyperopt` (§10)? Recommended: optuna,
-   benchmark extra only.
-5. Meaningful-effect thresholds for the power check: 0.25 decades of AUC, 10 percentage
-   points of basin rate (§6)?
+1. Quasi-random search is in the "every baseline" set (§3.2).
+2. ES first, PPO deferred, with a pre-registered PPO fallback triggered on validation only
+   (§7.1).
+3. A 24 CPU-hour cap with the stated reduction order (§8).
+4. `optuna` for TPE, in the benchmark extra only (§10).
+5. Power thresholds: 0.25 decades of AUC; 10 percentage points of basin rate (§6).
+6. **Change:** C11 and C12 are decided per family as intersection-union tests with
+   two-sided 95% intervals per comparison. A multiplicity correction (Holm–Bonferroni over
+   families) applies only to claims made jointly across families. The power check was
+   redone under this rule (§6).
