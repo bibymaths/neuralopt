@@ -265,3 +265,58 @@ is never edited.
      tasks.
    - Fixed before any training.
 
+## Stage 1 results (frozen protocol; `results/gram-space-stage1-v0.7.0.json`)
+
+### Training
+- gram-scalar and gram-nohist, 5 seeds each, 2,000 updates.
+- **0 NaN-skipped updates** in all 10 runs.
+- 9.2 minutes wall-clock in parallel; 2.81 CPU-hours.
+- Per run: 7–9 minutes wall-clock and 15–19 minutes of process CPU time (the CPU time
+  includes XLA helper threads).
+- Checkpoints: `artifacts/gram-v0.7.0-gram-{scalar,nohist}-seed{0..4}.npz`, with sha256
+  in the results file.
+- Training loss (mean log regret per 100 updates):
+  - gram-scalar: flat from the start, about −12.1 to −13.1 at first, ending at −12.6 to
+    −13.5.
+  - gram-nohist: improves noisily, from −5.5 to −7.3 at first to −7.2 to −9.1 at the end.
+
+### Stage 1 decision
+Curvature domain, budget 100, two-level paired intervals (5 seeds × 36 tasks).
+
+| Contrast | Mean D [95% CI] | Rule |
+|---|---|---|
+| **S1: gram-scalar − BB** | **−0.139 [−0.334, +0.044]** | upper bound < +0.25: **pass, continue to Stage 2** |
+| S1b: gram-scalar − gram-nohist | −1.499 [−1.844, −1.173] | diagnostic |
+| S1b: gram-nohist − BB | +1.360 [+1.084, +1.647] | diagnostic |
+
+### Per family (exploratory; mean floored log10 regret at budget 100)
+
+| Arm | diagonal-1000 | rotated-100 | rotated-1000 | isotropic | rastrigin | ackley | rosenbrock-shifted |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| BB | −2.98 | −4.61 | −3.01 | −12.00 | −12.00 | −12.00 | −1.07 |
+| oracle-BFGS | −7.14 | −10.80 | −7.40 | −12.00 | −12.00 | −10.26 | −2.90 |
+| L-BFGS-B | −7.55 | −10.96 | −7.29 | −12.00 | −10.19 | −7.15 | −1.99 |
+| tf-h8 (v0.6) | −2.82 | −2.90 | −2.31 | −11.02 | −7.42 | −5.45 | −1.02 |
+| gram-scalar | −3.09 | −4.89 | −3.03 | −12.00 | −7.78 | −10.83 | −1.08 |
+| gram-nohist | −2.17 | −2.36 | −1.99 | −11.83 | −7.98 | −7.54 | −0.99 |
+
+**gram-scalar − BB on the guard families (exploratory):**
+- Rastrigin: **+4.22 [+1.08, +7.96]**
+- Ackley: **+1.17 [+0.50, +1.85]**
+- shifted Rosenbrock: −0.00 [−0.02, +0.01]
+
+No error statuses. Mean units: 99.2 for the Gram arms; 83.9 for L-BFGS-B, which stops
+early on some tasks.
+
+### Reading (no claims beyond the frozen rules)
+
+- **The secant scale carries the information.** The learned scalar step ties BB on the
+  curvature domain. Without secant pairs, with only rejection information, the same
+  architecture is 1.36 decades worse than BB and 1.50 decades worse than gram-scalar.
+- **The learned scalar step regresses on Rastrigin and Ackley,** where BB stays in the
+  global basin. Stage 1 has no guard rule, so this is exploratory. **It is an early
+  warning for the Stage 2 reliability guard,** which applies to gram-full with the same
+  thresholds. Nothing was changed in response.
+- **On the unseen test dimensions (7, 16, 32), the oracle ceiling is close to SciPy:**
+  rotated-100 −10.80 against −10.96, rotated-1000 −7.40 against −7.29.
+
