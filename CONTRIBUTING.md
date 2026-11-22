@@ -9,11 +9,12 @@ rounding argument.
 ## Local checks
 
 ```bash
-uv sync --extra dev --group docs
+uv sync --locked --extra dev --group docs
 uv run ruff check .
 uv run pyright
 uv run pytest -q
 uv run zensical build --strict
+uv build --build-constraints build-constraints.txt && uv run --frozen twine check dist/*
 uv run python scripts/check_release.py      # release metadata consistency
 uvx cffconvert==2.0.0 --validate            # CITATION.cff schema
 ```
