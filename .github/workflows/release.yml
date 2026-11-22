@@ -116,7 +116,7 @@ jobs:
         with:
           python-version: "3.12"
       - run: uv build
-      - run: uvx twine==6.2.0 check dist/*
+      - run: uvx twine==7.0.0 check dist/*
       - uses: actions/upload-artifact@v7.0.2
         with:
           name: dist
