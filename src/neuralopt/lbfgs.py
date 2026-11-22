@@ -280,5 +280,6 @@ def lbfgs_solve_batch(objective: Any, thetas: Any, x0: Any, bounds: tuple[Any, A
         raise ValueError("L-BFGS needs a budget of at least 2 (objective + gradient)")
     lo, hi = (jnp.asarray(b) for b in bounds)
     state, norm = _batched_jit(objective=objective, budget=budget, config=config,
-                               strategy=strategy, thetas=thetas, x0=jnp.asarray(x0, lo.dtype), lo=lo, hi=hi)
+                               strategy=strategy, thetas=thetas,
+                               x0=jnp.asarray(x0, lo.dtype), lo=lo, hi=hi)
     return _to_host(state, norm)
