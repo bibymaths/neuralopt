@@ -53,6 +53,11 @@ neuralopt = "neuralopt.cli:main"
 [tool.hatch.build.targets.wheel]
 packages = ["src/neuralopt"]
 
+[tool.hatch.build.targets.sdist]
+# Source, tests (with the frozen checkpoints they load), docs and release metadata.
+# Research outputs (results/) and internal tooling folders stay in the repository only.
+exclude = ["/.claude", "/.superpowers", "/results", "/site", "/.cache", "/dist"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-ra"

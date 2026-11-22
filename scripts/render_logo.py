@@ -43,8 +43,8 @@ def _ico(pngs: list[Path], out: Path) -> None:
 
 
 def main() -> None:
-    _png(IMAGES / "logo.svg", IMAGES / "logo.png", 1448)
-    _png(IMAGES / "logo-dark.svg", IMAGES / "logo-dark.png", 1448)
+    _png(IMAGES / "logo.svg", IMAGES / "logo.png", 1448, 500)
+    _png(IMAGES / "logo-dark.svg", IMAGES / "logo-dark.png", 1448, 500)
     for name, size in ICON_PNGS.items():
         _png(IMAGES / "icon.svg", FAVICON / name, size, size)
     _ico([FAVICON / "favicon-16x16.png", FAVICON / "favicon-32x32.png"], FAVICON / "favicon.ico")
