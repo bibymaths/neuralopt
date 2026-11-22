@@ -1,0 +1,1281 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Learned optimization with restricted native certification">
+      
+      
+      
+        <link rel="canonical" href="https://bibymaths.github.io/neuralopt/0.4/research/distribution-aware-training/">
+      
+      
+      
+        <link rel="prev" href="../certification/">
+      
+      
+        <link rel="next" href="../experiment-plan/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="zensical-0.1.1">
+    
+    
+      
+        <title>v0.4 distribution-aware geometry experiment - neuralopt</title>
+      
+    
+    
+      
+        
+      
+      <link rel="stylesheet" href="../../assets/stylesheets/modern/main.ebb7f775.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,500,500i,700,700i%7CJetBrains+Mono:400,400i,700,700i&amp;display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_scope.pathname.endsWith("/")||(__md_scope=new URL(__md_scope.pathname+"/",location)),__md_hash=e=>[...e].reduce(((e,t)=>(e<<5)-e+t.charCodeAt(0)),0),__md_get=(e,t=localStorage,_=__md_scope)=>JSON.parse(t.getItem(_.pathname+"."+e)),__md_set=(e,t,_=localStorage,a=__md_scope)=>{try{_.setItem(a.pathname+"."+e,JSON.stringify(t))}catch(e){}},document.documentElement.setAttribute("data-platform",navigator.platform)</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer" aria-hidden="true"></label>
+    <div data-md-component="skip">
+      <a href="#__skip" class="md-skip">
+        Skip to content
+      </a>
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="neuralopt" class="md-header__button md-logo" aria-label="neuralopt" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-book-open" viewBox="0 0 24 24"><path d="M12 5v16M20.001 19A2 2 0 0 0 22 17V5a2 2 0 0 0-1.999-2L16 3.002A5 5 0 0 0 12 5a5 5 0 0 0-4-2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 1.999 2H8a5 5 0 0 1 4 2 5 5 0 0 1 4-2z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-menu" viewBox="0 0 24 24"><path d="M4 5h16M4 12h16M4 19h16"/></svg>
+      <span class="md-visually-hidden">Navigation</span>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            neuralopt
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              v0.4 distribution-aware geometry experiment
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-search" viewBox="0 0 24 24"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg>
+          <span class="md-visually-hidden">Search</span>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog" aria-label="Search">
+  <button type="button" class="md-search__button">
+    Search
+  </button>
+</div>
+      
+    
+    <div class="md-header__source">
+      
+    </div>
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="neuralopt" class="md-nav__button md-logo" aria-label="neuralopt" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-book-open" viewBox="0 0 24 24"><path d="M12 5v16M20.001 19A2 2 0 0 0 22 17V5a2 2 0 0 0-1.999-2L16 3.002A5 5 0 0 0 12 5a5 5 0 0 0-4-2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 1.999 2H8a5 5 0 0 1 4 2 5 5 0 0 1 4-2z"/></svg>
+
+    </a>
+    neuralopt
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  neuralopt
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Benchmarks
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        
+          <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+            <label class="md-nav__title" for="__nav_2">
+              <span class="md-nav__icon md-icon"></span>
+              
+  
+  Benchmarks
+
+            </label>
+            <ul class="md-nav__list" data-md-scrollfix>
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../benchmarks/smoke/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Held-out quadratic smoke result
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+            </ul>
+          </nav>
+        
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Research
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        
+          <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+            <label class="md-nav__title" for="__nav_3">
+              <span class="md-nav__icon md-icon"></span>
+              
+  
+  Research
+
+            </label>
+            <ul class="md-nav__list" data-md-scrollfix>
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../benchmarks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Benchmark protocol
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../certification/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Certified scheduling
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  v0.4 distribution-aware geometry experiment
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="././" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  v0.4 distribution-aware geometry experiment
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+
+<nav class="md-nav md-nav--secondary" aria-label="On this page">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#equations-and-gradient-path" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Equations and gradient path
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#protocol" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Protocol
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#primary-held-out-results" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Primary held-out results
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#correctness-and-remaining-gaps" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Correctness and remaining gaps
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../experiment-plan/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Hypothesis experiment plan
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../fokker-planck/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Fokker–Planck foundations
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../function-spaces/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Periodic function-space reference experiment
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../generalization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Generalization
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../gibbs-measures/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Gibbs measures and optimization
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../hamiltonian-correctness/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Hamiltonian correctness and evidence
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../hamiltonian-related-work/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Hamiltonian related work
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../hamiltonian-theory/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Hamiltonian-informed optimization
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../langevin-theory/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Langevin theory and implementation
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../limitations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Limitations
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../literature/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Literature audit
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../novelty/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Novelty and falsification
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../stochastic-limitations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Stochastic research limitations and gate record
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../stochastic-novelty/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Stochastic learned-geometry research status
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../theory/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Mathematical specification
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../training/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Outcome-driven training
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../trajectory-diagnostics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Trajectory diagnostics
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+            </ul>
+          </nav>
+        
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  
+                    
+                    
+                    
+                      
+                    
+                    
+                      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+                      <div class="md-sidebar-button__wrapper">
+                        <label class="md-sidebar-button" for="__toc"></label>
+                      </div>
+                    
+                  
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--secondary" aria-label="On this page">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#equations-and-gradient-path" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Equations and gradient path
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#protocol" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Protocol
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#primary-held-out-results" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Primary held-out results
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#correctness-and-remaining-gaps" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Correctness and remaining gaps
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                <a id="__skip" tabindex="-1"></a>
+                
+                  
+
+
+<h1 id="v04-distribution-aware-geometry-experiment">v0.4 distribution-aware geometry experiment<a class="headerlink" href="#v04-distribution-aware-geometry-experiment" title="Permanent link">&para;</a></h1>
+<h2 id="equations-and-gradient-path">Equations and gradient path<a class="headerlink" href="#equations-and-gradient-path" title="Permanent link">&para;</a></h2>
+<p>The transformer predicts <code>A = diag(d) + U U^T</code>, where <code>d</code> is produced by a
+softplus plus <code>1e-4</code>. Overdamped training uses</p>
+<div class="arithmatex">\[z_{n+1}=z_n-hA\nabla U(z_n)+\sqrt{2Th}\,(D^{1/2}\xi+U\eta),\]</div>
+<p>with the bounded transformed potential <code>U(z) = f(x(z)) - T log|dx/dz|</code>.
+BAOAB uses the same factor as a mass matrix, its Woodbury inverse in the drift,
+and exact Ornstein--Uhlenbeck momentum covariance
+<code>T(1-exp(-2 gamma h)) M</code>. Explicit PRNG keys make trajectories reproducible and
+pathwise differentiation carries gradients through both drift geometry and
+noise scale.
+The BAOAB rollout also samples its initial momentum from <code>N(0, T M)</code> using the
+first predicted mass, matching the inference transition rather than beginning
+from an artificial zero-momentum state.</p>
+<p>The weak Fokker--Planck term compares the conditional expected one-step change
+of <code>phi(z)=mean(z^2)</code> with</p>
+<div class="arithmatex">\[L\phi=b^T\nabla\phi+\tfrac12\operatorname{tr}(a\nabla^2\phi),
+\qquad a=2TA.\]</div>
+<p>Mobility is frozen only within an episode. Updating it from trajectory history
+makes the optimizer nonstationary. Euler and BAOAB retain finite-step bias; the
+experiment makes no exact Gibbs or finite-step stationarity claim.
+The quadratic Gaussian noise contribution is evaluated analytically rather
+than sampled, avoiding a variance term that would reward shrinking mobility.</p>
+<h2 id="protocol">Protocol<a class="headerlink" href="#protocol" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Model: width 16, four heads, rank two, one transformer layer.</li>
+<li>Training: 36 Adam updates at <code>3e-4</code>, global gradient clipping, seed 17.</li>
+<li>Trajectory: six episodes, two integration steps per episode, horizons 2/4/6,
+  step size 0.008, temperature 0.5.</li>
+<li>Training set: shifted, rotated, condition-10 to condition-1000 quadratics,
+  Rastrigin, Ackley, and Rosenbrock in dimensions two through four.</li>
+<li>Held out: ten paired instances spanning rotated and ill-conditioned
+  quadratics, Rosenbrock, Ackley, and Rastrigin in unseen dimensions three to
+  six and seeds 40/41.</li>
+<li>Primary evaluation: objective budget 80 and temperature 0.5. Paired
+  percentile bootstrap intervals use 10,000 resamples.</li>
+<li>Transfer evaluation: temperatures 0.25/1.0 and budgets 40/120 on four held-out
+  instances. These small four-instance intervals are descriptive.</li>
+</ul>
+<p>The machine-readable record is
+<code>results/geometry-training-v0.4.0.json</code>. The three portable checkpoints are in
+<code>artifacts/neuralopt-v0.4.0-*.npz</code>. Reproduce with
+<code>uv run python scripts/run_geometry_training_v0_4.py</code>; use
+<code>--reuse-checkpoints</code> to repeat evaluation without retraining.</p>
+<h2 id="primary-held-out-results">Primary held-out results<a class="headerlink" href="#primary-held-out-results" title="Permanent link">&para;</a></h2>
+<p>Differences are paired mean <code>log1p(regret)</code> relative to identity; negative is
+better. All variants used the same objective budgets. Overdamped runs used 78
+gradient evaluations and 52 integration steps; BAOAB used 75 and 30.</p>
+<table>
+<thead>
+<tr>
+<th>Integrator and geometry</th>
+<th style="text-align: right;">Mean log regret</th>
+<th style="text-align: right;">Difference vs identity (95% CI)</th>
+<th style="text-align: right;">Wins/10</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Overdamped identity</td>
+<td style="text-align: right;">2.854</td>
+<td style="text-align: right;">0.000</td>
+<td style="text-align: right;">--</td>
+</tr>
+<tr>
+<td>Overdamped fixed diagonal</td>
+<td style="text-align: right;">2.804</td>
+<td style="text-align: right;">-0.050 [-0.282, 0.143]</td>
+<td style="text-align: right;">3</td>
+</tr>
+<tr>
+<td>Overdamped untrained transformer</td>
+<td style="text-align: right;">2.661</td>
+<td style="text-align: right;">-0.193 [-0.553, 0.075]</td>
+<td style="text-align: right;">5</td>
+</tr>
+<tr>
+<td>Overdamped regret trained</td>
+<td style="text-align: right;">2.678</td>
+<td style="text-align: right;">-0.177 [-0.452, 0.056]</td>
+<td style="text-align: right;">6</td>
+</tr>
+<tr>
+<td>Overdamped regret + FP</td>
+<td style="text-align: right;">2.630</td>
+<td style="text-align: right;">-0.224 [-0.552, 0.039]</td>
+<td style="text-align: right;">6</td>
+</tr>
+<tr>
+<td>BAOAB identity</td>
+<td style="text-align: right;">1.712</td>
+<td style="text-align: right;">0.000</td>
+<td style="text-align: right;">--</td>
+</tr>
+<tr>
+<td>BAOAB fixed diagonal</td>
+<td style="text-align: right;">1.272</td>
+<td style="text-align: right;">-0.441 [-0.878, -0.078]</td>
+<td style="text-align: right;">6</td>
+</tr>
+<tr>
+<td>BAOAB untrained transformer</td>
+<td style="text-align: right;">1.460</td>
+<td style="text-align: right;">-0.253 [-0.790, 0.091]</td>
+<td style="text-align: right;">4</td>
+</tr>
+<tr>
+<td>BAOAB regret trained</td>
+<td style="text-align: right;">1.685</td>
+<td style="text-align: right;">-0.028 [-0.259, 0.207]</td>
+<td style="text-align: right;">3</td>
+</tr>
+<tr>
+<td>BAOAB transferred regret + FP</td>
+<td style="text-align: right;">1.465</td>
+<td style="text-align: right;">-0.247 [-0.752, 0.072]</td>
+<td style="text-align: right;">4</td>
+</tr>
+</tbody>
+</table>
+<p>The direct paired FP-minus-regret comparison is <code>-0.048</code> with 95% interval
+<code>[-0.105, -0.006]</code> for overdamped dynamics (5/10 wins). This is evidence on the
+small prespecified held-out set, not a universal advantage. For BAOAB transfer
+the difference is <code>-0.220 [-0.570, 0.022]</code>, so no improvement is established.</p>
+<p>At unseen temperatures and budgets the overdamped FP-minus-regret point estimate
+remained negative in all four settings, but every four-instance interval touched
+or crossed zero. At budget 40, transferred FP geometry was worse for BAOAB at
+both temperatures (<code>+0.377</code> at 0.25 and <code>+0.357</code> at 1.0). The simple fixed
+diagonal remains the strongest supported BAOAB result.</p>
+<p>Training took 22.9 seconds for overdamped regret, 28.9 seconds for BAOAB regret,
+and 17.3 seconds for regret plus FP on the recorded CPU run. Median warm
+inference was about 0.08--0.12 seconds. First-call timings in the shared process
+are cache- and order-sensitive and are retained in the artifact rather than
+interpreted as isolated compilation measurements.</p>
+<h2 id="correctness-and-remaining-gaps">Correctness and remaining gaps<a class="headerlink" href="#correctness-and-remaining-gaps" title="Permanent link">&para;</a></h2>
+<p>Tests verify positive diagonals, diagonal-plus-low-rank covariance, exact OU
+fluctuation--dissipation scaling, reproducibility, Gaussian moments, finite
+nonzero gradients into both geometry heads, weak generator identities, and
+nonfinite-coordinate rejection. Certification code and independent replay are
+unchanged.</p>
+<p>The experiment is still small: six training tasks, ten primary held-out pairs,
+one training seed, and no BBOB or scientific inverse problem. FP weighting was
+not selected on a separate validation sweep, free-energy regularization remains
+disabled, and objective closures compile independently. Stronger claims require
+multiple training seeds, larger held-out suites, family-level uncertainty, and
+batched parameterized task generators.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://zensical.org/" target="_blank" rel="noopener">
+      Zensical
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog" role="status" aria-atomic="true">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      
+      
+        
+        
+      <script id="__config" type="application/json">{"annotate":null,"base":"../..","features":[],"redirect":null,"search":"../../assets/javascripts/workers/search.719e0d91.min.js","tags":null,"translations":{"clipboard.copied":"Copied to clipboard","clipboard.copy":"Copy to clipboard","clipboard.error":"Could not copy to clipboard","search.result.more.one":"1 more on this page","search.result.more.other":"# more on this page","search.result.none":"No matching documents","search.result.one":"1 matching document","search.result.other":"# matching documents","search.result.placeholder":"Type to start searching","search.result.term.missing":"Missing","select.version":"Select version"},"version":{"alias":true,"default":"latest","provider":"mike"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.3cb411a8.min.js"></script>
+      
+    
+  </body>
+</html>
