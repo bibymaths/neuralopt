@@ -12,6 +12,7 @@
   <a href="https://github.com/bibymaths/neuralopt/actions/workflows/docs.yml"><img src="https://github.com/bibymaths/neuralopt/actions/workflows/docs.yml/badge.svg" alt="Docs"></a>
   <a href="https://pypi.org/project/neuralopt/"><img src="https://img.shields.io/pypi/v/neuralopt" alt="PyPI version"></a>
   <a href="https://pypi.org/project/neuralopt/"><img src="https://img.shields.io/pypi/pyversions/neuralopt" alt="Python versions"></a>
+  <a href="https://doi.org/10.5281/zenodo.24444016"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.24444016.svg" alt="DOI"></a>
   <a href="https://github.com/bibymaths/neuralopt/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="License: MIT"></a>
   <a href="https://github.com/astral-sh/ruff"><img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json" alt="Ruff"></a>
   <a href="https://github.com/astral-sh/uv"><img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json" alt="uv"></a>
@@ -90,7 +91,9 @@ assert verify_certificate(r.certificate)
 
 ## Citation
 
-Please cite the exact version or commit you used; see
+Please cite the exact version or commit you used. The concept DOI
+[10.5281/zenodo.24444016](https://doi.org/10.5281/zenodo.24444016) always resolves to the latest archived
+version; each release also has its own version DOI on Zenodo. See
 [Citing NeuralOpt](https://bibymaths.github.io/neuralopt/latest/citing/) and
 [`CITATION.cff`](https://github.com/bibymaths/neuralopt/blob/main/CITATION.cff).
 
@@ -100,7 +103,8 @@ Please cite the exact version or commit you used; see
   title   = {{NeuralOpt: a JAX research package for learned optimization, with replayable interval certification}},
   version = {0.7.0},
   year    = {2026},
-  url     = {https://github.com/bibymaths/neuralopt}
+  url     = {https://github.com/bibymaths/neuralopt},
+  doi     = {10.5281/zenodo.24444016}
 }
 ```
 
