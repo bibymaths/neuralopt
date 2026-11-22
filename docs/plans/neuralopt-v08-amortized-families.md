@@ -371,6 +371,10 @@ All three were checked against OpenAlex; the JMLR volume was checked on jmlr.org
 
 ## 15. Parallel track v0.8-B: a learned step policy in its plausible regime
 
+**Detailed plan:** `docs/plans/neuralopt-v08b-step-policy.md` (approved 2026-11-22;
+implementation waits for stop point 2 and the user's go-ahead). It fixes the metric definitions, decision rules, cost matching, compute cap and
+dependencies; where it is more specific than this section, it governs.
+
 **Status:** recorded here; **no implementation until the user approves its own plan.** It
 has its own pre-registration, the same release freeze, and the same families, splits and
 baselines as F0. It starts only after F0 (stop point 2), so that it uses the verified
