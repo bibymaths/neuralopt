@@ -7,6 +7,7 @@ type: software
 title: "NeuralOpt: a JAX research package for learned optimization, with replayable interval certification"
 version: 0.7.0
 date-released: "2026-11-22"
+doi: 10.5281/zenodo.24444016
 authors:
   - family-names: Mishra
     given-names: Abhinav

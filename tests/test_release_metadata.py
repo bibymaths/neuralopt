@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import re
 import shutil
 import tomllib
 from pathlib import Path
@@ -187,3 +188,26 @@ def test_backfill_minor_versions():
     module = _load_script("backfill_docs")
     assert module.minor("v0.3.0") == "0.3"
     assert module.DEFAULT_TAGS == [f"v0.{i}.0" for i in range(1, 7)]
+
+
+CONCEPT_DOI = "10.5281/zenodo.24444016"
+
+
+def test_concept_doi_agrees_across_citation_readme_and_citing_page():
+    cff = (ROOT / "CITATION.cff").read_text()
+    assert check_release._cff_field(cff, "doi") == CONCEPT_DOI
+    readme = (ROOT / "README.md").read_text()
+    citing = (ROOT / "docs" / "citing.md").read_text()
+    badge = f"https://zenodo.org/badge/DOI/{CONCEPT_DOI}.svg"
+    for text in (readme, citing):
+        assert f"https://doi.org/{CONCEPT_DOI}" in text
+        assert f"doi     = {{{CONCEPT_DOI}}}" in text
+    assert badge in readme
+    # No other Zenodo DOI may appear (a version DOI would pin one release).
+    for text in (cff, readme, citing):
+        assert set(re.findall(r"10\.5281/zenodo\.\d+", text)) == {CONCEPT_DOI}
+
+
+def test_zenodo_metadata_does_not_reference_its_own_doi():
+    """Zenodo links versions itself; a self-reference in .zenodo.json is redundant."""
+    assert "10.5281/zenodo" not in (ROOT / ".zenodo.json").read_text()
