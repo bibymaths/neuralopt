@@ -1,0 +1,1898 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Learned optimization with restricted native certification">
+      
+      
+      
+        <link rel="canonical" href="https://bibymaths.github.io/neuralopt/0.6/superpowers/specs/2026-11-21-trajectory-curvature-v06-design/">
+      
+      
+      
+        <link rel="prev" href="../../plans/2026-11-21-trajectory-curvature-v06/">
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../../assets/images/favicon.png">
+      <meta name="generator" content="zensical-0.1.1">
+    
+    
+      
+        <title>NeuralOpt v0.6 — trajectory-aware curvature: design and pre-registration - neuralopt</title>
+      
+    
+    
+      
+        
+      
+      <link rel="stylesheet" href="../../../assets/stylesheets/modern/main.ebb7f775.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,500,500i,700,700i%7CJetBrains+Mono:400,400i,700,700i&amp;display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../../..",location),__md_scope.pathname.endsWith("/")||(__md_scope=new URL(__md_scope.pathname+"/",location)),__md_hash=e=>[...e].reduce(((e,t)=>(e<<5)-e+t.charCodeAt(0)),0),__md_get=(e,t=localStorage,_=__md_scope)=>JSON.parse(t.getItem(_.pathname+"."+e)),__md_set=(e,t,_=localStorage,a=__md_scope)=>{try{_.setItem(a.pathname+"."+e,JSON.stringify(t))}catch(e){}},document.documentElement.setAttribute("data-platform",navigator.platform)</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer" aria-hidden="true"></label>
+    <div data-md-component="skip">
+      <a href="#__skip" class="md-skip">
+        Skip to content
+      </a>
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../.." title="neuralopt" class="md-header__button md-logo" aria-label="neuralopt" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-book-open" viewBox="0 0 24 24"><path d="M12 5v16M20.001 19A2 2 0 0 0 22 17V5a2 2 0 0 0-1.999-2L16 3.002A5 5 0 0 0 12 5a5 5 0 0 0-4-2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 1.999 2H8a5 5 0 0 1 4 2 5 5 0 0 1 4-2z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-menu" viewBox="0 0 24 24"><path d="M4 5h16M4 12h16M4 19h16"/></svg>
+      <span class="md-visually-hidden">Navigation</span>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            neuralopt
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              NeuralOpt v0.6 — trajectory-aware curvature: design and pre-registration
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-search" viewBox="0 0 24 24"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg>
+          <span class="md-visually-hidden">Search</span>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog" aria-label="Search">
+  <button type="button" class="md-search__button">
+    Search
+  </button>
+</div>
+      
+    
+    <div class="md-header__source">
+      
+    </div>
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../.." title="neuralopt" class="md-nav__button md-logo" aria-label="neuralopt" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-book-open" viewBox="0 0 24 24"><path d="M12 5v16M20.001 19A2 2 0 0 0 22 17V5a2 2 0 0 0-1.999-2L16 3.002A5 5 0 0 0 12 5a5 5 0 0 0-4-2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 1.999 2H8a5 5 0 0 1 4 2 5 5 0 0 1 4-2z"/></svg>
+
+    </a>
+    neuralopt
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  neuralopt
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Benchmarks
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        
+          <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+            <label class="md-nav__title" for="__nav_2">
+              <span class="md-nav__icon md-icon"></span>
+              
+  
+  Benchmarks
+
+            </label>
+            <ul class="md-nav__list" data-md-scrollfix>
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../benchmarks/smoke/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Held-out quadratic smoke result
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+            </ul>
+          </nav>
+        
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Plans
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        
+          <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+            <label class="md-nav__title" for="__nav_3">
+              <span class="md-nav__icon md-icon"></span>
+              
+  
+  Plans
+
+            </label>
+            <ul class="md-nav__list" data-md-scrollfix>
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../plans/neuralopt-v06-trajectory-curvature/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  NeuralOpt v0.6 onward — trajectory-aware curvature plan
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+            </ul>
+          </nav>
+        
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Research
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        
+          <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+            <label class="md-nav__title" for="__nav_4">
+              <span class="md-nav__icon md-icon"></span>
+              
+  
+  Research
+
+            </label>
+            <ul class="md-nav__list" data-md-scrollfix>
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../research/benchmarks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Benchmark protocol
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../research/certification/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Certified scheduling
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../research/distribution-aware-training/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  v0.4 distribution-aware geometry experiment
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../research/experiment-plan/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Hypothesis experiment plan
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../research/fokker-planck/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Fokker–Planck foundations
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../research/function-spaces/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Periodic function-space reference experiment
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../research/generalization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Generalization
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../research/gibbs-measures/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Gibbs measures and optimization
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../research/hamiltonian-correctness/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Hamiltonian correctness and evidence
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../research/hamiltonian-related-work/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Hamiltonian related work
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../research/hamiltonian-theory/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Hamiltonian-informed optimization
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../research/langevin-theory/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Langevin theory and implementation
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../research/limitations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Limitations
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../research/literature/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Literature audit
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../research/novelty/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Novelty and falsification
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../research/stochastic-limitations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Stochastic research limitations and gate record
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../research/stochastic-novelty/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Stochastic learned-geometry research status
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../research/theory/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Mathematical specification
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../research/training/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Outcome-driven training
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../research/trajectory-curvature-experiments/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Prespecified trajectory-curvature experiment protocol (draft — approve before runs)
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../research/trajectory-curvature-literature/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Trajectory curvature — primary literature and translation
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../research/trajectory-curvature-v0.6/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  v0.6 trajectory-aware curvature: pre-registered result
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../research/trajectory-diagnostics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Trajectory diagnostics
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../research/transferable-geometry/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  v0.5 transferable learned geometry
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+            </ul>
+          </nav>
+        
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Superpowers
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        
+          <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
+            <label class="md-nav__title" for="__nav_5">
+              <span class="md-nav__icon md-icon"></span>
+              
+  
+  Superpowers
+
+            </label>
+            <ul class="md-nav__list" data-md-scrollfix>
+              
+                
+                  
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_5_1" id="__nav_5_1_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Plans
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        
+          <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_1_label" aria-expanded="false">
+            <label class="md-nav__title" for="__nav_5_1">
+              <span class="md-nav__icon md-icon"></span>
+              
+  
+  Plans
+
+            </label>
+            <ul class="md-nav__list" data-md-scrollfix>
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../plans/2026-11-21-trajectory-curvature-v06/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Trajectory-curvature v0.6 Implementation Plan
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+            </ul>
+          </nav>
+        
+      
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_5_2" id="__nav_5_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Specs
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        
+          <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_2_label" aria-expanded="true">
+            <label class="md-nav__title" for="__nav_5_2">
+              <span class="md-nav__icon md-icon"></span>
+              
+  
+  Specs
+
+            </label>
+            <ul class="md-nav__list" data-md-scrollfix>
+              
+                
+                  
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  NeuralOpt v0.6 — trajectory-aware curvature: design and pre-registration
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="././" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  NeuralOpt v0.6 — trajectory-aware curvature: design and pre-registration
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+
+<nav class="md-nav md-nav--secondary" aria-label="On this page">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#question-and-why" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Question and why
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#goals-non-goals-anti-goals" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Goals / non-goals / anti-goals
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#approaches-considered-direct-mode-arena" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Approaches considered (direct-mode arena)
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#mathematics-normalized-box-coordinates" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Mathematics (normalized box coordinates)
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Mathematics (normalized box coordinates)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#history-state-srcneuralopttrajectorypy" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        History state (<code>src/neuralopt/trajectory.py</code>)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#feature-schema-history-v1-17-per-coordinate-token" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Feature schema <code>history-v1</code> (17 per coordinate token)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#model-and-checkpoint-schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Model and checkpoint schema
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#shared-evaluation-loop-candidate_methodpreconditioned" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Shared evaluation loop (<code>candidate_method="preconditioned"</code>)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#meta-training-objectivehistory" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Meta-training (<code>objective="history"</code>)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pre-registered-protocol" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Pre-registered protocol
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#left-to-the-builder" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Left to the builder
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+                
+              
+            </ul>
+          </nav>
+        
+      
+    </li>
+  
+
+                
+              
+            </ul>
+          </nav>
+        
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  
+                    
+                    
+                    
+                      
+                    
+                    
+                      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+                      <div class="md-sidebar-button__wrapper">
+                        <label class="md-sidebar-button" for="__toc"></label>
+                      </div>
+                    
+                  
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--secondary" aria-label="On this page">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#question-and-why" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Question and why
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#goals-non-goals-anti-goals" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Goals / non-goals / anti-goals
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#approaches-considered-direct-mode-arena" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Approaches considered (direct-mode arena)
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#mathematics-normalized-box-coordinates" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Mathematics (normalized box coordinates)
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Mathematics (normalized box coordinates)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#history-state-srcneuralopttrajectorypy" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        History state (<code>src/neuralopt/trajectory.py</code>)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#feature-schema-history-v1-17-per-coordinate-token" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Feature schema <code>history-v1</code> (17 per coordinate token)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#model-and-checkpoint-schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Model and checkpoint schema
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#shared-evaluation-loop-candidate_methodpreconditioned" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Shared evaluation loop (<code>candidate_method="preconditioned"</code>)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#meta-training-objectivehistory" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Meta-training (<code>objective="history"</code>)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pre-registered-protocol" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Pre-registered protocol
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#left-to-the-builder" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Left to the builder
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                <a id="__skip" tabindex="-1"></a>
+                
+                  
+
+
+<h1 id="neuralopt-v06-trajectory-aware-curvature-design-and-pre-registration">NeuralOpt v0.6 — trajectory-aware curvature: design and pre-registration<a class="headerlink" href="#neuralopt-v06-trajectory-aware-curvature-design-and-pre-registration" title="Permanent link">&para;</a></h1>
+<p><strong>Status:</strong> frozen before any v0.6 training or evaluation (2026-11-21). Changes after
+results are seen must be listed in a dated "deviations" section of the results report,
+never silently edited here.</p>
+<h2 id="question-and-why">Question and why<a class="headerlink" href="#question-and-why" title="Permanent link">&para;</a></h2>
+<p>v0.5 found learned stochastic geometry worse than a validation-tuned fixed scalar
+geometry on unseen dimensions, and diagnosed missing information: one gradient cannot
+identify rotated curvature. v0.6 asks whether a small variable-dimensional policy that
+sees 4–8 secant pairs <code>(s, y)</code> from <strong>actually evaluated</strong> states produces geometry that
+beats the tuned fixed baseline on unseen rotated / ill-conditioned objectives, under
+exactly matched objective+gradient counts, with runtime and training cost reported.</p>
+<h2 id="goals-non-goals-anti-goals">Goals / non-goals / anti-goals<a class="headerlink" href="#goals-non-goals-anti-goals" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Goal: an opt-in, versioned history feature schema and a shared deterministic
+  evaluation loop; a pre-registered multi-seed ablation; an honest report.</li>
+<li>Non-goals (this round): temporal attention over pairs, stochastic mass/mobility with
+  history (G5), function-space or certification injection (G6), HVP probes.</li>
+<li>Anti-goals: any change to legacy outputs or checkpoint loading; classical solvers in
+  package inference; uncounted evaluations; tuning on final test tasks; claims beyond
+  the measured evidence.</li>
+</ul>
+<h2 id="approaches-considered-direct-mode-arena">Approaches considered (direct-mode arena)<a class="headerlink" href="#approaches-considered-direct-mode-arena" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>A (chosen by user):</strong> new opt-in loop <code>candidate_method="preconditioned"</code> shared by
+  every arm, fixed baseline = same loop with scalar geometry, references in harness.</li>
+<li>B: legacy direct loop + history features — rejected: proposal head consumes half the
+  evaluations and rejected steps are re-proposed almost identically (v0.2 diagnosis).</li>
+<li>C: stochastic arena first — rejected: contradicts "stochastic only after gates".</li>
+</ul>
+<h2 id="mathematics-normalized-box-coordinates">Mathematics (normalized box coordinates)<a class="headerlink" href="#mathematics-normalized-box-coordinates" title="Permanent link">&para;</a></h2>
+<p><code>u = 2(x-lo)/(hi-lo) - 1</code>, <code>J = diag((hi-lo)/2)</code>, <code>g_u = J g_x</code>, <code>H_u = J H_x J</code>.
+For consecutive history entries <code>k, k+1</code> (both actually evaluated with objective and
+gradient at the same point): <code>s_k = u_{k+1}-u_k</code>, <code>y_k = g_{u,k+1}-g_{u,k}</code>; on a
+quadratic <code>y_k = H_u s_k</code> exactly (up to rounding), whatever produced <code>s_k</code>.
+K pairs identify <code>H_u</code> only on <code>span(S)</code> (rank ≤ min(K, d)); two Hessians that agree on
+<code>span(S)</code> give identical histories, so no full-Hessian recovery is claimed. The geometry
+<code>P = diag(d) + U Uᵀ</code> (rank 2) stays SPD; it acts as an <strong>inverse</strong> metric (ideal
+<code>P y ≈ s</code>), cannot represent indefinite curvature, and cannot equal <code>H_u⁻¹</code> for rotated
+Hessians in d &gt; 3. Negative <code>sᵀy</code> is kept as a feature, never inverted.</p>
+<h3 id="history-state-srcneuralopttrajectorypy">History state (<code>src/neuralopt/trajectory.py</code>)<a class="headerlink" href="#history-state-srcneuralopttrajectorypy" title="Permanent link">&para;</a></h3>
+<p><code>TrajectoryHistory(u: (K+1,d), g: (K+1,d), f: (K+1,), valid: (K+1,) bool,
+rejections: ())</code> — shift buffer, index <code>K</code> newest, explicit chronological order, O(Kd).
+Entries are pushed <strong>only</strong> for accepted, evaluated states (start point included).
+Rejected candidates increment <code>rejections</code>; they have no gradient and never form pairs.</p>
+<p>Pair mask <code>m_k = valid_k ∧ valid_{k+1} ∧ finite(s_k,y_k) ∧ ‖s_k‖∞ &gt; 1e-7 ∧
+‖y_k‖ &gt; 1e-6·max(‖g_k‖,‖g_{k+1}‖)</code> (degenerate / roundoff-level pairs are masked).</p>
+<h3 id="feature-schema-history-v1-17-per-coordinate-token">Feature schema <code>history-v1</code> (17 per coordinate token)<a class="headerlink" href="#feature-schema-history-v1-17-per-coordinate-token" title="Permanent link">&para;</a></h3>
+<p>Legacy five (<code>parameter_features(..., scale_aware=True)</code>) followed by twelve history
+features. With <code>c_k = s_kᵀy_k</code>, <code>σ_k = s_kᵀs_k</code>, <code>R_k = c_k/σ_k</code>, <code>cos_k = c_k/(‖s_k‖‖y_k‖)</code>,
+<code>n = Σm_k</code>, self-scaling <code>ρ = Σ m|c_k| / Σ mσ_k</code>:</p>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>feature</th>
+<th>kind</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>6</td>
+<td><code>asinh(a_i/ρ)/4</code>, <code>a_i = Σ m s_ki y_ki / (Σ m s_ki² + 1e-12 Σ mσ_k)</code> (diagonal secant curvature, signed)</td>
+<td>coord</td>
+</tr>
+<tr>
+<td>7</td>
+<td>newest valid <code>s_i/‖s‖</code></td>
+<td>coord</td>
+</tr>
+<tr>
+<td>8</td>
+<td>newest valid <code>y_i/‖y‖</code></td>
+<td>coord</td>
+</tr>
+<tr>
+<td>9</td>
+<td><code>tanh(log(‖g_u‖/ρ)/4)</code> (log Newton step length in u units)</td>
+<td>global</td>
+</tr>
+<tr>
+<td>10</td>
+<td>fraction of valid pairs with <code>c_k &lt; 0</code></td>
+<td>global</td>
+</tr>
+<tr>
+<td>11</td>
+<td><code>n / K</code></td>
+<td>global</td>
+</tr>
+<tr>
+<td>12</td>
+<td>mean valid <code>|cos_k|</code> (reliability / conditioning)</td>
+<td>global</td>
+</tr>
+<tr>
+<td>13</td>
+<td><code>tanh(log(max|R_k| / min|R_k|)/4)</code>, 0 if n &lt; 2</td>
+<td>global</td>
+</tr>
+<tr>
+<td>14</td>
+<td>effective rank of normalized valid <code>S</code> divided by K</td>
+<td>global</td>
+</tr>
+<tr>
+<td>15</td>
+<td><code>1[n &gt; 0]</code></td>
+<td>global</td>
+</tr>
+<tr>
+<td>16</td>
+<td><code>tanh(rejections/4)</code></td>
+<td>global</td>
+</tr>
+<tr>
+<td>17</td>
+<td><code>tanh(mean_k m_k clip(Δf_k / (½(g_k+g_{k+1})ᵀs_k) - 1, ±10))</code> (quadratic-model consistency, 0 on quadratics)</td>
+<td>global</td>
+</tr>
+</tbody>
+</table>
+<p>Features 6–10, 12–14, 17 are exactly zero when <code>n = 0</code>, with 11 and 15 as explicit masks.
+All are invariant to objective scaling and to box rescaling, and coordinate-permutation
+equivariant (globals invariant). <code>K = 0</code> gives the matched no-history control with
+identical width and parameter count.</p>
+<h3 id="model-and-checkpoint-schema">Model and checkpoint schema<a class="headerlink" href="#model-and-checkpoint-schema" title="Permanent link">&para;</a></h3>
+<p><code>ModelConfig</code> gains <code>feature_set: "legacy" | "history-v1" = "legacy"</code> and
+<code>history_length: int = 0</code> (must be 0 for legacy) and property <code>input_features</code>
+(5 or 17). Init uses <code>input_features</code> for <code>embed</code> / MLP <code>hidden</code>. Legacy configs save
+byte-compatible files (no new keys). Non-legacy configs add key
+<code>schema = "neuralopt-policy/v0.6-history-v1"</code> and two extra config entries; loading an
+unknown schema raises. <code>_validate_policy_params</code> checks the embedding input width.</p>
+<h3 id="shared-evaluation-loop-candidate_methodpreconditioned">Shared evaluation loop (<code>candidate_method="preconditioned"</code>)<a class="headerlink" href="#shared-evaluation-loop-candidate_methodpreconditioned" title="Permanent link">&para;</a></h3>
+<p>State: accepted <code>x</code>, its <code>f</code>, <code>g_x</code> (each evaluated once), shrink <code>σ=1</code>, history.
+Each iteration: <code>ĝ = g_u/‖g_u‖</code>; geometry <code>P</code> = learned (model, structure flag
+honoured), <code>fixed</code> (<code>fixed_metric_diag</code>, U=0) or identity; step <code>L</code> = <code>0.5·step_head</code>
+(learned) or <code>preconditioned_step</code> (non-learned, required). Candidate
+<code>u' = clip(u − σ L P ĝ, −1, 1)</code>; one objective call; accept iff finite and <code>f' &lt; f</code>, then
+one gradient call, push history, <code>σ=1</code>; else <code>σ ← σ/2</code>, <code>rejections += 1</code>.
+Budget counts objective <strong>plus</strong> gradient calls (start point costs 2); iterate while
+<code>used + 2 ≤ budget</code>. HVP count is 0 and reported. The direction head is unused
+(P SPD ⇒ descent). Legacy loops are untouched; stochastic methods reject history configs.</p>
+<h3 id="meta-training-objectivehistory">Meta-training (<code>objective="history"</code>)<a class="headerlink" href="#meta-training-objectivehistory" title="Permanent link">&para;</a></h3>
+<p><code>history_regret_loss</code> mirrors the loop in <code>lax.scan</code> (T = 24, hard acceptance via
+<code>where</code>, gradient at the candidate computed for training only). Loss
+<code>mean_h log(r_h + 1e-6) + 0.1·mean_t log(r^cand_t + 1e-6)</code> with
+<code>r = max(f − f*, 0)/(|f₀ − f*| + 1e-12)</code>, horizons (6, 12, 24), features
+<code>stop_gradient</code>ed (history is treated as observed data), random start in the box,
+Adam 1e-3, global-norm clip 1.0. Identical for every trained arm.</p>
+<h2 id="pre-registered-protocol">Pre-registered protocol<a class="headerlink" href="#pre-registered-protocol" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Tasks</strong> (generator <code>scaled_task</code> copied from v0.5, objective scale cycle
+  0.2/&#8533;, coordinate scale 0.5/&frac12;): train families isotropic, diagonal κ∈{10,100,1000},
+  rotated κ∈{10,100}, rastrigin; dims 2/4/8; seeds 1000+ (one per variant×dim, 21
+  tasks). Validation: same variants, dims 3/6, seeds 2000+ (14 tasks). <strong>Final test</strong>
+  (seeds 3000+, dims 7/10/16, 4 seeds per family×dim, 84 tasks): in-distribution
+  isotropic, diagonal κ1000, rotated κ100, rastrigin; held-out families rotated κ1000,
+  rosenbrock, ackley. Curvature domain = diagonal κ1000 + rotated κ100 + rotated κ1000
+  (36 tasks).</li>
+<li><strong>Arms</strong> (all in the shared loop, budget 100 units, start at <code>problem.x0</code>):
+  <code>fixed</code> (step L ∈ {0.01, 0.03, 0.1, 0.3, 1} chosen on validation only);
+  <code>bb</code> harness reference (L = min(‖g_u‖/R_last, 1) when the newest valid R &gt; 0, else
+  tuned fixed L); <code>lbfgs</code> SciPy L-BFGS-B harness reference (each call = 1 obj + 1 grad,
+  <code>maxfun = 50</code>); trained <code>tf-legacy</code> (v0.5 architecture, 5 features); <code>mlp-h0/4/8</code>
+  (width 48) and <code>tf-h0/4/8</code> (width 16, 4 heads, 1 layer, rank 2,
+  <code>geometry_bound=10</code>, <code>lowrank_scale=0.5</code>, <code>scale_aware=True</code>); contextual zero-shot
+  frozen <code>v0.5 overdamped_full</code>. Three training seeds {0, 1, 2}; final-update weights
+  (no checkpoint selection). Updates per arm: 400 (fixed now; a timing probe may only
+  lower it uniformly if one arm exceeds 15 min CPU).</li>
+<li><strong>Metric:</strong> <code>D = log10(r_cand + 1e-10) − log10(r_ref + 1e-10)</code> per task (and
+  training seed); negative favours the candidate. Two-level bootstrap (training seeds,
+  then tasks), 10,000 draws, 95% percentile CI.</li>
+<li><strong>Primary candidate:</strong> <code>tf-h8</code>. <strong>H1</strong> (history value): <code>tf-h8 − tf-h0</code> on the
+  curvature domain, supported iff CI upper &lt; 0. <strong>H2</strong> (attention value):
+  <code>tf-h8 − mlp-h8</code>, same rule. <strong>H3</strong> (scientific): <code>tf-h8 − fixed</code>, supported iff
+  CI upper &lt; 0 and no test family has mean D &gt; +0.5 with CI lower &gt; 0. Everything else
+  (K=4, MLP, references, budgets 50/200, per-family, held-out families) is secondary
+  and exploratory.</li>
+<li><strong>Stop rules:</strong> H1 fails ⇒ no temporal attention, no G5; report and stop. H3 fails ⇒
+  fixed geometry stays the default. Temporal attention and G5 each need a new
+  pre-registered round regardless of outcome.</li>
+<li><strong>Also reported:</strong> obj/grad/HVP counts, acceptance, nonfinite rate, first-call and
+  warm runtime, training seconds, parameter counts, checkpoint bytes.</li>
+<li><strong>Artifacts:</strong> <code>artifacts/trajectory-v0.6.0-&lt;arm&gt;-seed&lt;s&gt;.npz</code> (schema, split hashes,
+  RNG provenance in metadata), <code>results/trajectory-curvature-v0.6.0.json</code>. v0.5
+  artifacts are never written.</li>
+<li><strong>Resource budget:</strong> ≤ 3 h CPU wall-clock training, ≤ 1 h evaluation (96 cores, no GPU).</li>
+</ul>
+<h2 id="left-to-the-builder">Left to the builder<a class="headerlink" href="#left-to-the-builder" title="Permanent link">&para;</a></h2>
+<p>Internal helper names, diagnostic record fields beyond the counts above, script CLI flags.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://zensical.org/" target="_blank" rel="noopener">
+      Zensical
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog" role="status" aria-atomic="true">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      
+      
+        
+        
+      <script id="__config" type="application/json">{"annotate":null,"base":"../../..","features":[],"redirect":null,"search":"../../../assets/javascripts/workers/search.719e0d91.min.js","tags":null,"translations":{"clipboard.copied":"Copied to clipboard","clipboard.copy":"Copy to clipboard","clipboard.error":"Could not copy to clipboard","search.result.more.one":"1 more on this page","search.result.more.other":"# more on this page","search.result.none":"No matching documents","search.result.one":"1 matching document","search.result.other":"# matching documents","search.result.placeholder":"Type to start searching","search.result.term.missing":"Missing","select.version":"Select version"},"version":{"alias":true,"default":"latest","provider":"mike"}}</script>
+    
+    
+      <script src="../../../assets/javascripts/bundle.3cb411a8.min.js"></script>
+      
+    
+  </body>
+</html>

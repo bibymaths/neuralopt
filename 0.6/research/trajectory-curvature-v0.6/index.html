@@ -1,0 +1,2341 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Learned optimization with restricted native certification">
+      
+      
+      
+        <link rel="canonical" href="https://bibymaths.github.io/neuralopt/0.6/research/trajectory-curvature-v0.6/">
+      
+      
+      
+        <link rel="prev" href="../trajectory-curvature-literature/">
+      
+      
+        <link rel="next" href="../trajectory-diagnostics/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="zensical-0.1.1">
+    
+    
+      
+        <title>v0.6 trajectory-aware curvature: pre-registered result - neuralopt</title>
+      
+    
+    
+      
+        
+      
+      <link rel="stylesheet" href="../../assets/stylesheets/modern/main.ebb7f775.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,500,500i,700,700i%7CJetBrains+Mono:400,400i,700,700i&amp;display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_scope.pathname.endsWith("/")||(__md_scope=new URL(__md_scope.pathname+"/",location)),__md_hash=e=>[...e].reduce(((e,t)=>(e<<5)-e+t.charCodeAt(0)),0),__md_get=(e,t=localStorage,_=__md_scope)=>JSON.parse(t.getItem(_.pathname+"."+e)),__md_set=(e,t,_=localStorage,a=__md_scope)=>{try{_.setItem(a.pathname+"."+e,JSON.stringify(t))}catch(e){}},document.documentElement.setAttribute("data-platform",navigator.platform)</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer" aria-hidden="true"></label>
+    <div data-md-component="skip">
+      <a href="#__skip" class="md-skip">
+        Skip to content
+      </a>
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="neuralopt" class="md-header__button md-logo" aria-label="neuralopt" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-book-open" viewBox="0 0 24 24"><path d="M12 5v16M20.001 19A2 2 0 0 0 22 17V5a2 2 0 0 0-1.999-2L16 3.002A5 5 0 0 0 12 5a5 5 0 0 0-4-2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 1.999 2H8a5 5 0 0 1 4 2 5 5 0 0 1 4-2z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-menu" viewBox="0 0 24 24"><path d="M4 5h16M4 12h16M4 19h16"/></svg>
+      <span class="md-visually-hidden">Navigation</span>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            neuralopt
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              v0.6 trajectory-aware curvature: pre-registered result
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-search" viewBox="0 0 24 24"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg>
+          <span class="md-visually-hidden">Search</span>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog" aria-label="Search">
+  <button type="button" class="md-search__button">
+    Search
+  </button>
+</div>
+      
+    
+    <div class="md-header__source">
+      
+    </div>
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="neuralopt" class="md-nav__button md-logo" aria-label="neuralopt" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-book-open" viewBox="0 0 24 24"><path d="M12 5v16M20.001 19A2 2 0 0 0 22 17V5a2 2 0 0 0-1.999-2L16 3.002A5 5 0 0 0 12 5a5 5 0 0 0-4-2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 1.999 2H8a5 5 0 0 1 4 2 5 5 0 0 1 4-2z"/></svg>
+
+    </a>
+    neuralopt
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  neuralopt
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Benchmarks
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        
+          <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+            <label class="md-nav__title" for="__nav_2">
+              <span class="md-nav__icon md-icon"></span>
+              
+  
+  Benchmarks
+
+            </label>
+            <ul class="md-nav__list" data-md-scrollfix>
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../benchmarks/smoke/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Held-out quadratic smoke result
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+            </ul>
+          </nav>
+        
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Plans
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        
+          <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+            <label class="md-nav__title" for="__nav_3">
+              <span class="md-nav__icon md-icon"></span>
+              
+  
+  Plans
+
+            </label>
+            <ul class="md-nav__list" data-md-scrollfix>
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../plans/neuralopt-v06-trajectory-curvature/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  NeuralOpt v0.6 onward — trajectory-aware curvature plan
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+            </ul>
+          </nav>
+        
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Research
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        
+          <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+            <label class="md-nav__title" for="__nav_4">
+              <span class="md-nav__icon md-icon"></span>
+              
+  
+  Research
+
+            </label>
+            <ul class="md-nav__list" data-md-scrollfix>
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../benchmarks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Benchmark protocol
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../certification/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Certified scheduling
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../distribution-aware-training/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  v0.4 distribution-aware geometry experiment
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../experiment-plan/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Hypothesis experiment plan
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../fokker-planck/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Fokker–Planck foundations
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../function-spaces/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Periodic function-space reference experiment
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../generalization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Generalization
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../gibbs-measures/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Gibbs measures and optimization
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../hamiltonian-correctness/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Hamiltonian correctness and evidence
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../hamiltonian-related-work/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Hamiltonian related work
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../hamiltonian-theory/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Hamiltonian-informed optimization
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../langevin-theory/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Langevin theory and implementation
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../limitations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Limitations
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../literature/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Literature audit
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../novelty/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Novelty and falsification
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../stochastic-limitations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Stochastic research limitations and gate record
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../stochastic-novelty/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Stochastic learned-geometry research status
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../theory/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Mathematical specification
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../training/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Outcome-driven training
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../trajectory-curvature-experiments/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Prespecified trajectory-curvature experiment protocol (draft — approve before runs)
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../trajectory-curvature-literature/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Trajectory curvature — primary literature and translation
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  v0.6 trajectory-aware curvature: pre-registered result
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="././" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  v0.6 trajectory-aware curvature: pre-registered result
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+
+<nav class="md-nav md-nav--secondary" aria-label="On this page">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#result" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Result
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-was-built-opt-in-legacy-defaults-unchanged" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        What was built (opt-in; legacy defaults unchanged)
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="What was built (opt-in; legacy defaults unchanged)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#identifiability-documented-and-tested" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Identifiability (documented and tested)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#protocol-as-pre-registered" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Protocol (as pre-registered)
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#primary-hypotheses-budget-100-units" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Primary hypotheses (budget 100 units)
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Primary hypotheses (budget 100 units)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#mean-log10-normalized-regret-per-family-budget-100" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Mean log10 normalized regret per family (budget 100)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#secondary-contrasts-exploratory-curvature-domain" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Secondary contrasts (exploratory; curvature domain)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#costs-budget-100-all-arms-100-units-no-failures-no-hvps" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Costs (budget 100; all arms ≤ 100 units, no failures, no HVPs)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#limitations-and-threats-to-validity" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Limitations and threats to validity
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#corrections-to-statements-in-the-frozen-design" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Corrections to statements in the frozen design
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#decision-under-the-stop-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Decision under the stop rules
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#reproduction" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Reproduction
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../trajectory-diagnostics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Trajectory diagnostics
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../transferable-geometry/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  v0.5 transferable learned geometry
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+            </ul>
+          </nav>
+        
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Superpowers
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        
+          <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+            <label class="md-nav__title" for="__nav_5">
+              <span class="md-nav__icon md-icon"></span>
+              
+  
+  Superpowers
+
+            </label>
+            <ul class="md-nav__list" data-md-scrollfix>
+              
+                
+                  
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_5_1" id="__nav_5_1_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Plans
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        
+          <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_1_label" aria-expanded="false">
+            <label class="md-nav__title" for="__nav_5_1">
+              <span class="md-nav__icon md-icon"></span>
+              
+  
+  Plans
+
+            </label>
+            <ul class="md-nav__list" data-md-scrollfix>
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../superpowers/plans/2026-11-21-trajectory-curvature-v06/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Trajectory-curvature v0.6 Implementation Plan
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+            </ul>
+          </nav>
+        
+      
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_5_2" id="__nav_5_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Specs
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        
+          <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_2_label" aria-expanded="false">
+            <label class="md-nav__title" for="__nav_5_2">
+              <span class="md-nav__icon md-icon"></span>
+              
+  
+  Specs
+
+            </label>
+            <ul class="md-nav__list" data-md-scrollfix>
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../superpowers/specs/2026-11-21-trajectory-curvature-v06-design/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  NeuralOpt v0.6 — trajectory-aware curvature: design and pre-registration
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+            </ul>
+          </nav>
+        
+      
+    </li>
+  
+
+                
+              
+            </ul>
+          </nav>
+        
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  
+                    
+                    
+                    
+                      
+                    
+                    
+                      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+                      <div class="md-sidebar-button__wrapper">
+                        <label class="md-sidebar-button" for="__toc"></label>
+                      </div>
+                    
+                  
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--secondary" aria-label="On this page">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#result" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Result
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-was-built-opt-in-legacy-defaults-unchanged" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        What was built (opt-in; legacy defaults unchanged)
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="What was built (opt-in; legacy defaults unchanged)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#identifiability-documented-and-tested" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Identifiability (documented and tested)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#protocol-as-pre-registered" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Protocol (as pre-registered)
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#primary-hypotheses-budget-100-units" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Primary hypotheses (budget 100 units)
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Primary hypotheses (budget 100 units)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#mean-log10-normalized-regret-per-family-budget-100" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Mean log10 normalized regret per family (budget 100)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#secondary-contrasts-exploratory-curvature-domain" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Secondary contrasts (exploratory; curvature domain)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#costs-budget-100-all-arms-100-units-no-failures-no-hvps" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Costs (budget 100; all arms ≤ 100 units, no failures, no HVPs)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#limitations-and-threats-to-validity" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Limitations and threats to validity
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#corrections-to-statements-in-the-frozen-design" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Corrections to statements in the frozen design
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#decision-under-the-stop-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Decision under the stop rules
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#reproduction" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Reproduction
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                <a id="__skip" tabindex="-1"></a>
+                
+                  
+
+
+<h1 id="v06-trajectory-aware-curvature-pre-registered-result">v0.6 trajectory-aware curvature: pre-registered result<a class="headerlink" href="#v06-trajectory-aware-curvature-pre-registered-result" title="Permanent link">&para;</a></h1>
+<h2 id="result">Result<a class="headerlink" href="#result" title="Permanent link">&para;</a></h2>
+<p><strong>This is a negative result.</strong> The main finding has two parts:</p>
+<ul>
+<li><strong>The best learned arm loses to an untrained secant step.</strong> A Barzilai–Borwein (BB)
+  step-length rule uses the same loop, history and 100-unit budget, with no training.
+  It beats every learned arm by about one decade of normalized regret. For the 8-pair
+  history transformer on the curvature domain, tf-h8 − BB = +0.92 [+0.59, +1.25]
+  (positive means BB is better).</li>
+<li><strong>Attention adds nothing over an MLP (H2).</strong></li>
+</ul>
+<p>Learned geometry does not beat the validation-tuned fixed step under the
+pre-registered rule. Nothing here supports a claim that learned curvature geometry is
+competitive with quasi-Newton methods: L-BFGS-B leads by about six decades. The v0.5
+negative result stands, and fixed geometry remains the default.</p>
+<p>The study was pre-registered in
+<code>docs/superpowers/specs/2026-11-21-trajectory-curvature-v06-design.md</code>, written before
+any training; its sha256 is recorded in the results file. Hypotheses are tested on
+the curvature domain (diagonal κ=1000, rotated κ=100 and rotated κ=1000 at unseen
+dimensions 7/10/16) at budget 100:</p>
+<ul>
+<li><strong>H1: history plus a rejection signal helps. Supported.</strong> The 8-pair history
+  transformer beat its matched no-history control by 0.54 decades.</li>
+<li>The no-history control drops both the secant features and the rejection counter.</li>
+<li>So this shows that the history <em>bundle</em> helps. It does not isolate the value of
+    secant pairs.</li>
+<li><strong>H2 (attention value): not supported.</strong> Cross-coordinate attention added nothing
+  measurable over a no-attention MLP fed the same history features.</li>
+<li><strong>H3 (beats tuned fixed geometry): not supported, under the 3.5× anisotropy cap.</strong></li>
+<li>On the curvature domain the learned geometry beat the fixed scalar step by 0.22
+    decades.</li>
+<li>It failed the pre-registered reliability guard because it regressed on Rastrigin
+    and Ackley.</li>
+<li>The pre-registered parameterization caps off-axis anisotropy at about 3.5×
+    (limitation 1). Problems needing 100–1000× therefore did not test what learned
+    geometry could do without that cap.</li>
+</ul>
+<p>v0.6 adds one positive, narrower finding: a history of actually evaluated states,
+together with a rejection signal, carries information a small learned policy can use.
+Even with it, the policy does not reach an untrained secant step.</p>
+<h2 id="what-was-built-opt-in-legacy-defaults-unchanged">What was built (opt-in; legacy defaults unchanged)<a class="headerlink" href="#what-was-built-opt-in-legacy-defaults-unchanged" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong><code>neuralopt.trajectory</code>:</strong> a fixed-shape shift buffer of
+  <code>(u, g_u, f)</code> records. Each record is evaluated at the same point, in normalized box
+  coordinates.</li>
+<li>Only accepted states are stored. Rejected candidates only increment a counter.</li>
+<li>From the buffer it derives masked secant pairs <code>s = Δu</code>, <code>y = Δg_u</code>, and twelve
+    objective-scale-invariant, coordinate-permutation-equivariant <code>history-v1</code> features.</li>
+<li><strong><code>ModelConfig(feature_set="history-v1", history_length=K)</code>:</strong> a versioned schema.</li>
+<li>Checkpoints carry <code>schema = "neuralopt-policy/v0.6-history-v1"</code>.</li>
+<li>Unknown, stripped or inconsistent schemas fail closed.</li>
+<li>Legacy files are written byte-compatibly, and all v0.1–v0.5 assets reproduce a
+    golden snapshot taken before any change (<code>tests/test_legacy_regression.py</code>).</li>
+<li><strong><code>minimize(..., candidate_method="preconditioned")</code>:</strong> one loop shared by every arm.</li>
+<li>Update: <code>u' = clip(u − σ L P ĝ, −1, 1)</code>.</li>
+<li>Hard acceptance; <code>σ</code> halves after a rejection.</li>
+<li>Objective <strong>plus</strong> gradient calls are charged to the budget, and a gradient is taken
+    once per accepted state.</li>
+<li>HVP count is 0.</li>
+<li><strong><code>train(..., objective="history")</code>:</strong> a <code>lax.scan</code> mirror of that loop. Its
+  trajectory and stored history are tested equal to inference.</li>
+<li>HMC, Langevin, BAOAB, Fokker–Planck, function-space and certification code is
+  unmodified. Stochastic methods reject history configurations (G5 is gated).</li>
+</ul>
+<h3 id="identifiability-documented-and-tested">Identifiability (documented and tested)<a class="headerlink" href="#identifiability-documented-and-tested" title="Permanent link">&para;</a></h3>
+<p>On a quadratic, <code>y = H_u s</code> with <code>H_u = J H_x J</code>, <code>J = diag((hi−lo)/2)</code>
+(<code>test_secant_is_exact_hessian_action_in_normalized_frame</code>). K pairs identify <code>H_u</code>
+only on <code>span(S)</code>, with rank at most <code>min(K, d)</code>.</p>
+<p><code>test_history_cannot_distinguish_hessians_agreeing_on_observed_span</code> builds two
+Hessians that differ by 50× outside the observed span. Starting from the same initial
+record, they yield identical features. So no feature here implies full-Hessian
+recovery.</p>
+<p>Negative <code>sᵀy</code> is reported as a diagnostic (<code>test_negative_curvature_is_reported_not_hidden</code>).
+It is never inverted. The geometry <code>P = diag + UUᵀ</code> stays SPD.</p>
+<h2 id="protocol-as-pre-registered">Protocol (as pre-registered)<a class="headerlink" href="#protocol-as-pre-registered" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Task splits:</strong></li>
+<li>Train: 21 tasks, dimensions 2/4/8, seeds 1000+.</li>
+<li>Validation: 14 tasks, dimensions 3/6, seeds 2000+.</li>
+<li>Final test: 84 tasks, unseen dimensions 7/10/16, seeds 3000+. Test tasks were
+    built only after training and validation tuning.</li>
+<li><strong>Held-out families:</strong> rotated κ=1000, Rosenbrock and Ackley.</li>
+<li><strong>Seeds and comparator:</strong></li>
+<li>Three training seeds per arm; 400 Adam updates each; the final weights are used.</li>
+<li>The fixed comparator is a scalar normalized-gradient step <code>L</code> with <code>P = I</code>. <code>L</code>
+    was selected on validation only (0.03 from {0.01, 0.03, 0.1, 0.3, 1}).</li>
+<li><strong>Metric:</strong> <code>D = log10(r_cand + 1e-10) − log10(r_ref + 1e-10)</code> with
+  <code>r = (f − f*)/|f₀ − f*|</code>. Negative values favour the candidate.</li>
+<li><strong>Confidence intervals:</strong> 95% percentile intervals from a two-level bootstrap with
+  10,000 draws.</li>
+<li>Each draw resamples <strong>both</strong> the three training seeds and the test problems, with
+    replacement and independently (crossed, not nested), then averages the paired
+    differences.</li>
+<li>When both arms are untrained references (fixed, BB, L-BFGS-B), there is no seed
+    level, so only problems are resampled.</li>
+<li>With only 3 training seeds, the seed level of the bootstrap captures training
+    variation only coarsely.</li>
+<li><strong>L-BFGS-B budget:</strong> every SciPy objective call, line-search trials included, is
+  charged one objective plus one gradient unit against the same budget.</li>
+<li>Calls are hard-capped at budget/2, so it never exceeds 100 units at budget 100.</li>
+<li>It averaged 82.7 units, because L-BFGS-B sometimes stops early, after as few as 3
+    calls.</li>
+</ul>
+<h2 id="primary-hypotheses-budget-100-units">Primary hypotheses (budget 100 units)<a class="headerlink" href="#primary-hypotheses-budget-100-units" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Hypothesis</th>
+<th>Contrast (curvature domain, budget 100)</th>
+<th style="text-align: right;">Mean D (95% CI)</th>
+<th style="text-align: right;">Wins</th>
+<th>Pre-registered outcome</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>H1 (history + rejection signal)</td>
+<td>tf-h8 − tf-h0</td>
+<td style="text-align: right;">-0.54 [-0.80, -0.32]</td>
+<td style="text-align: right;">103/108</td>
+<td>supported</td>
+</tr>
+<tr>
+<td>H2</td>
+<td>tf-h8 − mlp-h8</td>
+<td style="text-align: right;">-0.08 [-0.20, +0.06]</td>
+<td style="text-align: right;">63/108</td>
+<td>not supported</td>
+</tr>
+<tr>
+<td>H3 (under 3.5× cap)</td>
+<td>tf-h8 − fixed</td>
+<td style="text-align: right;">-0.22 [-0.43, -0.03]</td>
+<td style="text-align: right;">84/108</td>
+<td>not supported</td>
+</tr>
+</tbody>
+</table>
+<p>H3's curvature-domain interval excludes zero, but the pre-registered rule also
+requires that no test family regress by more than 0.5 decades with an interval above
+zero:</p>
+<table>
+<thead>
+<tr>
+<th>Family</th>
+<th style="text-align: right;">tf-h8 − fixed (95% CI)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>isotropic</td>
+<td style="text-align: right;">-0.31 [-0.79, +0.10]</td>
+</tr>
+<tr>
+<td>diagonal-1000</td>
+<td style="text-align: right;">-0.28 [-0.77, +0.16]</td>
+</tr>
+<tr>
+<td>rotated-100</td>
+<td style="text-align: right;">-0.17 [-0.48, +0.06]</td>
+</tr>
+<tr>
+<td>rastrigin</td>
+<td style="text-align: right;"><strong>+2.39 [+0.25, +4.78]</strong></td>
+</tr>
+<tr>
+<td>rotated-1000</td>
+<td style="text-align: right;">-0.21 [-0.37, -0.07]</td>
+</tr>
+<tr>
+<td>rosenbrock</td>
+<td style="text-align: right;">-0.01 (not interpretable; see limitations)</td>
+</tr>
+<tr>
+<td>ackley</td>
+<td style="text-align: right;"><strong>+0.82 [+0.20, +1.48]</strong></td>
+</tr>
+</tbody>
+</table>
+<p>On Rastrigin, 28% of tf-h8 runs end outside the global basin (log10 regret &gt; −3). The
+fixed step never does: its smaller steps from the centred start stay in the global
+basin.</p>
+<h3 id="mean-log10-normalized-regret-per-family-budget-100">Mean log10 normalized regret per family (budget 100)<a class="headerlink" href="#mean-log10-normalized-regret-per-family-budget-100" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Arm</th>
+<th style="text-align: right;">isotropic</th>
+<th style="text-align: right;">diagonal-1000</th>
+<th style="text-align: right;">rotated-100</th>
+<th style="text-align: right;">rastrigin</th>
+<th style="text-align: right;">rotated-1000</th>
+<th style="text-align: right;">rosenbrock</th>
+<th style="text-align: right;">ackley</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>fixed</td>
+<td style="text-align: right;">-9.48</td>
+<td style="text-align: right;">-2.46</td>
+<td style="text-align: right;">-2.55</td>
+<td style="text-align: right;">-10.00</td>
+<td style="text-align: right;">-2.21</td>
+<td style="text-align: right;">-0.08</td>
+<td style="text-align: right;">-6.09</td>
+</tr>
+<tr>
+<td>tf-legacy</td>
+<td style="text-align: right;">-7.90</td>
+<td style="text-align: right;">-2.16</td>
+<td style="text-align: right;">-2.11</td>
+<td style="text-align: right;">-9.80</td>
+<td style="text-align: right;">-2.03</td>
+<td style="text-align: right;">-0.05</td>
+<td style="text-align: right;">-4.96</td>
+</tr>
+<tr>
+<td>tf-h0</td>
+<td style="text-align: right;">-8.61</td>
+<td style="text-align: right;">-2.15</td>
+<td style="text-align: right;">-2.12</td>
+<td style="text-align: right;">-9.68</td>
+<td style="text-align: right;">-2.00</td>
+<td style="text-align: right;">-0.05</td>
+<td style="text-align: right;">-4.85</td>
+</tr>
+<tr>
+<td>tf-h4</td>
+<td style="text-align: right;">-9.82</td>
+<td style="text-align: right;">-2.67</td>
+<td style="text-align: right;">-2.66</td>
+<td style="text-align: right;">-7.99</td>
+<td style="text-align: right;">-2.29</td>
+<td style="text-align: right;">-0.09</td>
+<td style="text-align: right;">-5.21</td>
+</tr>
+<tr>
+<td>tf-h8</td>
+<td style="text-align: right;">-9.80</td>
+<td style="text-align: right;">-2.74</td>
+<td style="text-align: right;">-2.72</td>
+<td style="text-align: right;">-7.61</td>
+<td style="text-align: right;">-2.42</td>
+<td style="text-align: right;">-0.09</td>
+<td style="text-align: right;">-5.27</td>
+</tr>
+<tr>
+<td>mlp-h0</td>
+<td style="text-align: right;">-9.83</td>
+<td style="text-align: right;">-2.29</td>
+<td style="text-align: right;">-2.22</td>
+<td style="text-align: right;">-9.16</td>
+<td style="text-align: right;">-2.09</td>
+<td style="text-align: right;">-0.04</td>
+<td style="text-align: right;">-5.44</td>
+</tr>
+<tr>
+<td>mlp-h4</td>
+<td style="text-align: right;">-9.94</td>
+<td style="text-align: right;">-2.67</td>
+<td style="text-align: right;">-2.77</td>
+<td style="text-align: right;">-6.64</td>
+<td style="text-align: right;">-2.36</td>
+<td style="text-align: right;">-0.08</td>
+<td style="text-align: right;">-5.82</td>
+</tr>
+<tr>
+<td>mlp-h8</td>
+<td style="text-align: right;">-9.97</td>
+<td style="text-align: right;">-2.51</td>
+<td style="text-align: right;">-2.75</td>
+<td style="text-align: right;">-7.08</td>
+<td style="text-align: right;">-2.38</td>
+<td style="text-align: right;">-0.07</td>
+<td style="text-align: right;">-5.87</td>
+</tr>
+<tr>
+<td>bb (reference)</td>
+<td style="text-align: right;">-10.00</td>
+<td style="text-align: right;">-2.96</td>
+<td style="text-align: right;">-4.75</td>
+<td style="text-align: right;">-9.33</td>
+<td style="text-align: right;">-2.94</td>
+<td style="text-align: right;">-0.19</td>
+<td style="text-align: right;">-6.44</td>
+</tr>
+<tr>
+<td>lbfgs (reference)</td>
+<td style="text-align: right;">-10.00</td>
+<td style="text-align: right;">-8.08</td>
+<td style="text-align: right;">-9.96</td>
+<td style="text-align: right;">-6.27</td>
+<td style="text-align: right;">-7.41</td>
+<td style="text-align: right;">-2.43</td>
+<td style="text-align: right;">-6.05</td>
+</tr>
+<tr>
+<td>v05-frozen (context)</td>
+<td style="text-align: right;">-8.89</td>
+<td style="text-align: right;">-2.12</td>
+<td style="text-align: right;">-2.26</td>
+<td style="text-align: right;">-10.00</td>
+<td style="text-align: right;">-2.14</td>
+<td style="text-align: right;">-0.06</td>
+<td style="text-align: right;">-5.43</td>
+</tr>
+</tbody>
+</table>
+<h3 id="secondary-contrasts-exploratory-curvature-domain">Secondary contrasts (exploratory; curvature domain)<a class="headerlink" href="#secondary-contrasts-exploratory-curvature-domain" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Candidate</th>
+<th>Reference</th>
+<th style="text-align: right;">Budget 50</th>
+<th style="text-align: right;">Budget 100</th>
+<th style="text-align: right;">Budget 200</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>tf-h0</td>
+<td>fixed</td>
+<td style="text-align: right;">+0.11 [-0.01, +0.24]</td>
+<td style="text-align: right;">+0.32 [+0.20, +0.45]</td>
+<td style="text-align: right;">+0.36 [+0.21, +0.54]</td>
+</tr>
+<tr>
+<td>tf-h8</td>
+<td>fixed</td>
+<td style="text-align: right;">-0.26 [-0.44, -0.09]</td>
+<td style="text-align: right;">-0.22 [-0.43, -0.03]</td>
+<td style="text-align: right;">-0.31 [-0.57, -0.06]</td>
+</tr>
+<tr>
+<td>mlp-h4</td>
+<td>fixed</td>
+<td style="text-align: right;">-0.23 [-0.33, -0.12]</td>
+<td style="text-align: right;">-0.19 [-0.32, -0.06]</td>
+<td style="text-align: right;">-0.40 [-0.57, -0.22]</td>
+</tr>
+<tr>
+<td>tf-h8</td>
+<td>bb</td>
+<td style="text-align: right;">+0.24 [+0.04, +0.42]</td>
+<td style="text-align: right;">+0.92 [+0.59, +1.25]</td>
+<td style="text-align: right;">+2.31 [+1.63, +3.01]</td>
+</tr>
+<tr>
+<td>tf-h8</td>
+<td>lbfgs</td>
+<td style="text-align: right;">+3.46 [+2.80, +4.18]</td>
+<td style="text-align: right;">+5.85 [+5.18, +6.50]</td>
+<td style="text-align: right;">+6.65 [+6.35, +6.94]</td>
+</tr>
+<tr>
+<td>bb</td>
+<td>fixed</td>
+<td style="text-align: right;">-0.50 [-0.61, -0.38]</td>
+<td style="text-align: right;">-1.14 [-1.43, -0.86]</td>
+<td style="text-align: right;">-2.62 [-3.33, -1.95]</td>
+</tr>
+<tr>
+<td>v05-frozen</td>
+<td>fixed</td>
+<td style="text-align: right;">+0.04 [-0.05, +0.13]</td>
+<td style="text-align: right;">+0.23 [+0.14, +0.35]</td>
+<td style="text-align: right;">+0.26 [+0.14, +0.41]</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>Contrast (curvature, budget 100)</th>
+<th style="text-align: right;">Mean D (95% CI)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>tf-h4 − tf-h0</td>
+<td style="text-align: right;">-0.45 [-0.67, -0.29]</td>
+</tr>
+<tr>
+<td>mlp-h8 − mlp-h0</td>
+<td style="text-align: right;">-0.35 [-0.53, -0.17]</td>
+</tr>
+<tr>
+<td>mlp-h4 − mlp-h0</td>
+<td style="text-align: right;">-0.40 [-0.53, -0.28]</td>
+</tr>
+<tr>
+<td>tf-h8 − tf-h4</td>
+<td style="text-align: right;">-0.09 [-0.20, +0.02]</td>
+</tr>
+<tr>
+<td>tf-h0 − tf-legacy</td>
+<td style="text-align: right;">+0.01 [-0.05, +0.06]</td>
+</tr>
+<tr>
+<td>tf-h4 − mlp-h4</td>
+<td style="text-align: right;">+0.06 [-0.13, +0.23]</td>
+</tr>
+</tbody>
+</table>
+<p>The history gain is consistent across both architectures and both K, and K=8 is not
+clearly better than K=4. The history-free arms (tf-legacy, tf-h0, mlp-h0) and the
+frozen v0.5 checkpoint are all worse than the fixed step. The learned arms' advantage
+over fixed is smaller than BB's. That makes adaptive step length a plausible
+explanation for most of it, rather than learned anisotropic geometry (see limitation 1).</p>
+<h3 id="costs-budget-100-all-arms-100-units-no-failures-no-hvps">Costs (budget 100; all arms ≤ 100 units, no failures, no HVPs)<a class="headerlink" href="#costs-budget-100-all-arms-100-units-no-failures-no-hvps" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Arm</th>
+<th style="text-align: right;">Obj</th>
+<th style="text-align: right;">Grad</th>
+<th style="text-align: right;">Success 1e-3</th>
+<th style="text-align: right;">First call s (median/max)</th>
+<th style="text-align: right;">Warm s</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>fixed</td>
+<td style="text-align: right;">66.0</td>
+<td style="text-align: right;">33.2</td>
+<td style="text-align: right;">0.46</td>
+<td style="text-align: right;">0.16/1.37</td>
+<td style="text-align: right;">0.155</td>
+</tr>
+<tr>
+<td>tf-h0</td>
+<td style="text-align: right;">80.0</td>
+<td style="text-align: right;">19.1</td>
+<td style="text-align: right;">0.44</td>
+<td style="text-align: right;">0.21/2.58</td>
+<td style="text-align: right;">0.245</td>
+</tr>
+<tr>
+<td>tf-h8</td>
+<td style="text-align: right;">76.8</td>
+<td style="text-align: right;">22.4</td>
+<td style="text-align: right;">0.50</td>
+<td style="text-align: right;">0.22/3.24</td>
+<td style="text-align: right;">0.257</td>
+</tr>
+<tr>
+<td>mlp-h8</td>
+<td style="text-align: right;">78.5</td>
+<td style="text-align: right;">20.6</td>
+<td style="text-align: right;">0.46</td>
+<td style="text-align: right;">0.22/3.16</td>
+<td style="text-align: right;">0.252</td>
+</tr>
+<tr>
+<td>bb</td>
+<td style="text-align: right;">69.0</td>
+<td style="text-align: right;">24.9</td>
+<td style="text-align: right;">0.68</td>
+<td style="text-align: right;">0.30/3.01</td>
+<td style="text-align: right;">0.448</td>
+</tr>
+<tr>
+<td>lbfgs</td>
+<td style="text-align: right;">41.3</td>
+<td style="text-align: right;">41.3</td>
+<td style="text-align: right;">0.85</td>
+<td style="text-align: right;">0.09/0.97</td>
+<td style="text-align: right;">0.099</td>
+</tr>
+</tbody>
+</table>
+<p>These timings are descriptive only:
+- 25 evaluation processes ran concurrently.
+- "First call" is the first run per task, so it includes objective compilation. The
+  maximum includes model compilation in a fresh process.
+- <code>bb</code> runs through an un-jitted harness loop. L-BFGS calls jitted value-and-gradient
+  closures from SciPy.</p>
+<p>Training cost:
+- 71–108 s per arm and seed in a single CPU process; 116 s wall time for all 21 runs in
+  parallel.
+- Parameter counts: transformer 1,488; MLP 1,392; tf-legacy 1,296.
+- Training uses second-order autodiff, because the meta-gradient flows through <code>∇f</code>.
+  That cost is not included in the inference counts above.</p>
+<h2 id="limitations-and-threats-to-validity">Limitations and threats to validity<a class="headerlink" href="#limitations-and-threats-to-validity" title="Permanent link">&para;</a></h2>
+<ol>
+<li><strong>Geometry capacity.</strong> The pre-registered parameterization inherited from v0.5
+   (<code>geometry_bound=10</code>, <code>lowrank_scale=0.5</code>) caps the low-rank term at
+   <code>λmax(UUᵀ) &lt; 0.25</code>. Off-axis anisotropy is therefore at most about 3.5×, while
+   rotated κ=100–1000 needs 100–1000×. History can mainly steer the diagonal and the
+   step length. The H3 curvature-domain test is therefore weaker than the research
+   question implies.</li>
+<li><strong>Train/test mismatch.</strong> Training used a 24-candidate unroll (budget feature over 50
+   units), random starts and a 1e-6 regret floor. Evaluation used budgets 50/100/200,
+   centred starts and a 1e-10 floor.</li>
+<li>The 50/100 budget mismatch is expected to bias H3 and the BB comparison against
+     the learned arms. The fixed step was tuned at budget 100 and BB has no budget
+     input, while learned arms read a remaining-budget feature stretched to twice the
+     horizon they were trained on.</li>
+<li>It does not bias H1 or H2, which compare learned arms that share the same
+     mismatch.</li>
+<li>The size of the bias was not measured.</li>
+<li><strong>float32 floor.</strong> 701 of 6,300 runs reach exactly the optimum in float32, so the
+   1e-10 floor shapes means, especially for isotropic, Rastrigin and Ackley.</li>
+<li>A <strong>post-hoc</strong> recomputation with a 1e-6 floor (not pre-registered;
+     <code>--tables</code>) leaves the verdict unchanged.</li>
+<li>Curvature domain: −0.22 [−0.43, −0.03]. Rastrigin: +1.27 [+0.14, +2.55]. Ackley:
+     +0.58 [+0.14, +1.10].</li>
+<li><strong>Rosenbrock replicates.</strong> <code>analytic_task</code> ignores the seed for Rosenbrock and starts
+   at the box centre. Its four replicates per dimension differ only in scale, and
+   replicate 3 duplicates replicate 0. Its interval is spuriously narrow and should
+   not be cited.</li>
+<li><strong>Global search not tested.</strong> Rastrigin and Ackley shifts lie in [−0.5, 0.5]ᵈ and
+   every run starts at the centre, inside the global basin. These families test local
+   convergence and basin retention, not global search.</li>
+<li><strong>H1 control and H2 scope.</strong></li>
+<li>The K=0 control also removes the rejection counter, so H1 cannot separate secant
+     information from rejection-count information.</li>
+<li>H2 tested cross-coordinate attention over history-enriched tokens, not temporal
+     attention over pairs.</li>
+<li><strong>Feature-schema weaknesses</strong> found in review, left unchanged to preserve the
+   pre-registration and assigned to a future <code>history-v2</code>:</li>
+<li>Coordinates that never moved receive diagonal curvature 0, with no coverage mask.</li>
+<li>Pair masks (<code>‖s‖∞ &gt; 1e-7</code>, <code>‖y‖ &gt; 1e-6‖g‖</code>) sit near float32 roundoff.</li>
+<li>The legacy scale column intentionally breaks objective-scale invariance of the
+     whole token: Rosenbrock replicates differing only in scale give different learned
+     results.</li>
+<li><strong>References are conservative.</strong> L-BFGS-B received float32 JAX gradients cast to
+   float64, and every call, including line-search trials, was charged two units.</li>
+<li><strong>Statistics.</strong> Three training seeds make the seed level of the bootstrap
+   approximate. Win counts pair three seeds against one deterministic reference.</li>
+<li>
+<p><strong>Context arm.</strong> The frozen v0.5 checkpoint was trained on Rastrigin and Ackley and
+    for a different loop. It is context only.</p>
+</li>
+<li>
+<p><strong>Training/inference equivalence coverage.</strong>
+    <code>test_training_unroll_matches_inference_loop_rule</code> and
+    <code>test_training_scan_history_equals_inference_history</code> cover ordinary gradient
+    scales only.</p>
+<ul>
+<li>Below roughly <code>‖g_u‖ ≈ 1e-7</code>, training normalizes with <code>safe_l2_norm</code> (ε = 1e-8)
+  while inference uses the exact norm and stops at a zero gradient.</li>
+<li>When the objective decreases but the gradient is nonfinite, inference charges 2
+  units and training charges 1.</li>
+<li>These regimes are untested and the two loops may differ there.</li>
+</ul>
+</li>
+</ol>
+<h2 id="corrections-to-statements-in-the-frozen-design">Corrections to statements in the frozen design<a class="headerlink" href="#corrections-to-statements-in-the-frozen-design" title="Permanent link">&para;</a></h2>
+<p>None of these changes the analysis.</p>
+<ul>
+<li><strong>Descent claim.</strong> "P SPD ⇒ descent" holds before clipping. With a non-diagonal <code>P</code>,
+  a clipped step can ascend; hard acceptance rejects it.</li>
+<li><strong>Inverse claim.</strong> "Cannot equal <code>H_u⁻¹</code> for rotated Hessians in d&gt;3" holds
+  <em>generically</em>, not universally. The binding limit is the capacity cap in
+  limitation 1.</li>
+<li><strong>Invariance claim.</strong> "All are invariant to objective scaling" applies to the twelve
+  history columns, not to the legacy scale column. The quadratic-consistency
+  threshold is not invariant to shifting the objective.</li>
+<li><strong>Undocumented implementation details.</strong> These were implemented before any run but
+  are not spelled out in the design:</li>
+<li>a <code>1e-6 Σ‖s‖‖y‖</code> guard in <code>ρ</code>;</li>
+<li>a 1e-4 relative cancellation threshold for the quadratic-consistency feature;</li>
+<li>"effective rank" computed as the participation ratio <code>n² / ‖ŜŜᵀ‖_F²</code>.</li>
+<li><strong>Metric.</strong> The pre-registered metric (log10 normalized regret) replaces the
+  <code>log1p(regret)</code> named in the draft experiment protocol.</li>
+</ul>
+<h2 id="decision-under-the-stop-rules">Decision under the stop rules<a class="headerlink" href="#decision-under-the-stop-rules" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>H1 passed.</strong> History features may be developed further.</li>
+<li><strong>H2 failed.</strong> No attention module is retained beyond the existing architecture.
+  Temporal attention over pairs needs its own pre-registered round.</li>
+<li><strong>H3 failed.</strong></li>
+<li>Fixed geometry stays the default.</li>
+<li>Stochastic mass/mobility with history (G5) is not started.</li>
+<li>Function-space and certification work (G6) is not started.</li>
+</ul>
+<p>Recommended next round, pre-registered before any training:
+- a <code>history-v2</code> schema with coverage masks and noise-aware pair reliability;
+- a geometry parameterization able to express ≥100× anisotropy;
+- a training unroll matched to the evaluation budget;
+- BB, rather than the fixed step, as the bar a learned secant policy must clear.</p>
+<h2 id="reproduction">Reproduction<a class="headerlink" href="#reproduction" title="Permanent link">&para;</a></h2>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>uv<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </span>scripts/run_trajectory_curvature_v0_6.py<span class="w"> </span>--probe<span class="w">               </span><span class="c1"># timing probe</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>uv<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </span>scripts/run_trajectory_curvature_v0_6.py<span class="w">                       </span><span class="c1"># train + evaluate</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>uv<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </span>scripts/run_trajectory_curvature_v0_6.py<span class="w"> </span>--reuse-checkpoints<span class="w">   </span><span class="c1"># evaluate only</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>uv<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </span>scripts/run_trajectory_curvature_v0_6.py<span class="w"> </span>--tables<span class="w">              </span><span class="c1"># tables above</span>
+</span></code></pre></div>
+<ul>
+<li><strong>Results:</strong> <code>results/trajectory-curvature-v0.6.0.json</code>. It contains every row, the
+  split hashes, sha256 of each source file, the design and every checkpoint, and the
+  git HEAD (uncommitted tree).</li>
+<li><strong>Checkpoints:</strong> <code>artifacts/trajectory-v0.6.0-&lt;arm&gt;-seed&lt;s&gt;.npz</code>.</li>
+<li><strong>Determinism:</strong> re-evaluating the checkpoints after the review fixes reproduced all
+  6,300 rows exactly.</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://zensical.org/" target="_blank" rel="noopener">
+      Zensical
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog" role="status" aria-atomic="true">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      
+      
+        
+        
+      <script id="__config" type="application/json">{"annotate":null,"base":"../..","features":[],"redirect":null,"search":"../../assets/javascripts/workers/search.719e0d91.min.js","tags":null,"translations":{"clipboard.copied":"Copied to clipboard","clipboard.copy":"Copy to clipboard","clipboard.error":"Could not copy to clipboard","search.result.more.one":"1 more on this page","search.result.more.other":"# more on this page","search.result.none":"No matching documents","search.result.one":"1 matching document","search.result.other":"# matching documents","search.result.placeholder":"Type to start searching","search.result.term.missing":"Missing","select.version":"Select version"},"version":{"alias":true,"default":"latest","provider":"mike"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.3cb411a8.min.js"></script>
+      
+    
+  </body>
+</html>
