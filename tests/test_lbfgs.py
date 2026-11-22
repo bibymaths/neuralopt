@@ -261,3 +261,26 @@ def test_new_context_of_the_same_shape_does_not_recompile():
     finally:
         logging.getLogger("jax").removeHandler(handler)
     assert not [m for m in messages if "Compiling" in m]
+
+
+def test_sequential_batch_strategy_equals_single_solves():
+    """strategy="map" runs instances sequentially in one program (no vmap branch duplication)."""
+    tasks = [make_task("rotated", 100.0, 8, 7100 + i) for i in range(4)]
+    thetas = jax.tree_util.tree_map(lambda *a: jnp.stack(a), *[t.theta for t in tasks])
+    x0 = jnp.stack([t.x0 - 0.2 * i for i, t in enumerate(tasks)])
+    lo, hi = jnp.stack([t.lo for t in tasks]), jnp.stack([t.hi for t in tasks])
+    mapped = lbfgs_solve_batch(quadratic_objective, thetas, x0, (lo, hi), 80, strategy="map")
+    vmapped = lbfgs_solve_batch(quadratic_objective, thetas, x0, (lo, hi), 80, strategy="vmap")
+    for i, t in enumerate(tasks):
+        single = lbfgs_solve(quadratic_objective, x0[i], (t.lo, t.hi), 80, theta=t.theta)
+        for key in ("objective_evaluations", "gradient_evaluations", "accepted", "status"):
+            assert int(mapped[key][i]) == int(single[key]) == int(vmapped[key][i]), key
+        np.testing.assert_allclose(mapped["x"][i], single["x"], rtol=1e-12, atol=1e-14)
+
+
+def test_unknown_batch_strategy_is_rejected():
+    t = make_task("rotated", 100.0, 4, 1)
+    one = jax.tree_util.tree_map(lambda a: a[None], t.theta)
+    with pytest.raises(ValueError, match="strategy"):
+        lbfgs_solve_batch(quadratic_objective, one, t.x0[None], (t.lo[None], t.hi[None]), 20,
+                          strategy="threads")

@@ -226,13 +226,16 @@ _STATIC = ("objective", "parametric", "budget", "config")
 _solve_jit = jax.jit(_solve, static_argnames=_STATIC)
 
 
-def _batched(objective: Any, budget: int, config: LBFGSConfig, thetas: Any, x0: Any, lo: Any,
-             hi: Any) -> tuple[_State, Any]:
+def _batched(objective: Any, budget: int, config: LBFGSConfig, strategy: str, thetas: Any,
+             x0: Any, lo: Any, hi: Any) -> tuple[_State, Any]:
     solve = partial(_solve, objective, True, budget, config)
+    if strategy == "map":  # sequential inside one program: each lax.cond runs one branch
+        return jax.lax.map(lambda args: solve(*args), (thetas, x0, lo, hi))
     return jax.vmap(solve)(thetas, x0, lo, hi)
 
 
-_batched_jit = jax.jit(_batched, static_argnames=("objective", "budget", "config"))
+_batched_jit = jax.jit(_batched, static_argnames=("objective", "budget", "config", "strategy"))
+BATCH_STRATEGIES = ("vmap", "map")
 
 
 def _to_host(state: _State, norm: Any) -> dict[str, Any]:
@@ -262,12 +265,20 @@ def lbfgs_solve(objective: Any, x0: Any, bounds: tuple[Any, Any], budget: int, *
 
 
 def lbfgs_solve_batch(objective: Any, thetas: Any, x0: Any, bounds: tuple[Any, Any],
-                      budget: int, *, config: LBFGSConfig = DEFAULT_LBFGS_CONFIG
-                      ) -> dict[str, Any]:
-    """``vmap`` of :func:`lbfgs_solve` over a leading task axis of ``thetas``, ``x0``, bounds."""
+                      budget: int, *, config: LBFGSConfig = DEFAULT_LBFGS_CONFIG,
+                      strategy: str = "vmap") -> dict[str, Any]:
+    """:func:`lbfgs_solve` over a leading task axis of ``thetas``, ``x0`` and the bounds.
+
+    ``strategy="vmap"`` vectorizes (both ``lax.cond`` branches are computed, so a gradient
+    is computed on every trial, though only taken branches are charged); ``"map"`` runs
+    the instances sequentially in one compiled program (one branch per step), which is
+    cheaper when gradients cost much more than objectives. Results are identical.
+    """
+    if strategy not in BATCH_STRATEGIES:
+        raise ValueError(f"strategy must be one of {BATCH_STRATEGIES}")
     if budget < 2:
         raise ValueError("L-BFGS needs a budget of at least 2 (objective + gradient)")
     lo, hi = (jnp.asarray(b) for b in bounds)
     state, norm = _batched_jit(objective=objective, budget=budget, config=config,
-                               thetas=thetas, x0=jnp.asarray(x0, lo.dtype), lo=lo, hi=hi)
+                               strategy=strategy, thetas=thetas, x0=jnp.asarray(x0, lo.dtype), lo=lo, hi=hi)
     return _to_host(state, norm)
