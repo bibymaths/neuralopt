@@ -133,3 +133,24 @@ def test_nonfinite_meta_gradients_skip_the_update_and_are_counted():
     for a, b in zip(jax.tree_util.tree_leaves(new_state), jax.tree_util.tree_leaves(state),
                     strict=True):
         np.testing.assert_array_equal(a, b)
+
+
+def test_shifted_rosenbrock_replicates_are_distinct_with_interior_minimizers():
+    from neuralopt.task_families import family_objective as objective_of
+
+    with jax.enable_x64(True):
+        tasks = [make_task("rosenbrock-shifted", 0.0, 6, seed, objective_scale=5.0,
+                           coordinate_scale=0.5) for seed in range(4)]
+        minimizers = []
+        for task in tasks:
+            assert task.family == "rosenbrock-shifted" and task.known_optimum == 0.0
+            objective = objective_of(task.family)
+            x_star = task.theta["coordinate_scale"] * (1.0 + task.theta["shift"])
+            assert bool(jnp.all((x_star > task.lo) & (x_star < task.hi)))
+            np.testing.assert_allclose(objective(x_star, task.theta), 0.0, atol=1e-12)
+            np.testing.assert_allclose(jax.grad(objective)(x_star, task.theta), 0.0, atol=1e-10)
+            assert float(objective(task.x0, task.theta)) > 0
+            minimizers.append(np.asarray(x_star))
+        assert len({tuple(np.round(m, 6)) for m in minimizers}) == 4
+    # The unshifted family still reproduces the v0.6 generator.
+    assert make_task("rosenbrock", 0.0, 3, 1).family == "rosenbrock"
