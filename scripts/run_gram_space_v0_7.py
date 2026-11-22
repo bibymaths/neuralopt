@@ -156,13 +156,16 @@ def checkpoint_path(arm: str, seed: int) -> Path:
 
 def train_arm(job: dict[str, Any]) -> dict[str, Any]:
     arm, seed, updates = job["arm"], job["seed"], job["updates"]
-    start = time.perf_counter()
+    start, cpu_start = time.perf_counter(), time.process_time()
     report = train_batched(training_groups(), seed=seed, steps=updates, batch_size=BATCH,
                            learning_rate=LEARNING_RATE, config=ARMS[arm], unroll=UNROLL,
                            model_kind="gram")
     info = {
         "arm": arm, "seed": seed, "updates": updates,
         "wall_seconds": time.perf_counter() - start, "update_seconds": report.seconds,
+        "cpu_seconds": time.process_time() - cpu_start,
+        "loss_curve_mean_per_100_updates": [
+            float(np.mean(report.losses[k:k + 100])) for k in range(0, len(report.losses), 100)],
         "skipped_updates": report.skipped_updates, "skipped_steps": report.skipped_steps,
         "first_loss": report.losses[0], "mean_last_100_loss": float(np.mean(report.losses[-100:])),
         "parameter_count": int(sum(np.asarray(v).size for v in report.params.values())),
@@ -584,6 +587,32 @@ def load_arm(arm: str) -> list[tuple[int, Any]]:
     return out
 
 
+LABELS = ("diagonal-1000", "rotated-100", "rotated-1000", "isotropic", "rastrigin", "ackley",
+          "rosenbrock-shifted")
+
+
+def per_family(rows: list[dict[str, Any]], arms: list[str],
+               budget: int = PRIMARY_BUDGET) -> dict[str, Any]:
+    """Exploratory, reporting only: mean floored log10 regret per family for every arm,
+    and each learned arm minus BB per family (paired interval)."""
+    present = {r["arm"] for r in rows}
+    labels = [label for label in LABELS if any(r["label"] == label for r in rows)]
+    means = {arm: {label: float(np.mean([max(r["log10_regret"], LOG_FLOOR) for r in rows
+                                         if r["arm"] == arm and r["label"] == label
+                                         and r["budget"] == budget]))
+                   for label in labels}
+             for arm in ("bb", "oracle", "lbfgsb", "tf-h8", *arms) if arm in present}
+    versus_bb = {arm: {label: paired_interval(difference(rows, arm, "bb", (label,), budget))
+                       for label in labels} for arm in arms}
+    status = {arm: int(sum(r.get("status", 1) not in (0, 1) for r in rows if r["arm"] == arm))
+              for arm in arms}
+    units = {arm: float(np.mean([r["units"] for r in rows if r["arm"] == arm
+                                 and r["budget"] == budget])) for arm in present}
+    return {"budget": budget, "mean_log10_regret_floored": means,
+            "learned_minus_bb": versus_bb, "error_status_rows": status,
+            "mean_units": units}
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--probe", action="store_true")
@@ -616,7 +645,13 @@ def main() -> None:
             "schema": "neuralopt-gram-space-results/v1", "preregistration_sha256": prereg,
             "test_split_sha256": split_hash(specs),
             "train_split_sha256": split_hash(training_specs()),
-            "stage1": stage1_decision(rows), "rows": rows,
+            "stage1": stage1_decision(rows),
+            "per_family_exploratory": per_family(rows, arms),
+            "checkpoint_sha256": {
+                checkpoint_path(arm, seed).name: hashlib.sha256(
+                    checkpoint_path(arm, seed).read_bytes()).hexdigest()
+                for arm in arms for seed in SEEDS},
+            "rows": rows,
         }
         if args.evaluate == 2:
             if not output["stage1"]["S1_pass"]:

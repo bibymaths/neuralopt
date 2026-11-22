@@ -119,6 +119,8 @@ def test_smoke_evaluation_and_decisions_on_training_tasks():
         assert all(r["units"] <= 100 for r in rows)
         stage1 = protocol.stage1_decision(rows)
         assert isinstance(stage1["S1_pass"], bool)
+        table = protocol.per_family(rows, list(protocol.ARMS), budget=100)
+        assert set(table["learned_minus_bb"]) == set(protocol.ARMS)
         cosines = protocol.probe_cosines(specs[:1], learned["gram-full"][0][1],
                                          protocol.ARMS["gram-full"], states=5)
         assert len(cosines) == 5 and all(-1 - 1e-9 <= c <= 1 + 1e-9 for c in cosines)
