@@ -28,6 +28,7 @@ nav = [
       { "Claims register" = "research/v0.8-claims.md" },
       { "Gate F0: headroom, no learning" = "research/f0-v0.8.md" },
       { "Pre-registration (frozen, stop point 3)" = "research/v0.8-preregistration.md" },
+      { "Pre-registration amendments" = "research/v0.8-preregistration-amendments.md" },
       { "v0.8-B B-S2: baselines and headroom" = "research/v0.8-b-b0.md" },
     ] },
     { "v0.7: compiled engine and Gram-space model" = [
