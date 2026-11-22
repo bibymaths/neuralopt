@@ -112,8 +112,8 @@ def _stack(contexts: dict[str, Any], idx: Any) -> dict[str, Any]:
 
 
 def train(name: str, loss_kind: str, seed: int, label_dir: Path, out: Path) -> int:
-    _record(out, "1 CPU-hour for this process (process CPU clock; one pinned core); "
-                 "training total 10 CPU-hours")
+    _record(out, "3 CPU-hours for this process (process CPU clock; one pinned core); "
+                 "training total 26 CPU-hours (amendment 3)")
     spec = FAMILIES[name]
     lo, hi = jnp.asarray(spec.lo), jnp.asarray(spec.hi)
     config = StartConfig(dimension=spec.dimension)
