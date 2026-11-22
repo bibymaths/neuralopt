@@ -3132,21 +3132,30 @@ on warm wall-clock:
 - SciPy multistart L-BFGS-B;
 - CMA-ES;
 - TPE;
-- BB (the compiled loop's BB step).</p>
+- BB (the compiled loop's BB step);
+- quasi-random search (scrambled Sobol points).</p>
 <p>Each baseline is tuned on validation only.</p>
 <h2 id="c11-anytime-regret">C11. Anytime regret<a class="headerlink" href="#c11-anytime-regret" title="Permanent link">&para;</a></h2>
 <ul>
 <li><strong>Wording:</strong> The learned step policy beats all baselines on anytime regret on multimodal
   families at budgets ≤ 100.</li>
 <li><strong>Test:</strong></li>
-<li><strong>Anytime regret:</strong> the area under the best-so-far regret curve,
-    <code>log10(max(f_best(t) − f*, floor))</code> averaged over the budget, normalized per family.</li>
-<li><strong>Comparison:</strong> at each pre-registered budget, the policy (≥ 5 training seeds) is
-    paired against <strong>each</strong> baseline.</li>
-<li><strong>Criterion (proposed):</strong> <strong>supported</strong> for a family only if, at every pre-registered
-  budget, the interval of the policy-minus-baseline difference lies entirely below zero for
-  <strong>every</strong> baseline. The comparison is made under unit matching <strong>and</strong> under wall-clock
-  matching.</li>
+<li><strong>Anytime regret</strong> (v0.8-B plan §5.1):
+    <code>AUC_i(B) = (1/B) Σ_{t=1..B} log10(min(max(f_best(t) − f*, τ_i), 10·s_i) / s_i)</code>,
+    where <code>τ_i</code> is the success tolerance (floor) and <code>s_i</code> is the median regret of 64
+    fixed Sobol points (normalization). It is 1 before the first value.</li>
+<li><strong>Budgets:</strong> B ∈ {20, 50, 100} units.</li>
+<li><strong>Comparison:</strong> the policy (≥ 5 training seeds) is paired over instances against
+    <strong>each</strong> baseline.</li>
+<li><strong>Criterion (proposed):</strong> <strong>supported</strong> for a family only if, at every budget, the
+  two-sided 95% interval of the policy-minus-baseline difference lies entirely below zero
+  for <strong>every</strong> baseline. The comparison is made under unit matching <strong>and</strong> under warm
+  wall-clock matching (v0.8-B plan §4).</li>
+<li>This is an intersection-union test: all 36 comparisons (6 baselines × 3 budgets × 2
+    matchings) must hold, so the family-level error is at most each comparison's.</li>
+<li>The interval is a two-level bootstrap over seeds and instances.</li>
+<li>Any claim made jointly across families needs Holm–Bonferroni over those families
+    (v0.8-B plan §6). Per-family statuses get no correction.</li>
 <li><strong>Not supported</strong> if any baseline is better (interval entirely above zero) at any
     budget.</li>
 <li>Otherwise <strong>inconclusive</strong>.</li>
@@ -3158,18 +3167,19 @@ on warm wall-clock:
 <li><strong>Wording:</strong> The learned step policy reaches the global basin with higher probability
   than the baselines.</li>
 <li><strong>Test:</strong></li>
-<li>"Reached the global basin": a measurement-only local L-BFGS polish started from the
-    best-so-far point converges to within the success tolerance of the global optimum
-    <code>f*</code>.<ul>
+<li>"Reached the global basin" (v0.8-B plan §5.2): a measurement-only polish (owned
+    L-BFGS, ≤ 2,000 units, gtol 1e-8, uncharged) started from the best-so-far point
+    converges to within the success tolerance of the global optimum <code>f*</code>.<ul>
 <li>The global optimum is known for Rastrigin, Ackley and shifted Rosenbrock, and is the
   reference optimum for Families 1 and 2b.</li>
 <li>The polish is not charged to the arm.</li>
 </ul>
 </li>
 <li>The rate is compared at each pre-registered budget, against each baseline.</li>
-<li><strong>Criterion (proposed):</strong> <strong>supported</strong> for a family only if, at every pre-registered
-  budget, the interval of the paired difference in global-basin rate (policy − baseline)
-  has lower bound &gt; 0 for <strong>every</strong> baseline, under both unit and wall-clock matching.</li>
+<li><strong>Criterion (proposed):</strong> <strong>supported</strong> for a family only if, at every budget
+  (B ∈ {20, 50, 100}), the two-sided 95% interval of the paired difference in global-basin
+  rate (policy − baseline) has lower bound &gt; 0 for <strong>every</strong> baseline, under both unit and
+  wall-clock matching. The statistics are the same as for C11.</li>
 <li><strong>Not supported</strong> if any baseline is better (upper bound &lt; 0) at any budget.</li>
 <li>Otherwise <strong>inconclusive</strong>.</li>
 <li><strong>Split:</strong> in-distribution test of each family; OOD reported.</li>
@@ -3297,6 +3307,14 @@ F0 numbers. That is a recorded outcome, not a claim.</p>
 <tr>
 <td>2026-11-22</td>
 <td>User revisions:<br>• C2 against the better of A2/A2o on both units and warm wall time.<br>• C3 changed to a superiority claim.<br>• C5 silent miss defined.<br>• C6: K = 4 primary, K = 1, 2, 8 exploratory.<br>• C10 cold times reported.<br>• ≥ 5 predictor training seeds; per-family criteria.<br>• Objective and gradient calls reported separately.<br>• Track v0.8-B claims C11 and C12 added, <code>unverified</code>.</td>
+</tr>
+<tr>
+<td>2026-11-22</td>
+<td>Track v0.8-B detailed plan proposed (<code>docs/plans/neuralopt-v08b-step-policy.md</code>). C11/C12 tests made exact: AUC definition (floor = success tolerance, Sobol-median normalization, cap 10), budgets {20, 50, 100}, global-basin polish, 99% intervals (Bonferroni over 5 families), intersection-union over baselines × budgets × matchings. Status unchanged: <code>unverified</code>; criteria still proposed.</td>
+</tr>
+<tr>
+<td>2026-11-22</td>
+<td>v0.8-B plan approved. Decisions: quasi-random search added as a sixth baseline; ES first, with a pre-declared PPO fallback on a validation-only plateau trigger; 24 CPU-hour cap; optuna for TPE; power thresholds 0.25 decades and 10 points. <strong>Change:</strong> per-family intersection-union tests use two-sided 95% intervals per comparison (36 comparisons), replacing 99%. Holm–Bonferroni applies only to claims made jointly across families. Status unchanged: <code>unverified</code>.</td>
 </tr>
 </tbody>
 </table>
