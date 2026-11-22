@@ -164,6 +164,25 @@ length from the loop rule.
 - **Uncertainty.** Medians over 12 tasks are coarse, and no paired intervals were
   computed for this ablation.
 
+### Mask diagnostic (oracle K=10, halving; `results/mask-diagnostic-v0.7.0.json`)
+
+The decision rule was stated before running: relaxed masks count as meaningful only if
+they reduce the κ=1000 median gap to SciPy (maxcor 10) by at least one decade.
+- **Masking is rare.** Under the current thresholds (step 1e-7, relative gradient
+  change 1e-6), only the step test fires: on 3.4% of filled pairs at κ=1000 and 18% at
+  κ=100. The gradient-change and nonfinite tests never fire. On average 8.6 of 10 pairs
+  are valid at κ=1000.
+- **Relaxed masks change nothing at κ=1000.** With float64 thresholds (1e-12 and
+  1e-10), or masking only nonfinite pairs and pairs with sᵀy ≤ 0, the oracle median
+  stays at −6.19. **The reduction is 0.0 decades, so not meaningful.**
+- **At κ=100 relaxed masks help,** moving the median from −14.47 to −15.98, but that
+  is at the float64 floor.
+- **Paired over tasks at κ=1000,** oracle − SciPy is mean +0.86 [+0.18, +1.60] (raw)
+  and +0.69 [+0.08, +1.41] (floored at −12), with median +0.06.
+- **The gap sits at d=10:** the oracle reaches about −6 and SciPy −8.5 to −9.8. At d=7
+  both are at the floor; at d=16 both are near −5.
+- **The cause is unexplained.**
+
 ### Step-acceptance rules (scope)
 
 `loop_rule` is a step-acceptance rule in the sense of CLAUDE.md, not a solver.
