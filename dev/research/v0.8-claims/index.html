@@ -19,7 +19,7 @@
         <link rel="prev" href="../../guide/compiled-engine/">
       
       
-        <link rel="next" href="../engine-speed-v0.7/">
+        <link rel="next" href="../f0-v0.8/">
       
       
         
@@ -651,6 +651,8 @@
       
         
       
+        
+      
     
     
     
@@ -926,6 +928,33 @@
   
 </nav>
       
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../f0-v0.8/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Gate F0: headroom, no learning
+
+    
+  </span>
+  
+  
+
+      </a>
     </li>
   
 
@@ -2802,6 +2831,8 @@
       
         
       
+        
+      
     
     
     
@@ -2828,6 +2859,8 @@
   
     
     
+      
+        
       
         
       
@@ -3316,6 +3349,10 @@ F0 numbers. That is a recorded outcome, not a claim.</p>
 <td>2026-11-22</td>
 <td>v0.8-B plan approved. Decisions: quasi-random search added as a sixth baseline; ES first, with a pre-declared PPO fallback on a validation-only plateau trigger; 24 CPU-hour cap; optuna for TPE; power thresholds 0.25 decades and 10 points. <strong>Change:</strong> per-family intersection-union tests use two-sided 95% intervals per comparison (36 comparisons), replacing 99%. Holm–Bonferroni applies only to claims made jointly across families. Status unchanged: <code>unverified</code>.</td>
 </tr>
+<tr>
+<td>2026-11-22</td>
+<td>Gate F0 complete (<code>results/f0-v0.8.0.json</code>, report <code>docs/research/f0-v0.8.md</code>). No family met the stop rule; none is marked "not tested (F0)". Family 2a's default start already reaches B95 = 100 units (control behaviour); Family 1's nearest-neighbour lookup is the strongest small-budget arm; 28% of Family 2b instances are not identifiable. Statuses unchanged: <code>unverified</code>.</td>
+</tr>
 </tbody>
 </table>
 
@@ -3372,13 +3409,13 @@ F0 numbers. That is a recorded outcome, not a claim.</p>
         
         
           
-          <a href="../engine-speed-v0.7/" class="md-footer__link md-footer__link--next" aria-label="Next: Engine speed (Track A)">
+          <a href="../f0-v0.8/" class="md-footer__link md-footer__link--next" aria-label="Next: Gate F0: headroom, no learning">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Engine speed (Track A)
+                Gate F0: headroom, no learning
               </div>
             </div>
             <div class="md-footer__button md-icon">
