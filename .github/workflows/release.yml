@@ -1,0 +1,211 @@
+name: Release
+# Tag push (vX.Y.Z): verify metadata, full quality gate, build, publish to PyPI (trusted
+# publishing, environment "pypi", v0.7.0 and later only), GitHub release from the
+# curated notes, versioned docs.
+# workflow_dispatch: backfill a GitHub release for an existing (retroactive) tag; PyPI
+# only when publish_pypi is true AND the tag is v0.7.0 or later. Backfilled docs are
+# deployed by scripts/backfill_docs.py, not here.
+# The PyPI publish step must stay in this file: the trusted publisher is registered for
+# workflow "release.yml" and environment "pypi".
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing tag to release, for example v0.3.0
+        required: true
+        type: string
+      publish_pypi:
+        description: Publish to PyPI (refused below v0.7.0)
+        required: false
+        type: boolean
+        default: false
+permissions:
+  contents: read
+concurrency:
+  group: release-${{ inputs.tag || github.ref_name }}
+  cancel-in-progress: false
+env:
+  TAG: ${{ inputs.tag || github.ref_name }}
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.meta.outputs.version }}
+      minor: ${{ steps.meta.outputs.minor }}
+      backfill: ${{ steps.meta.outputs.backfill }}
+      build: ${{ steps.meta.outputs.build }}
+      pypi: ${{ steps.meta.outputs.pypi }}
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          fetch-depth: 0
+      - uses: astral-sh/setup-uv@v10.4.0
+        with:
+          python-version: "3.12"
+      - id: meta
+        name: Check the tag and its release metadata
+        env:
+          PUBLISH_INPUT: ${{ inputs.publish_pypi }}
+          EVENT: ${{ github.event_name }}
+        run: |
+          set -euo pipefail
+          [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "bad tag: $TAG"; exit 1; }
+          git rev-parse -q --verify "refs/tags/$TAG" > /dev/null || { echo "no such tag"; exit 1; }
+          check="uv run --no-project --with packaging python scripts/check_release.py"
+          version="${TAG#v}"
+          allowed=$($check "$TAG" --pypi-allowed)
+          if [[ "$allowed" == "true" ]]; then
+            backfill=false
+            git worktree add --detach ../at-tag "$TAG"
+            $check "$TAG" --root ../at-tag
+            (cd ../at-tag && uvx cffconvert==2.0.0 --validate)
+          else
+            backfill=true
+            $check "$TAG" --backfill   # notes and CHANGELOG entry on the default branch
+          fi
+          # Build files only when the tagged pyproject carries the tag's version (D2: the
+          # v0.6.0 commit still says 0.5.0, so v0.6.0 gets no sdist/wheel).
+          tagged=$(git show "$TAG:pyproject.toml" | sed -n 's/^version = "\(.*\)"/\1/p' | head -1)
+          build=$([[ "$tagged" == "$version" ]] && echo true || echo false)
+          pypi=false
+          if [[ "$allowed" == "true" && ( "$EVENT" == "push" || "$PUBLISH_INPUT" == "true" ) ]]; then
+            pypi=true
+          fi
+          if [[ "$PUBLISH_INPUT" == "true" && "$allowed" != "true" ]]; then
+            echo "::error::PyPI publishing is refused below v0.7.0"; exit 1
+          fi
+          minor=$(echo "$version" | cut -d. -f1-2)
+          {
+            echo "version=$version"; echo "minor=$minor"; echo "backfill=$backfill"
+            echo "build=$build"; echo "pypi=$pypi"
+          } >> "$GITHUB_OUTPUT"
+          echo "version=$version backfill=$backfill build=$build pypi=$pypi"
+
+  test:
+    # Backfilled tags passed CI in their own PRs and predate the current tooling.
+    needs: verify
+    if: needs.verify.outputs.backfill == 'false'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          ref: ${{ env.TAG }}
+      - uses: astral-sh/setup-uv@v10.4.0
+        with:
+          python-version: "3.12"
+      - run: uv sync --extra dev --group docs
+      - run: uv run --no-sync ruff check .
+      - run: uv run --no-sync pyright
+      - run: uv run --no-sync pytest -q
+      - run: uv run --no-sync zensical build --strict
+      - run: uv build
+      - run: uv run --no-sync twine check dist/*
+
+  build:
+    needs: verify
+    if: needs.verify.outputs.build == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          ref: ${{ env.TAG }}
+      - uses: astral-sh/setup-uv@v10.4.0
+        with:
+          python-version: "3.12"
+      - run: uv build
+      - run: uvx twine==6.2.0 check dist/*
+      - uses: actions/upload-artifact@v7.0.2
+        with:
+          name: dist
+          path: dist/
+          retention-days: 3
+          if-no-files-found: error
+
+  pypi:
+    needs: [verify, test, build]
+    if: needs.verify.outputs.pypi == 'true'
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/project/neuralopt/${{ needs.verify.outputs.version }}/
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v8.0.2
+        with:
+          name: dist
+          path: dist/
+      - uses: pypa/gh-action-pypi-publish@v1.14.3
+
+  github-release:
+    needs: [verify, test, build, pypi]
+    # Run after PyPI when it publishes; skipped jobs (backfill, no build) are fine,
+    # failed ones are not.
+    if: >-
+      always() && needs.verify.result == 'success'
+      && contains(fromJSON('["success","skipped"]'), needs.test.result)
+      && contains(fromJSON('["success","skipped"]'), needs.build.result)
+      && contains(fromJSON('["success","skipped"]'), needs.pypi.result)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+      - if: needs.verify.outputs.build == 'true'
+        uses: actions/download-artifact@v8.0.2
+        with:
+          name: dist
+          path: dist/
+      - name: Create the GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          python3 scripts/release_body.py "$TAG" > body.md
+          files=()
+          if [[ -d dist ]]; then files=(dist/*); fi
+          prerelease=()
+          if [[ "$TAG" == v0.* ]]; then prerelease=(--prerelease); fi
+          if gh release view "$TAG" > /dev/null 2>&1; then
+            gh release edit "$TAG" --title "NeuralOpt $TAG" --notes-file body.md "${prerelease[@]}"
+            if (( ${#files[@]} )); then gh release upload "$TAG" "${files[@]}" --clobber; fi
+          else
+            gh release create "$TAG" --verify-tag --title "NeuralOpt $TAG" \
+              --notes-file body.md "${prerelease[@]}" "${files[@]}"
+          fi
+
+  docs:
+    needs: [verify, github-release]
+    if: needs.verify.outputs.backfill == 'false'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    concurrency:
+      group: gh-pages
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          ref: ${{ env.TAG }}
+          fetch-depth: 0
+      - uses: astral-sh/setup-uv@v10.4.0
+        with:
+          python-version: "3.12"
+      - run: uv sync --group docs
+      - run: uv run --no-sync zensical build --strict
+      - name: Deploy versioned docs
+        env:
+          MINOR: ${{ needs.verify.outputs.minor }}
+          VERSION: ${{ needs.verify.outputs.version }}
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin gh-pages:gh-pages || true
+          uv run --no-sync mike deploy --push --update-aliases --title "$VERSION" "$MINOR" latest
+          uv run --no-sync mike set-default --push latest
