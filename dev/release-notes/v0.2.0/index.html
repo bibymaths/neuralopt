@@ -2625,7 +2625,8 @@ negative result and is not promoted.</p>
 <ul>
 <li>Outcome-training smoke (12 meta-updates): the checkpoint worsened an unseen 8D rotated
   quadratic from 89.41 to 164.71. It is kept as <code>neuralopt-v0.2.0-smoke.npz</code>.</li>
-<li>A fixed normalized-gradient control beats v0.1.0 on every recorded smoke family.</li>
+<li>A fixed normalized-gradient control beats v0.1.0 on every recorded smoke family. Each
+  family is a single instance, so this is not a superiority claim.</li>
 <li>Diagnostics: v0.1 directions have median descent cosine 0.833–0.999, yet acceptance
   is 0–4.1%; the proposal head uses 24 of 49 evaluations and is never accepted.</li>
 <li>HMC smoke (15 instances, three seeds): identity HMC beats direct on 8/15 pairs and

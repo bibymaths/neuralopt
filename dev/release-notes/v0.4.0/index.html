@@ -2636,7 +2636,8 @@ transfer to BAOAB is inconclusive.</p>
 <li>The weak-generator loss evaluates the Gaussian noise term analytically; sampling it
   added a variance term that rewarded shrinking the mobility.</li>
 <li>BAOAB training samples its initial momentum from <code>N(0, T M)</code>, matching inference.</li>
-<li>Fixed metrics are normalized to floating point.</li>
+<li><code>fixed_metric_diag</code> is cast to the problem's floating dtype (an integer array kept an
+  integer dtype before).</li>
 </ul>
 <h2 id="documentation">Documentation<a class="headerlink" href="#documentation" title="Permanent link">&para;</a></h2>
 <ul>
