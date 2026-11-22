@@ -164,8 +164,8 @@ Wall time is reported cold, warm and batched.
 |---|---|---|---|---|
 | A0 | default start + owned L-BFGS | family default θ_d | owned L-BFGS | no amortization (C1 comparator) |
 | A1 | default start + SciPy L-BFGS-B | θ_d | SciPy | harness reference |
-| A2 | multistart SciPy L-BFGS-B | Sobol starts, count and split validation-tuned | SciPy | strongest generic reference (C2, C5) |
-| A2o | multistart owned L-BFGS | K Sobol/random starts | owned L-BFGS | K-random comparator (C6); also the fallback |
+| A2 | multistart SciPy L-BFGS-B | Sobol starts, count and split validation-tuned | SciPy | generic reference (C2 with A2o, C5) |
+| A2o | multistart owned L-BFGS | K Sobol/random starts | owned L-BFGS | C2 uses the better of A2 and A2o on each axis; K-random comparator (C6); also the fallback |
 | A3 | nearest-neighbour start + owned L-BFGS | θ* of the nearest training context | owned L-BFGS | lookup bar (C3) |
 | A4 | **learned start + owned L-BFGS** | `g_φ(c)` | owned L-BFGS | **primary** (C1–C4, C9, C10) |
 | A4K | learned K starts + owned L-BFGS (batched) | top-K of `g_φ` | owned L-BFGS | C6 |
@@ -194,7 +194,9 @@ Wall time is reported cold, warm and batched.
   - Directions with flat profiles or tiny Fisher eigenvalues are reported as
     non-identified, not as errors.
 - **Cost:**
-  - objective, gradient and HVP units;
+  - objective, gradient and HVP calls, **always reported separately for every arm**,
+    because a JAX/ODE gradient costs several objective calls;
+  - the measured gradient/objective cost ratio per family, from the F0 timing probe;
   - accepted steps;
   - wall time cold (including compilation), warm and batched;
   - `g_φ` and nearest-neighbour time, listed separately;
@@ -212,7 +214,9 @@ Wall time is reported cold, warm and batched.
   - percentile-bootstrap 95% intervals over instances;
   - paired intervals for success-rate differences;
   - per-family and per-split tables with failure and nonfinite counts;
-  - ≥ 3 training seeds for learned arms.
+  - **≥ 5 predictor training seeds** for learned arms, with each instance's outcome the
+    mean over seeds; per-seed spread is reported;
+  - every claim's criterion is applied **per family/variant**.
 
 ## 7. Splits (fixed, hashed, written once)
 
@@ -312,6 +316,9 @@ split by experiment or condition, noise model, and licence.
 | 3 | the v0.8 pre-registration, frozen and hashed, with every claim's criterion | approval before any training |
 | 4 | the study (training, in-distribution test, OOD test) | claims register updated; every outcome reported as found; release decision is the user's |
 
+Track v0.8-B (§15) starts only after stop point 2. It has its own plan approval and
+pre-registration stops before any implementation or training.
+
 Exploratory results may be reported but cannot change a claim's status. Each stop is
 preceded by the full local quality gate.
 
@@ -361,3 +368,85 @@ All three were checked against OpenAlex; the JMLR volume was checked on jmlr.org
 | ODE solver error | fine-step reference check |
 | Leakage | validation-only tuning; hashed splits; tests opened once |
 | Unfair wall time | cold, warm and batched times separate; compilation in cold; same float64 CPU |
+
+## 15. Parallel track v0.8-B: a learned step policy in its plausible regime
+
+**Status:** recorded here; **no implementation until the user approves its own plan.** It
+has its own pre-registration, the same release freeze, and the same families, splits and
+baselines as F0. It starts only after F0 (stop point 2), so that it uses the verified
+families and baselines.
+
+**Question.** v0.4–v0.7 tested learned steps on precision at moderate budgets and lost to
+fixed or BB steps. v0.8-B asks whether a learned step policy can win where such policies
+are most plausible:
+- multimodal and valley-shaped families: Rastrigin, Ackley, shifted Rosenbrock, Family 1
+  and Family 2b;
+- small budgets of **20–100 evaluations**;
+- judged on **anytime best-so-far** progress and **reaching the global basin**, not on
+  final precision.
+
+**Metrics:**
+- anytime regret, the area under the best-so-far regret curve (claim C11);
+- the probability of reaching the global basin, measured by a measurement-only local
+  polish (claim C12);
+- objective and gradient calls reported separately;
+- warm and cold wall time.
+
+**Baselines,** matched on units and, separately, on warm wall-clock, each tuned on
+validation only:
+- owned multistart L-BFGS;
+- SciPy multistart L-BFGS-B;
+- CMA-ES;
+- TPE;
+- BB.
+
+CMA-ES and TPE are harness-only references, from packages added to the `benchmark` extra.
+Gradient-free arms receive their whole unit budget as objective calls. The
+gradient-to-objective cost ratio is reported, so unit matching does not hide the price of
+gradients.
+
+**Policy (design space for its plan):**
+- a transformer over the trajectory that outputs **per-coordinate step sizes**, as in POP
+  (Kobiolka et al. 2026). POP runs a per-coordinate trajectory history through a
+  transformer and samples coordinate-wise log step sizes from a Gaussian.
+- Optionally, **Optimus-style** low-rank updates (Gärtner et al. 2023).
+- **Stochastic outputs** for exploration, as in OPEN (Goldie et al. 2024).
+- It may read the instance context, as the start predictor does.
+- Checkpoints use a new versioned schema. The existing history-v1 and Gram schemas are
+  untouched.
+
+**Training:**
+- RL (for example PPO) or evolution strategies, on a **clipped best-so-far improvement
+  reward** `max(0, f_best(t−1) − f(x_t))`, the form POP uses;
+- on the target families' training splits only, with the OOD splits held out;
+- **no second-order unrolls.**
+- A compute cap is set in its plan. POP reports about 56 H100-hours of training, which is
+  far beyond this project's CPU budget. That scale gap is a stated risk to C11 and C12.
+
+**Claims:** C11 (anytime regret) and C12 (global-basin probability) are in the register as
+`unverified`.
+
+**Prior work (verified; no novelty claim over it):**
+- **Gärtner, E., Metz, L., Andriluka, M., Freeman, C. D., Sminchisescu, C.**
+  *Transformer-Based Learned Optimization* (Optimus). CVPR 2023.
+  doi:10.1109/CVPR52729.2023.01152.
+- **Kobiolka, J., Frey, C., Shala, G., Kadra, A., Bedalli, E., Grabocka, J.** *POP:
+  Prior-Fitted First-Order Optimization Policies.* arXiv:2602.15473, 2026.
+  - A preprint marked "Under Review", not peer-reviewed.
+  - A transformer actor-critic trained with PPO; coordinate-wise step sizes; a 43-function
+    benchmark including multimodal functions; 50- to 100-step budgets.
+- **Goldie, A. D., Lu, C., Jackson, M. T., Whiteson, S., Foerster, J.** *Can Learned
+  Optimization Make Reinforcement Learning Less Difficult?* (OPEN). NeurIPS 2024.
+  arXiv:2407.07082.
+- **Moudgil, A., Knyazev, B., Lajoie, G., Belilovsky, E.** *Celo: Training Versatile
+  Learned Optimizers on a Compute Diet.* TMLR 2025. arXiv:2501.12670.
+- **Meta-generalization caveats:**
+  - **Metz, L., Freeman, C. D., Harrison, J., Maheswaranathan, N., Sohl-Dickstein, J.**
+    *Practical tradeoffs between memory, compute, and performance in learned optimizers.*
+    arXiv:2203.11860, 2022. The arXiv page names no venue, so none is cited.
+  - **Rezk, F., Antoniou, A., Gouk, H., Hospedales, T. M.** *Is Scaling Learned Optimizers
+    Worth It? Evaluating The Value of VeLO's 4000 TPU Months.* arXiv:2310.18191, 2023.
+    It has four authors, not two.
+
+All except POP were checked against OpenAlex. POP was checked on arxiv.org, abstract and
+HTML v2.
