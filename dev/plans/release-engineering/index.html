@@ -1,0 +1,3354 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="A JAX research package for learned optimization, with replayable interval certification">
+      
+      
+        <meta name="author" content="Abhinav Mishra">
+      
+      
+        <link rel="canonical" href="https://bibymaths.github.io/neuralopt/dev/plans/release-engineering/">
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon/favicon-32x32.png">
+      <meta name="generator" content="zensical-0.1.1">
+    
+    
+      
+        <title>Release engineering plan: tags, releases, PyPI, versioned docs - NeuralOpt</title>
+      
+    
+    
+      
+        
+      
+      <link rel="stylesheet" href="../../assets/stylesheets/modern/main.ebb7f775.min.css">
+      
+        
+          
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/modern/palette.b60ce83d.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,500,500i,700,700i%7CJetBrains+Mono:400,400i,700,700i&amp;display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_scope.pathname.endsWith("/")||(__md_scope=new URL(__md_scope.pathname+"/",location)),__md_hash=e=>[...e].reduce(((e,t)=>(e<<5)-e+t.charCodeAt(0)),0),__md_get=(e,t=localStorage,_=__md_scope)=>JSON.parse(t.getItem(_.pathname+"."+e)),__md_set=(e,t,_=localStorage,a=__md_scope)=>{try{_.setItem(a.pathname+"."+e,JSON.stringify(t))}catch(e){}},document.documentElement.setAttribute("data-platform",navigator.platform)</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer" aria-hidden="true"></label>
+    <div data-md-component="skip">
+      <a href="#__skip" class="md-skip">
+        Skip to content
+      </a>
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="NeuralOpt" class="md-header__button md-logo" aria-label="NeuralOpt" data-md-component="logo">
+      
+  <img src="../../assets/images/icon.svg" alt="NeuralOpt">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-menu" viewBox="0 0 24 24"><path d="M4 5h16M4 12h16M4 19h16"/></svg>
+      <span class="md-visually-hidden">Navigation</span>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            NeuralOpt
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Release engineering plan: tags, releases, PyPI, versioned docs
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-sun-moon" viewBox="0 0 24 24"><path d="M12 2v2M14.837 16.385a6 6 0 1 1-7.223-7.222c.624-.147.97.66.715 1.248a4 4 0 0 0 5.26 5.259c.589-.255 1.396.09 1.248.715M16 12a4 4 0 0 0-4-4M19 5l-1.256 1.256M20 12h2"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="deep-purple"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_2" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="deep-purple"  aria-label="Switch to system preference"  type="radio" name="__palette" id="__palette_2">
+    
+      <label class="md-header__button md-icon" title="Switch to system preference" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-moon" viewBox="0 0 24 24"><path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-search" viewBox="0 0 24 24"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg>
+          <span class="md-visually-hidden">Search</span>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog" aria-label="Search">
+  <button type="button" class="md-search__button">
+    Search
+  </button>
+</div>
+      
+    
+    <div class="md-header__source">
+      
+        <a href="https://github.com/bibymaths/neuralopt" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.3.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2026 Fonticons, Inc.--><path fill="currentColor" d="M216.5 362.5c-66-8-112.5-55.5-112.5-117 0-25 9-52 24-70-6.5-16.5-5.5-51.5 2-66 20-2.5 47 8 63 22.5 19-6 39-9 63.5-9s44.5 3 62.5 8.5c15.5-14 43-24.5 63-22 7 13.5 8 48.5 1.5 65.5 16 19 24.5 44.5 24.5 70.5 0 61.5-46.5 108-113.5 116.5 17 11 28.5 35 28.5 62.5v52c0 15 12.5 23.5 27.5 17.5C441 459.5 512 369 512 257 512 115.5 397 0 255.5 0S0 115.5 0 257c0 111 70.5 203 165.5 237.5 13.5 5 26.5-4 26.5-17.5v-40c-7 3-16 5-24 5-33 0-52.5-18-66.5-51.5-5.5-13.5-11.5-21.5-23-23-6-.5-8-3-8-6 0-6 10-10.5 20-10.5 14.5 0 27 9 40 27.5 10 14.5 20.5 21 33 21s20.5-4.5 32-16c8.5-8.5 15-16 21-21"/></svg>
+  </div>
+  <div class="md-source__repository">
+    bibymaths/neuralopt
+  </div>
+</a>
+      
+    </div>
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="NeuralOpt" class="md-nav__button md-logo" aria-label="NeuralOpt" data-md-component="logo">
+      
+  <img src="../../assets/images/icon.svg" alt="NeuralOpt">
+
+    </a>
+    NeuralOpt
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/bibymaths/neuralopt" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.3.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2026 Fonticons, Inc.--><path fill="currentColor" d="M216.5 362.5c-66-8-112.5-55.5-112.5-117 0-25 9-52 24-70-6.5-16.5-5.5-51.5 2-66 20-2.5 47 8 63 22.5 19-6 39-9 63.5-9s44.5 3 62.5 8.5c15.5-14 43-24.5 63-22 7 13.5 8 48.5 1.5 65.5 16 19 24.5 44.5 24.5 70.5 0 61.5-46.5 108-113.5 116.5 17 11 28.5 35 28.5 62.5v52c0 15 12.5 23.5 27.5 17.5C441 459.5 512 369 512 257 512 115.5 397 0 255.5 0S0 115.5 0 257c0 111 70.5 203 165.5 237.5 13.5 5 26.5-4 26.5-17.5v-40c-7 3-16 5-24 5-33 0-52.5-18-66.5-51.5-5.5-13.5-11.5-21.5-23-23-6-.5-8-3-8-6 0-6 10-10.5 20-10.5 14.5 0 27 9 40 27.5 10 14.5 20.5 21 33 21s20.5-4.5 32-16c8.5-8.5 15-16 21-21"/></svg>
+  </div>
+  <div class="md-source__repository">
+    bibymaths/neuralopt
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Home
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Getting started
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        
+          <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+            <label class="md-nav__title" for="__nav_2">
+              <span class="md-nav__icon md-icon"></span>
+              
+  
+  Getting started
+
+            </label>
+            <ul class="md-nav__list" data-md-scrollfix>
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Installation
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Quickstart
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../when-to-use/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  When to use NeuralOpt
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+            </ul>
+          </nav>
+        
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  User guide
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        
+          <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+            <label class="md-nav__title" for="__nav_3">
+              <span class="md-nav__icon md-icon"></span>
+              
+  
+  User guide
+
+            </label>
+            <ul class="md-nav__list" data-md-scrollfix>
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/learned-mode/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Learned mode
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/certified-mode/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Certified mode
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/compiled-engine/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Compiled engine
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+            </ul>
+          </nav>
+        
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Research reports
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        
+          <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+            <label class="md-nav__title" for="__nav_4">
+              <span class="md-nav__icon md-icon"></span>
+              
+  
+  Research reports
+
+            </label>
+            <ul class="md-nav__list" data-md-scrollfix>
+              
+                
+                  
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_1" id="__nav_4_1_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  v0.7: compiled engine and Gram-space model
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        
+          <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_1_label" aria-expanded="false">
+            <label class="md-nav__title" for="__nav_4_1">
+              <span class="md-nav__icon md-icon"></span>
+              
+  
+  v0.7: compiled engine and Gram-space model
+
+            </label>
+            <ul class="md-nav__list" data-md-scrollfix>
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../research/engine-speed-v0.7/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Engine speed (Track A)
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../research/gram-space-v0.7/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Gram-space model (Track B, negative)
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+            </ul>
+          </nav>
+        
+      
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_2" id="__nav_4_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  v0.6: trajectory curvature
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        
+          <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_2_label" aria-expanded="false">
+            <label class="md-nav__title" for="__nav_4_2">
+              <span class="md-nav__icon md-icon"></span>
+              
+  
+  v0.6: trajectory curvature
+
+            </label>
+            <ul class="md-nav__list" data-md-scrollfix>
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../research/trajectory-curvature-v0.6/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Pre-registered study (negative)
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../research/trajectory-curvature-experiments/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Experiments
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../research/trajectory-curvature-literature/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Literature
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+            </ul>
+          </nav>
+        
+      
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    
+    
+      
+        
+      
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_3" id="__nav_4_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  v0.5: transferable geometry
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        
+          <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_3_label" aria-expanded="false">
+            <label class="md-nav__title" for="__nav_4_3">
+              <span class="md-nav__icon md-icon"></span>
+              
+  
+  v0.5: transferable geometry
+
+            </label>
+            <ul class="md-nav__list" data-md-scrollfix>
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../research/transferable-geometry/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Transferable geometry (negative)
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+            </ul>
+          </nav>
+        
+      
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    
+    
+      
+        
+      
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_4" id="__nav_4_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  v0.4: distribution-aware training
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        
+          <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_4_label" aria-expanded="false">
+            <label class="md-nav__title" for="__nav_4_4">
+              <span class="md-nav__icon md-icon"></span>
+              
+  
+  v0.4: distribution-aware training
+
+            </label>
+            <ul class="md-nav__list" data-md-scrollfix>
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../research/distribution-aware-training/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Distribution-aware training (negative)
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+            </ul>
+          </nav>
+        
+      
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_5" id="__nav_4_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  v0.3: stochastic geometry
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        
+          <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_5_label" aria-expanded="false">
+            <label class="md-nav__title" for="__nav_4_5">
+              <span class="md-nav__icon md-icon"></span>
+              
+  
+  v0.3: stochastic geometry
+
+            </label>
+            <ul class="md-nav__list" data-md-scrollfix>
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../research/langevin-theory/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Langevin theory
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../research/fokker-planck/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Fokker–Planck diagnostics
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../research/gibbs-measures/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Gibbs measures
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../research/function-spaces/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Function spaces
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../research/stochastic-novelty/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Stochastic novelty
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../research/stochastic-limitations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Stochastic limitations
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+            </ul>
+          </nav>
+        
+      
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_6" id="__nav_4_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  v0.2: outcome-driven foundation
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        
+          <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_6_label" aria-expanded="false">
+            <label class="md-nav__title" for="__nav_4_6">
+              <span class="md-nav__icon md-icon"></span>
+              
+  
+  v0.2: outcome-driven foundation
+
+            </label>
+            <ul class="md-nav__list" data-md-scrollfix>
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../research/training/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Training
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../research/benchmarks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Benchmarks
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../research/certification/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Certified scheduling
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../research/generalization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Generalization
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../research/trajectory-diagnostics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Trajectory diagnostics
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../research/hamiltonian-theory/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Hamiltonian theory
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../research/hamiltonian-correctness/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Hamiltonian correctness
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../research/hamiltonian-related-work/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Hamiltonian related work
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+            </ul>
+          </nav>
+        
+      
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_7" id="__nav_4_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  v0.1: first prototype
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        
+          <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_7_label" aria-expanded="false">
+            <label class="md-nav__title" for="__nav_4_7">
+              <span class="md-nav__icon md-icon"></span>
+              
+  
+  v0.1: first prototype
+
+            </label>
+            <ul class="md-nav__list" data-md-scrollfix>
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../research/theory/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Theory
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../research/experiment-plan/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Experiment plan
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../research/literature/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Literature
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../research/novelty/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Novelty
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../research/limitations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Limitations (v0.1–v0.2)
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../benchmarks/smoke/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Smoke benchmark
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+            </ul>
+          </nav>
+        
+      
+    </li>
+  
+
+                
+              
+            </ul>
+          </nav>
+        
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../release-notes/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Release notes
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5" id="__nav_5_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        
+          <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+            <label class="md-nav__title" for="__nav_5">
+              <span class="md-nav__icon md-icon"></span>
+              
+  
+  Release notes
+
+            </label>
+            <ul class="md-nav__list" data-md-scrollfix>
+              
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../release-notes/v0.7.0/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  v0.7.0
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../release-notes/v0.6.0/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  v0.6.0
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../release-notes/v0.5.0/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  v0.5.0
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../release-notes/v0.4.0/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  v0.4.0
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../release-notes/v0.3.0/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  v0.3.0
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../release-notes/v0.2.0/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  v0.2.0
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../release-notes/v0.1.0/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  v0.1.0
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+            </ul>
+          </nav>
+        
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../changelog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Changelog
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../limitations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Limitations
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../citing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Citing NeuralOpt
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  API reference
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  
+                    
+                    
+                    
+                      
+                    
+                    
+                      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+                      <div class="md-sidebar-button__wrapper">
+                        <label class="md-sidebar-button" for="__toc"></label>
+                      </div>
+                    
+                  
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--secondary" aria-label="On this page">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-tagging" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        1. Tagging
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. Tagging">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#verified-mapping" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Verified mapping
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#disagreements-and-notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Disagreements and notes
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tag-message-annotated" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Tag message (annotated)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-release-notes-docsrelease-notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        2. Release notes (<code>docs/release-notes/</code>)
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-changelogmd" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        3. CHANGELOG.md
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-git-cliff-and-conventional-commits" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        4. git-cliff and conventional commits
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-version-metadata-a-single-source" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        5. Version metadata: a single source
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-githubworkflowsreleaseyml" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        6. <code>.github/workflows/release.yml</code>
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-versioned-docs-zensical-plus-its-mike-fork" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        7. Versioned docs (Zensical plus its mike fork)
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-docs-site-structure-current-version" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        8. Docs site structure (current version)
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-readme" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        9. README
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-logo" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        10. Logo
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-manual-steps-for-you-i-cannot-do-these" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        11. Manual steps for you (I cannot do these)
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12-scope" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        12. Scope
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#13-actions-storage" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        13. Actions storage
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#14-also-in-phase-2-the-compiled-engine-default-flip" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        14. Also in Phase 2: the compiled-engine default flip
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#15-citation-and-archiving-metadata" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        15. Citation and archiving metadata
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="15. Citation and archiving metadata">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#citationcff-updated" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>CITATION.cff</code> (updated)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#zenodojson-updated-the-file-exists-from-v010-with-minimal-fields" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        <code>.zenodo.json</code> (updated; the file exists from v0.1.0 with minimal fields)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#zenodo-timing-and-the-doi-follow-up" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Zenodo timing and the DOI follow-up
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#phase-3-order-each-push-needs-your-go-ahead" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Phase 3 order (each push needs your go-ahead)
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#risk-register" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Risk register
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#decisions-answered-2026-11-22" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Decisions (answered 2026-11-22)
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+                
+
+
+
+  
+
+
+              
+              <article class="md-content__inner md-typeset">
+                <a id="__skip" tabindex="-1"></a>
+                
+                  
+
+  
+    <a href="https://github.com/bibymaths/neuralopt/edit/main/docs/plans/release-engineering.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-file-pen" viewBox="0 0 24 24"><path d="M12.659 22H18a2 2 0 0 0 2-2V8a2.4 2.4 0 0 0-.706-1.706l-3.588-3.588A2.4 2.4 0 0 0 14 2H6a2 2 0 0 0-2 2v9.34"/><path d="M14 2v5a1 1 0 0 0 1 1h5M10.378 12.622a1 1 0 0 1 3 3.003L8.36 20.637a2 2 0 0 1-.854.506l-2.867.837a.5.5 0 0 1-.62-.62l.836-2.869a2 2 0 0 1 .506-.853z"/></svg>
+    </a>
+  
+  
+    
+      
+    
+    <a href="https://github.com/bibymaths/neuralopt/raw/main/docs/plans/release-engineering.md" title="View source of this page" class="md-content__button md-icon">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-file-code-2" viewBox="0 0 24 24"><path d="M4 12.15V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.706.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2h-3.35"/><path d="M14 2v5a1 1 0 0 0 1 1h5M5 16l-3 3 3 3M9 22l3-3-3-3"/></svg>
+    </a>
+  
+
+
+<h1 id="release-engineering-plan-tags-releases-pypi-versioned-docs">Release engineering plan: tags, releases, PyPI, versioned docs<a class="headerlink" href="#release-engineering-plan-tags-releases-pypi-versioned-docs" title="Permanent link">&para;</a></h1>
+<p>Status: <strong>draft for approval (Phase 1, revision 2).</strong> Revision 2 adds your answers to
+D1–D5 and the citation and archiving metadata (item 15). Nothing in this plan has been
+implemented.
+The only Phase 2 work done so far is on a local stash, not committed: the
+compiled-engine default flip, with the full suite passing (196 passed, 1 skipped). The
+flip is described in item 14.</p>
+<p>Phases:
+- <strong>Phase 1:</strong> this plan.
+- <strong>Phase 2:</strong> implementation on <code>release/engineering</code>, then a PR. It is not merged.
+- <strong>Phase 3:</strong> after the merge and the manual steps, tags, backfill and the first PyPI
+  release, asking before every push.</p>
+<h2 id="1-tagging">1. Tagging<a class="headerlink" href="#1-tagging" title="Permanent link">&para;</a></h2>
+<h3 id="verified-mapping">Verified mapping<a class="headerlink" href="#verified-mapping" title="Permanent link">&para;</a></h3>
+<p>I checked each commit's <code>pyproject.toml</code> version, its <code>CHANGELOG.md</code> headings and the
+merged PR (<code>gh pr list</code>). The mapping is correct.</p>
+<table>
+<thead>
+<tr>
+<th>Tag</th>
+<th>Commit</th>
+<th>PR</th>
+<th>PR title</th>
+<th>pyproject at commit</th>
+<th>CHANGELOG top heading</th>
+<th>Merged (UTC, GitHub)</th>
+<th>Merge commit date (+05:30)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>v0.1.0</td>
+<td>7e095b5</td>
+<td>#1</td>
+<td>Build learned optimizer with native certification</td>
+<td>0.1.0</td>
+<td>0.1.0</td>
+<td>2026-11-14 19:18</td>
+<td>2026-11-15 00:48</td>
+</tr>
+<tr>
+<td>v0.2.0</td>
+<td>0c68bbe</td>
+<td>#2</td>
+<td>Develop outcome-driven NeuralOpt v0.2 research foundation</td>
+<td>0.2.0</td>
+<td>0.2.0</td>
+<td>2026-11-15 13:46</td>
+<td>2026-11-15 19:16</td>
+</tr>
+<tr>
+<td>v0.3.0</td>
+<td>ef25291</td>
+<td>#3</td>
+<td>Add NeuralOpt v0.3 stochastic geometry foundations</td>
+<td>0.3.0</td>
+<td>0.3.0</td>
+<td>2026-11-15 14:39</td>
+<td>2026-11-15 20:09</td>
+</tr>
+<tr>
+<td>v0.4.0</td>
+<td>c82016f</td>
+<td>#4</td>
+<td>Train distribution-aware stochastic geometry for NeuralOpt v0.4</td>
+<td>0.4.0</td>
+<td>0.4.0</td>
+<td>2026-11-15 19:40</td>
+<td>2026-11-16 01:10</td>
+</tr>
+<tr>
+<td>v0.5.0</td>
+<td>90623b7</td>
+<td>#5</td>
+<td>NeuralOpt v0.5: evaluate transferable learned geometry</td>
+<td>0.5.0</td>
+<td>0.5.0</td>
+<td>2026-11-20 21:20</td>
+<td>2026-11-21 02:50</td>
+</tr>
+<tr>
+<td>v0.6.0</td>
+<td>bef56bc</td>
+<td>#6</td>
+<td>NeuralOpt v0.6: pre-registered trajectory-curvature study</td>
+<td><strong>0.5.0</strong></td>
+<td>0.6.0</td>
+<td>2026-11-21 22:59</td>
+<td>2026-11-22 04:29</td>
+</tr>
+<tr>
+<td>v0.7.0</td>
+<td>new release commit on top of eec9333</td>
+<td>#7 (6e673be), #8 (eec9333), and the Phase 2 PR</td>
+<td>—</td>
+<td>0.7.0 after Phase 2</td>
+<td>0.7.0</td>
+<td>—</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<h3 id="disagreements-and-notes">Disagreements and notes<a class="headerlink" href="#disagreements-and-notes" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Dates depend on the time zone.</strong></li>
+<li>The dates you supplied are the merge commits' local dates (+05:30).</li>
+<li>GitHub shows merge times in UTC, and on that basis four versions merged one day
+     earlier:<ul>
+<li>v0.1.0: 11-14, not 11-15;</li>
+<li>v0.4.0: 11-15, not 11-16;</li>
+<li>v0.5.0: 11-20, not 11-21;</li>
+<li>v0.6.0: 11-21, not 11-22.</li>
+</ul>
+</li>
+<li><strong>D1, decided: UTC dates everywhere</strong> (GitHub's merge dates). These go in the
+     CHANGELOG, the release notes and the tag messages. Each tag message also gives the
+     +05:30 local merge time.</li>
+<li>The dates are therefore:<ul>
+<li>v0.1.0: 2026-11-14;</li>
+<li>v0.2.0: 2026-11-15;</li>
+<li>v0.3.0: 2026-11-15;</li>
+<li>v0.4.0: 2026-11-15;</li>
+<li>v0.5.0: 2026-11-20;</li>
+<li>v0.6.0: 2026-11-21.</li>
+</ul>
+</li>
+<li><strong>The version number at the v0.6.0 commit is wrong.</strong> At bef56bc, <code>pyproject.toml</code>,
+   <code>__init__.__version__</code> and <code>CITATION.cff</code> all say 0.5.0.</li>
+<li>The tag is still correct: the CHANGELOG and the PR both describe v0.6.</li>
+<li>However, a wheel built from it would be named <code>neuralopt-0.5.0</code>. See D2 in item 6.</li>
+<li><strong>Every old tag carries a <code>zensical.toml</code>.</strong> That makes the docs backfill (item 7)
+   feasible for all six old versions.</li>
+<li><strong>Other notes.</strong></li>
+<li><code>.bumpversion.toml</code> is stale at 0.4.0, and <code>__init__.py</code> hard-codes
+     <code>__version__</code>. Both are handled in item 5.</li>
+<li>v0.1.0, v0.2.0 and v0.3.0 were merged from the same branch
+     (<code>feature/research-grade-neuralopt</code>). That is consistent with the mapping.</li>
+</ol>
+<h3 id="tag-message-annotated">Tag message (annotated)<a class="headerlink" href="#tag-message-annotated" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>NeuralOpt v0.N.0 (retroactive tag)
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>Created retroactively on &lt;tag date&gt;. This version was merged to main on
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>&lt;YYYY-MM-DD&gt; (UTC; &lt;HH:MM&gt; UTC, &lt;local date HH:MM&gt; +05:30) via PR #&lt;n&gt;:
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>&lt;PR title&gt;.
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>Release notes: docs/release-notes/v0.N.0.md (on main).
+</code></pre></div>
+<ul>
+<li>The v0.6.0 message adds: <em>"pyproject.toml at this commit still reads 0.5.0; see the
+  release notes."</em></li>
+<li>v0.7.0 is a normal annotated tag on the merge commit of the Phase 2 PR. It is created
+  only after you approve.</li>
+</ul>
+<h2 id="2-release-notes-docsrelease-notes">2. Release notes (<code>docs/release-notes/</code>)<a class="headerlink" href="#2-release-notes-docsrelease-notes" title="Permanent link">&para;</a></h2>
+<ul>
+<li><code>vX.Y.Z.md</code> for 0.1.0 through 0.7.0, plus an <code>index.md</code> table with one row per
+  version: version, date, one-line summary, and result type (infrastructure / positive /
+  <strong>negative</strong>).</li>
+<li><strong>Sources:</strong> CHANGELOG entries, the version's research reports (mapped below) and the
+  PR commit lists. Reports are linked, not rewritten.</li>
+<li><strong>Sections:</strong> Highlights, Features, Research results, Fixes, Documentation, Build and
+  CI, Breaking changes, and Known limitations. Empty sections are written as "None."</li>
+<li><strong>Research results</strong> state the outcome in the first sentence. For example: <em>"Negative:
+  learned geometry did not beat the validation-tuned fixed diagonal."</em></li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Version</th>
+<th>Research reports first added in that version</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0.1</td>
+<td>theory, experiment-plan, literature, novelty, limitations, benchmarks/smoke</td>
+</tr>
+<tr>
+<td>0.2</td>
+<td>training, benchmarks, certification, generalization, trajectory-diagnostics, hamiltonian-{theory,correctness,related-work}</td>
+</tr>
+<tr>
+<td>0.3</td>
+<td>langevin-theory, fokker-planck, gibbs-measures, function-spaces, stochastic-{novelty,limitations}</td>
+</tr>
+<tr>
+<td>0.4</td>
+<td>distribution-aware-training (negative: learned BAOAB geometry does not beat fixed diagonal)</td>
+</tr>
+<tr>
+<td>0.5</td>
+<td>transferable-geometry (negative: learned geometry does not beat tuned fixed geometry)</td>
+</tr>
+<tr>
+<td>0.6</td>
+<td>trajectory-curvature-v0.6, -experiments, -literature (negative main result: BB beats every learned arm)</td>
+</tr>
+<tr>
+<td>0.7</td>
+<td>engine-speed-v0.7 (speed only), gram-space-v0.7 (pre-registered negative: H1 fails)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Breaking changes in 0.7.0:</strong>
+- <code>preconditioned_engine</code> now defaults to <code>"compiled"</code>. Callers that use
+  <code>candidate_method="preconditioned"</code> with a host/NumPy <code>gradient=</code> now get a
+  <code>ValueError</code> that names <code>preconditioned_engine="python"</code>. Before, they ran on the
+  Python loop silently.
+- <code>__version__</code> now comes from the package metadata.</p>
+<h2 id="3-changelogmd">3. CHANGELOG.md<a class="headerlink" href="#3-changelogmd" title="Permanent link">&para;</a></h2>
+<ul>
+<li>One section per version, in the form <code>## [0.N.0] - YYYY-MM-DD</code>, with UTC merge dates
+  (D1).</li>
+<li>An <code>## [Unreleased]</code> section at the top.</li>
+<li>Each section is a short version of the curated release notes, with bullets kept
+  consistent with them. It ends with a link to <code>docs/release-notes/v0.N.0.md</code>.</li>
+<li>Comparison links go at the bottom, for example
+  <code>[0.2.0]: https://github.com/bibymaths/neuralopt/compare/v0.1.0...v0.2.0</code>.</li>
+</ul>
+<h2 id="4-git-cliff-and-conventional-commits">4. git-cliff and conventional commits<a class="headerlink" href="#4-git-cliff-and-conventional-commits" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong><code>cliff.toml</code></strong> will be replaced with a copy of the globax configuration:</li>
+<li><code>conventional_commits = true</code> and <code>filter_unconventional = false</code>;</li>
+<li>the same emoji groups and commit preprocessors;</li>
+<li><code>tag_pattern = "v[0-9].*"</code>;</li>
+<li>links rewritten to <code>bibymaths/neuralopt</code>.</li>
+<li><strong>git-cliff only drafts.</strong> A new <code>scripts/draft_release_notes.sh vX.Y.Z</code> runs
+  <code>git cliff --unreleased --tag vX.Y.Z</code> and writes to stdout or a scratch file. It never
+  writes <code>CHANGELOG.md</code> or a <code>docs/release-notes/</code> file. Unlike globax, there is no
+  changelog workflow that rewrites <code>CHANGELOG.md</code>.</li>
+<li><strong>Release procedure</strong> (in <code>CONTRIBUTING.md</code>):</li>
+<li>Draft the notes with git-cliff.</li>
+<li>Curate them into <code>docs/release-notes/vX.Y.Z.md</code>.</li>
+<li>Prepend a CHANGELOG section.</li>
+<li>Bump the version.</li>
+<li>Open a PR, then merge it.</li>
+<li>Tag the merge commit.</li>
+<li><strong><code>CONTRIBUTING.md</code></strong> gains:</li>
+<li>the commit types (<code>feat fix docs perf refactor test build ci chore revert</code>, plus
+    <code>research</code> → grouped under "Research", a NeuralOpt addition);</li>
+<li>the scope convention;</li>
+<li>a <code>!</code> / <code>BREAKING CHANGE:</code> footer for breaking changes;</li>
+<li>the release procedure.</li>
+<li><strong>PR-title check:</strong> <code>.github/workflows/pr-title.yml</code>, using
+  <code>amannn/action-semantic-pull-request</code> pinned to a release tag, with
+  <code>pull-requests: read</code> only. It runs on <code>pull_request</code> (not <code>pull_request_target</code>), so
+  fork code never gets elevated permissions.</li>
+<li><strong>History is not rewritten.</strong> Old commits stay unconventional; git-cliff groups them
+  under "Other".</li>
+<li><strong>D3, decided: squash-merge with the PR title as the commit message.</strong> You set it in
+  Settings. With that setting, the PR-title check guarantees conventional commits on
+  main. <code>CONTRIBUTING.md</code> documents this.</li>
+</ul>
+<h2 id="5-version-metadata-a-single-source">5. Version metadata: a single source<a class="headerlink" href="#5-version-metadata-a-single-source" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong><code>pyproject.toml</code> is the source of truth</strong> (<code>version = "0.7.0"</code>).</li>
+<li><code>neuralopt.__version__ = importlib.metadata.version("neuralopt")</code>.</li>
+<li><code>.bumpversion.toml</code> is deleted: it is stale, and nothing uses it.</li>
+<li><code>CITATION.cff</code> (<code>version</code> and <code>date-released</code>) is set in the release PR, as step 4
+    of the release procedure (item 4).</li>
+<li><code>.zenodo.json</code> <strong>omits <code>version</code></strong>, so Zenodo takes it from the release tag. That
+    leaves one less field to keep in sync.</li>
+<li><strong><code>scripts/check_release.py vX.Y.Z</code></strong> verifies that:</li>
+<li>the tag, <code>pyproject.toml</code>'s version and <code>CITATION.cff</code>'s <code>version</code> are all equal;</li>
+<li>if <code>.zenodo.json</code> ever gains a <code>version</code>, it must equal the tag too;</li>
+<li><code>CITATION.cff</code>'s <code>date-released</code> equals the date of this version's CHANGELOG
+    heading;</li>
+<li><code>CITATION.cff</code> passes <code>cffconvert --validate</code>, run in CI as <code>uvx
+    cffconvert==2.0.0 --validate</code>. It stays out of the project's dependencies, because
+    it pins old <code>jsonschema</code> versions;</li>
+<li><code>.zenodo.json</code> is valid JSON with the required keys: <code>title</code>, <code>upload_type</code>,
+    <code>description</code>, <code>creators</code>, <code>license</code>, <code>access_right</code> and <code>related_identifiers</code>;</li>
+<li><code>docs/release-notes/vX.Y.Z.md</code> exists;</li>
+<li><code>CHANGELOG.md</code> has a <code>## [X.Y.Z] -</code> heading.</li>
+<li><strong>The metadata checks also run in <code>ci.yml</code>, on every PR:</strong> <code>cffconvert --validate</code>,
+  plus <code>check_release.py --metadata-only</code> for the JSON and the version agreement.</li>
+<li>With <code>--backfill</code>, it skips the three-way version check (D2) and checks only that the
+    notes and the CHANGELOG entry exist <strong>on main</strong>.</li>
+<li><strong>Tests:</strong></li>
+<li><code>__version__</code> matches <code>pyproject.toml</code>;</li>
+<li>the release checker passes on 0.7.0;</li>
+<li>the release checker fails when a version mismatches, a notes file is missing, the
+    <code>date-released</code> disagrees with the CHANGELOG, or <code>.zenodo.json</code> is invalid.</li>
+</ul>
+<h2 id="6-githubworkflowsreleaseyml">6. <code>.github/workflows/release.yml</code><a class="headerlink" href="#6-githubworkflowsreleaseyml" title="Permanent link">&para;</a></h2>
+<p><strong>Triggers:</strong>
+- <code>push: tags: ['v*']</code>;
+- <code>workflow_dispatch</code> with inputs <code>tag</code> (string) and <code>publish_pypi</code> (boolean, default
+  false), used for backfill.</p>
+<p><strong>Workflow-level settings:</strong>
+- <code>permissions: contents: read</code>;
+- <code>concurrency: release-${{ tag }}</code> with <code>cancel-in-progress: false</code>.</p>
+<p><strong>Jobs:</strong></p>
+<ol>
+<li><strong><code>verify</code></strong> checks out <code>ref: &lt;tag&gt;</code> and runs <code>check_release.py</code>. For tags below
+   v0.7.0, it runs <code>--backfill</code> against main's files.</li>
+<li>Outputs: <code>version</code>, <code>is_backfill</code>, and <code>pypi_ok</code>. <code>pypi_ok</code> is true when
+     <code>Version(tag) &gt;= 0.7.0</code> and either the run was a tag push or <code>publish_pypi</code> is
+     true. The comparison uses <code>packaging.version</code>.</li>
+<li><strong><code>test</code></strong> runs the full quality gate at the tag: <code>uv sync --extra dev --extra docs</code>,
+   <code>ruff check .</code>, <code>pyright</code>, <code>pytest -q</code>, <code>zensical build --strict</code>, <code>uv build</code>, and
+   <code>twine check dist/*</code>.</li>
+<li>It is <strong>skipped for backfill</strong>, because those commits passed CI in their own PRs
+     and old tags lack the current tooling. The release notes say so.</li>
+<li><strong><code>build</code></strong> runs <code>uv build</code> at the tag and uploads <code>dist/</code> with
+   <code>actions/upload-artifact</code> and <code>retention-days: 3</code>.</li>
+<li><strong>D2, decided: v0.6.0 gets no build files.</strong> Its sdist and wheel would be named
+     0.5.0, so <code>build</code> is skipped for v0.6.0. Its release notes explain why. All other
+     versions get both an sdist and a wheel.</li>
+<li><strong><code>pypi</code></strong> has <code>needs: [verify, test, build]</code> and <code>if: pypi_ok</code>.</li>
+<li><code>environment: pypi</code>, and <code>permissions: id-token: write</code> in this job only.</li>
+<li>It uses <code>pypa/gh-action-pypi-publish</code> pinned to a release tag. That is trusted
+     publishing, with no tokens.</li>
+<li><strong><code>github-release</code></strong> has <code>permissions: contents: write</code>.</li>
+<li>It uses <code>gh release create vX.Y.Z --title "NeuralOpt vX.Y.Z" --notes-file
+     docs/release-notes/vX.Y.Z.md --prerelease --verify-tag</code>, then attaches the dist
+     files.</li>
+<li>The notes file is read from main for backfill. All 0.x releases are marked as
+     pre-releases.</li>
+<li>For backfill it waits for nothing on PyPI. For v0.7.0 it runs after <code>pypi</code>
+     succeeds.</li>
+<li><strong><code>docs</code></strong> calls the reusable deploy steps from item 7 for the tag's minor version.</li>
+<li>It runs in <code>concurrency: gh-pages</code> (shared with <code>docs.yml</code>, <code>cancel-in-progress:
+     false</code>), so deploys never overlap.</li>
+</ol>
+<p><strong>Common to all jobs:</strong>
+- Actions are pinned to full release tags: <code>actions/checkout@v4.x.y</code>,
+  <code>astral-sh/setup-uv@v6.x.y</code>, and so on, with exact values resolved in Phase 2.
+- <strong>Option:</strong> pin to commit SHAs instead. That is safer but noisier, so say if you want
+  it.
+- No other workflow uploads artifacts. Release files live only on the GitHub release.</p>
+<h2 id="7-versioned-docs-zensical-plus-its-mike-fork">7. Versioned docs (Zensical plus its mike fork)<a class="headerlink" href="#7-versioned-docs-zensical-plus-its-mike-fork" title="Permanent link">&para;</a></h2>
+<p><strong>Tooling:</strong>
+- Zensical's versioning is a temporary fork of mike 2.2.0 (<code>squidfunk/mike</code>). It is not
+  on PyPI.
+- It is installed from git, pinned to a commit hash: <code>mike @
+  git+https://github.com/squidfunk/mike@2d4ad799442f4592db8ad53b179bfb33db8c69ac</code>.
+  - That is the head of <code>master</code> on 2026-04-17. The fork of <code>jimporter/mike</code> was last
+    pushed on 2026-10-11.
+  - It is used in the <code>docs</code> extra and in the workflows.
+- The <code>zensical.toml</code> setting is <code>[project.extra.version] provider = "mike"</code>, with
+  <code>alias = true</code> and <code>default = "latest"</code>.
+- <strong>What I read in the fork at that commit:</strong>
+  - <strong>Zensical version:</strong> it requires <code>zensical &gt;= 0.0.30</code>. The installed 0.1.1
+    satisfies that, so <strong>Zensical is not upgraded.</strong> If Phase 2 nonetheless shows an
+    incompatibility, Zensical is upgraded and <code>zensical build --strict</code> is run again.
+  - <strong>How it builds:</strong> <code>mike deploy</code> runs <code>zensical build --clean</code>, <strong>without</strong>
+    <code>--strict</code>. Strictness is therefore a separate <code>zensical build --strict</code> step,
+    run before every deploy.
+  - <strong>Config file:</strong> <code>mike</code> reads <code>zensical.toml</code>, or the file given with <code>-F/--config-file</code>.
+    It resolves <code>site_dir</code> relative to that file's directory.
+  - <strong>Commands:</strong> mike 2.2.0's (<code>deploy --push --update-aliases</code>, <code>set-default</code>, <code>list</code>,
+    <code>-b gh-pages</code>).
+- The Zensical versioning page (<code>zensical.org/docs/setup/versioning/</code>) currently
+  redirects to a 404. The fork's README points to the upstream mike documentation.</p>
+<p><strong>Layout on <code>gh-pages</code>:</strong>
+- one folder per minor version, <code>0.1/</code> … <code>0.7/</code>, each titled with its full version (for
+  example "0.7.0");
+- aliases <code>latest</code> (the newest release) and <code>dev</code> (main);
+- <code>mike set-default latest</code>;
+- <code>site_url = https://bibymaths.github.io/neuralopt/</code>.</p>
+<p><strong><code>.github/workflows/docs.yml</code>:</strong>
+- On PRs it runs <code>zensical build --strict</code> only, with no deploy.
+- On pushes to main it runs <code>mike deploy --push --update-aliases dev</code>.
+- It runs in concurrency group <code>gh-pages</code>, with <code>permissions: contents: write</code> only in
+  the deploy job.</p>
+<p><strong>Backfill (<code>scripts/backfill_docs.py</code>):</strong> for each old tag it:
+1. runs <code>git worktree add &lt;tmp&gt; vX.Y.0</code>;
+2. writes an <strong>untracked overlay config</strong> at the worktree root: the tag's
+   <code>zensical.toml</code> plus <code>site_url</code> and the version provider. It is named
+   <code>.zensical-versioned.toml</code> and passed with <code>-F</code>. It has to sit at the root, because
+   <code>docs_dir</code> and <code>site_dir</code> resolve relative to the config file. It is never committed,
+   and the worktree is deleted afterwards.
+3. runs <code>mike deploy --config-file &lt;overlay&gt; 0.N</code> with <code>--title 0.N.0</code>;
+4. runs <code>zensical build --strict -f &lt;overlay&gt;</code> first. If that fails, it records the
+   failure and deploys anyway, since mike's own build is non-strict;
+5. removes the worktree.</p>
+<p>The script:
+- writes a report to <code>artifacts/docs-backfill-report.json</code> (gitignored scratch, not a
+  workflow artifact) listing strict, non-strict and failed builds;
+- defaults to <code>--no-push</code> (a local <code>gh-pages</code> commit only). Pushing needs <code>--push</code> and
+  happens only in Phase 3, after you approve.</p>
+<p><strong>Phase 2 local check:</strong> build two versions (0.6 and 0.7) into a local <code>gh-pages</code> with
+<code>mike deploy</code> (no push), then <code>mike serve</code> and check the version selector. The result
+is reported.</p>
+<h2 id="8-docs-site-structure-current-version">8. Docs site structure (current version)<a class="headerlink" href="#8-docs-site-structure-current-version" title="Permanent link">&para;</a></h2>
+<p>The <code>zensical.toml</code> nav will be (new pages marked ★, existing pages reused):</p>
+<ul>
+<li><strong>Home</strong> (<code>index.md</code>, rewritten to a landing page ★)</li>
+<li><strong>Getting started:</strong> Installation ★, Quickstart ★, When to use NeuralOpt ★</li>
+<li><strong>User guide:</strong> Learned mode ★, Certified mode ★ (built from <code>research/certification.md</code>
+  usage parts plus the README), Compiled engine ★ (the usage parts of
+  <code>research/engine-speed-v0.7.md</code>; the report itself is linked, not moved)</li>
+<li><strong>Research reports by version:</strong> 0.1 … 0.7 groups pointing at the existing
+  <code>docs/research/*.md</code> files, with no rewrites</li>
+<li><strong>Release notes:</strong> <code>release-notes/index.md</code> and each version</li>
+<li><strong>Changelog:</strong> <code>changelog.md</code> ★, which includes the root <code>CHANGELOG.md</code> via the
+  <code>pymdownx.snippets</code> include</li>
+<li><strong>Limitations:</strong> <code>research/limitations.md</code> plus <code>research/stochastic-limitations.md</code></li>
+<li><strong>API reference</strong> ★: <code>mkdocstrings</code> for <code>neuralopt.__all__</code> (as in globax;
+  <code>mkdocstrings-python</code> is added to the <code>docs</code> group)</li>
+<li><strong>Citing NeuralOpt</strong> ★ (<code>citing.md</code>):</li>
+<li>the <code>CITATION.cff</code> details: title, version, author with ORCID, license, repository;</li>
+<li>"cite the exact version or commit";</li>
+<li>a BibTeX <code>@software</code> entry generated by <code>cffconvert -f bibtex</code>;</li>
+<li>(later) the concept DOI.</li>
+<li>A test checks that the page's version, title and ORCID match <code>CITATION.cff</code>.</li>
+<li><code>docs/superpowers/</code> and <code>docs/plans/</code> stay out of the nav. They are internal working
+  documents, built but not listed.</li>
+</ul>
+<p><strong>"When to use NeuralOpt" says it plainly:</strong>
+- For solving problems, use SciPy L-BFGS-B or Optimistix LBFGS. On the v0.7 equal-work
+  benchmark they reach 1e-6 on 32/32 tasks, where learned NeuralOpt geometry reaches it
+  on 0/32.
+- NeuralOpt is for research on learned optimizers, and for its restricted certified mode
+  on the supported expression subset.</p>
+<h2 id="9-readme">9. README<a class="headerlink" href="#9-readme" title="Permanent link">&para;</a></h2>
+<p>The README will contain, in order:
+- the logo;
+- a one-line description;
+- badges: CI, Docs, PyPI version, Python versions, License MIT, Ruff, uv (downloads only
+  after the first PyPI release);
+- <strong>"Status: alpha research package; learned components do not outperform classical
+  optimizers in our benchmarks (see release notes)."</strong>;
+- install (<code>pip install neuralopt</code> once on PyPI; <code>uv sync</code> for development);
+- the quickstart (the learned and certified examples, both checked by a doctest-style
+  test);
+- when to use NeuralOpt;
+- links to docs, release notes and the changelog;
+- citation: a short BibTeX block and a link to the <strong>Citing NeuralOpt</strong> docs page and
+  <code>CITATION.cff</code> (a DOI badge after the first Zenodo archive);
+- license.</p>
+<h2 id="10-logo">10. Logo<a class="headerlink" href="#10-logo" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Original SVG, written by hand, in the globax palette:</strong></li>
+<li>deep navy <code>#0B1B3F</code> for the wordmark;</li>
+<li>gradient cyan <code>#22D3EE</code> → blue <code>#2563EB</code> → purple <code>#8B5CF6</code>.</li>
+<li><strong>Icon:</strong> a contour basin, three or four nested elliptical level sets, with a short
+  chain of connected nodes (a descent path) running from the rim into the minimum. The
+  final node is highlighted. There is no globe and no cubes.</li>
+<li><strong>Wordmark:</strong> lowercase geometric "neuralopt" in navy, with "opt" in the gradient,
+  mirroring globax's accented "x". Letterforms are drawn as paths, so no font is needed
+  at render time.</li>
+<li><strong>Files in <code>docs/assets/images/</code>:</strong></li>
+<li><code>logo.svg</code> (source) and <code>logo.png</code> (1448×1086, matching the globax canvas);</li>
+<li><code>logo-dark.svg</code> and <code>logo-dark.png</code>, with a light wordmark for dark backgrounds;</li>
+<li><code>favicon/</code>: <code>favicon.ico</code>, 16/32 PNGs, <code>apple-touch-icon.png</code>, android
+    192/512 and <code>site.webmanifest</code>, made from the icon alone.</li>
+<li>PNGs are rendered with <code>rsvg-convert</code> or <code>cairosvg</code>, whichever is available, and the
+  command used is recorded.</li>
+<li><strong>Usage:</strong></li>
+<li>the README uses <code>&lt;picture&gt;</code> with light and dark sources;</li>
+<li><code>zensical.toml</code> sets <code>favicon</code> and <code>theme.logo</code>;</li>
+<li>the palette is navy/indigo plus deep-purple accent, as in globax.</li>
+<li>You review the rendered PNGs before the PR.</li>
+</ul>
+<h2 id="11-manual-steps-for-you-i-cannot-do-these">11. Manual steps for you (I cannot do these)<a class="headerlink" href="#11-manual-steps-for-you-i-cannot-do-these" title="Permanent link">&para;</a></h2>
+<ol>
+<li>✅ Check that <code>neuralopt</code> is free on PyPI (it is now reserved by your pending
+   publisher).</li>
+<li>✅ The PyPI pending trusted publisher is created. <strong>Check it matches exactly:</strong></li>
+</ol>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PyPI project name</td>
+<td><code>neuralopt</code></td>
+</tr>
+<tr>
+<td>Owner</td>
+<td><code>bibymaths</code></td>
+</tr>
+<tr>
+<td>Repository name</td>
+<td><code>neuralopt</code></td>
+</tr>
+<tr>
+<td>Workflow name</td>
+<td><code>release.yml</code> (the file name only, no path)</td>
+</tr>
+<tr>
+<td>Environment name</td>
+<td><code>pypi</code></td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>The plan uses exactly <code>.github/workflows/release.yml</code>, and a <code>pypi</code> job with
+     <code>environment: pypi</code>.</li>
+<li>The publish step runs directly in that file, not in a reusable workflow that it
+     calls. Otherwise PyPI's OIDC claim would name the other file.</li>
+<li>A pending publisher does not reserve the name. If someone else registers
+     <code>neuralopt</code> before v0.7.0 is published, it lapses.</li>
+<li>Create the GitHub environment <strong><code>pypi</code></strong> (Settings → Environments), with yourself as
+   required reviewer. Optionally restrict deployment to tags <code>v*</code>.</li>
+<li>Set <strong>Pages</strong> to "Deploy from a branch", branch <code>gh-pages</code>, folder <code>/</code>, after the
+   branch exists. The branch is created by the first <code>mike</code> push in Phase 3.</li>
+<li>✅ D4: the repository is public (<code>gh repo view</code> confirms it).</li>
+<li>D3: in Settings → General, allow squash merging and set the default commit message
+   to "Pull request title". You said you will do this.</li>
+<li><strong>Zenodo, after the backfill only.</strong> Enable the Zenodo GitHub integration for
+   <code>bibymaths/neuralopt</code> only <strong>after</strong> the v0.1.0–v0.6.0 GitHub releases exist and
+   <strong>before</strong> v0.7.0 is tagged.</li>
+<li>Zenodo archives on "release published" events, so v0.7.0 becomes the first archived
+     version.</li>
+<li>Phase 3 has a hard stop between the backfill and the v0.7.0 tag for this step.</li>
+<li><strong>After the first archive,</strong> send me the concept DOI. A follow-up PR (<code>docs:</code> or
+   <code>chore:</code>) adds it to:</li>
+<li><code>CITATION.cff</code> (<code>doi:</code> and <code>identifiers</code>);</li>
+<li><code>.zenodo.json</code> <code>related_identifiers</code>;</li>
+<li>a DOI badge in the README and the Citing page.</li>
+<li>Optional: set the repository's website field to
+   <code>https://bibymaths.github.io/neuralopt/</code>, so it shows on GitHub.</li>
+</ul>
+<h2 id="12-scope">12. Scope<a class="headerlink" href="#12-scope" title="Permanent link">&para;</a></h2>
+<ul>
+<li>v0.1.0–v0.6.0 get annotated tags, GitHub pre-releases (with assets except v0.6.0,
+  per D2) and versioned docs.</li>
+<li>They are <strong>never published to PyPI</strong>: <code>pypi_ok</code> is false below 0.7.0, and the backfill
+  runs with <code>publish_pypi=false</code>.</li>
+<li>v0.7.0 is the first PyPI release.</li>
+</ul>
+<h2 id="13-actions-storage">13. Actions storage<a class="headerlink" href="#13-actions-storage" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Artifacts are kept only between the jobs of one release run, with <code>retention-days: 3</code>.</li>
+<li>CI and docs workflows upload no artifacts. Docs deploy by pushing <code>gh-pages</code>, not by
+  Pages artifacts.</li>
+<li>Release files are kept on the GitHub release.</li>
+</ul>
+<h2 id="14-also-in-phase-2-the-compiled-engine-default-flip">14. Also in Phase 2: the compiled-engine default flip<a class="headerlink" href="#14-also-in-phase-2-the-compiled-engine-default-flip" title="Permanent link">&para;</a></h2>
+<p>This is already implemented test-first on a local stash, and is still uncommitted:</p>
+<ul>
+<li><strong>Default changed:</strong> <code>minimize(..., preconditioned_engine=...)</code> now defaults to
+  <code>"compiled"</code>.</li>
+<li><strong>v0.6 pinned:</strong> <code>scripts/run_trajectory_curvature_v0_6.py</code> passes
+  <code>preconditioned_engine="python"</code> explicitly at both preconditioned call sites. A new
+  test, which parses the script's syntax tree, enforces this.</li>
+<li><strong>Script hash recorded, results untouched:</strong> the script's sha256 changes from
+  <code>35c1e401…50d1</code>. The new hash goes in the release notes and <code>engine-speed-v0.7.md</code>.
+  <code>results/trajectory-curvature-v0.6.0.json</code> is not touched.</li>
+<li><strong>Host-gradient tests pinned:</strong> three tests in <code>tests/test_trajectory.py</code> use host
+  gradients that are deliberately inconsistent with the objective. They test the Python
+  loop, so they are now pinned to <code>"python"</code>.</li>
+<li><strong>New tests:</strong> the default is compiled; and with a host gradient, the default fails
+  closed with a message naming <code>preconditioned_engine='python'</code>.</li>
+<li><strong>v0.7 scripts:</strong> they all pass <code>"compiled"</code> explicitly, so they are unaffected.</li>
+<li><strong>Measured:</strong> full <code>pytest</code> gives 196 passed and 1 skipped (<code>diffrax</code> not installed).
+  The legacy golden tests pass.</li>
+</ul>
+<p><strong>D5, decided:</strong> this PR adds a dated note (2026-11-22) to <code>gram-space-v0.7.md</code> →
+"Decision and next work". It says the user chose <strong>amortized optimization over problem
+families</strong> as the next direction, and that learned guidance for certified search is
+<strong>deferred, not cancelled</strong>. The note is added below the existing bullet, which stays as
+written for the record.</p>
+<h2 id="15-citation-and-archiving-metadata">15. Citation and archiving metadata<a class="headerlink" href="#15-citation-and-archiving-metadata" title="Permanent link">&para;</a></h2>
+<h3 id="citationcff-updated"><code>CITATION.cff</code> (updated)<a class="headerlink" href="#citationcff-updated" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nt">cff-version</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1.2.0</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="nt">message</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">&gt;-</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span><span class="no">If you use NeuralOpt, please cite the exact version or commit you used.</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">  </span><span class="no">NeuralOpt is an alpha research package; it makes no performance claims,</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">  </span><span class="no">and several of its research results are negative (see the release notes).</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">software</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="nt">title</span><span class="p">:</span><span class="w"> </span><span class="s">"NeuralOpt:</span><span class="nv"> </span><span class="s">a</span><span class="nv"> </span><span class="s">compact</span><span class="nv"> </span><span class="s">learned</span><span class="nv"> </span><span class="s">optimizer</span><span class="nv"> </span><span class="s">in</span><span class="nv"> </span><span class="s">JAX</span><span class="nv"> </span><span class="s">with</span><span class="nv"> </span><span class="s">restricted,</span><span class="nv"> </span><span class="s">replayable</span><span class="nv"> </span><span class="s">interval</span><span class="nv"> </span><span class="s">certification"</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="nt">version</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.7.0</span>
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="nt">date-released</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">&lt;set in the release PR&gt;</span>
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="nt">authors</span><span class="p">:</span>
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">family-names</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Mishra</span>
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="w">    </span><span class="nt">given-names</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Abhinav</span>
+<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="w">    </span><span class="nt">affiliation</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Independent Researcher</span>
+<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="w">    </span><span class="nt">email</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">mishraabhinav36@gmail.com</span>
+<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="w">    </span><span class="nt">orcid</span><span class="p">:</span><span class="w"> </span><span class="s">"https://orcid.org/0009-0005-3179-7408"</span>
+<a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a><span class="nt">repository-code</span><span class="p">:</span><span class="w"> </span><span class="s">"https://github.com/bibymaths/neuralopt"</span>
+<a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a><span class="nt">url</span><span class="p">:</span><span class="w"> </span><span class="s">"https://bibymaths.github.io/neuralopt/"</span>
+<a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a><span class="nt">license</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">MIT</span>
+<a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a><span class="nt">keywords</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">learned optimization</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">learned optimizers</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">meta-learning</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">JAX</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">transformer</span><span class="p p-Indicator">,</span>
+<a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a><span class="w">           </span><span class="nv">preconditioning</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">quasi-Newton</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">interval arithmetic</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">global optimization</span><span class="p p-Indicator">,</span>
+<a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a><span class="w">           </span><span class="nv">certified optimization</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">Langevin dynamics</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">Hamiltonian Monte Carlo</span><span class="p p-Indicator">]</span>
+<a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a><span class="nt">abstract</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">&gt;-</span>
+<a id="__codelineno-1-23" name="__codelineno-1-23" href="#__codelineno-1-23"></a><span class="w">  </span><span class="no">&lt;three or four plain sentences: what the package does (a transformer-proposed update</span>
+<a id="__codelineno-1-24" name="__codelineno-1-24" href="#__codelineno-1-24"></a><span class="w">  </span><span class="no">rule in JAX; an opt-in compiled loop; a separate, model-free interval certification mode for a</span>
+<a id="__codelineno-1-25" name="__codelineno-1-25" href="#__codelineno-1-25"></a><span class="w">  </span><span class="no">restricted expression subset), and its honest status: alpha; across v0.4-v0.7 the</span>
+<a id="__codelineno-1-26" name="__codelineno-1-26" href="#__codelineno-1-26"></a><span class="w">  </span><span class="no">learned geometries did not beat validation-tuned fixed or Barzilai-Borwein baselines,</span>
+<a id="__codelineno-1-27" name="__codelineno-1-27" href="#__codelineno-1-27"></a><span class="w">  </span><span class="no">and classical L-BFGS outperforms it on the reported benchmarks.&gt;</span>
+</code></pre></div>
+<ul>
+<li>The email is the one you supplied. A public <code>CITATION.cff</code> publishes it; say if you'd
+  rather leave it out.</li>
+<li>The <code>title</code> one-liner also becomes <code>pyproject.toml</code>'s <code>description</code> and the README's
+  first line, so all three agree.</li>
+</ul>
+<h3 id="zenodojson-updated-the-file-exists-from-v010-with-minimal-fields"><code>.zenodo.json</code> (updated; the file exists from v0.1.0 with minimal fields)<a class="headerlink" href="#zenodojson-updated-the-file-exists-from-v010-with-minimal-fields" title="Permanent link">&para;</a></h3>
+<p>The file follows globax's format:
+- <code>title</code>: the same as <code>CITATION.cff</code>'s;
+- <code>upload_type</code>: <code>"software"</code>;
+- <code>description</code>: an honest summary, including the <strong>negative-results status</strong>;
+- <code>creators</code>: <code>[{"name": "Mishra, Abhinav", "affiliation": "Independent Researcher",
+  "orcid": "0009-0005-3179-7408"}]</code>;
+- <code>license</code>: <code>"MIT"</code>;
+- <code>access_right</code>: <code>"open"</code>;
+- <code>language</code>: <code>"eng"</code>;
+- <code>keywords</code>: as in <code>CITATION.cff</code>;
+- <code>related_identifiers</code>:
+  - <code>https://github.com/bibymaths/neuralopt</code>, <code>isSupplementTo</code>, <code>software</code>;
+  - <code>https://bibymaths.github.io/neuralopt/</code>, <code>isDocumentedBy</code>, <code>other</code>;
+- <strong>no <code>version</code> field</strong>, as noted in item 5.</p>
+<h3 id="zenodo-timing-and-the-doi-follow-up">Zenodo timing and the DOI follow-up<a class="headerlink" href="#zenodo-timing-and-the-doi-follow-up" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Zenodo is enabled only after the backfill (manual step 7), so v0.7.0 is the first
+  archived version.</li>
+<li>After the first archive, a follow-up PR adds the concept DOI (manual step 8). That
+  PR's tests are extended so the DOI in <code>CITATION.cff</code>, <code>.zenodo.json</code>, the README badge
+  and <code>citing.md</code> must agree.</li>
+</ul>
+<h2 id="phase-3-order-each-push-needs-your-go-ahead">Phase 3 order (each push needs your go-ahead)<a class="headerlink" href="#phase-3-order-each-push-needs-your-go-ahead" title="Permanent link">&para;</a></h2>
+<ol>
+<li>Push the annotated tags v0.1.0–v0.6.0. <strong>Ask first.</strong></li>
+<li>Backfill the GitHub releases: <code>release.yml</code> via <code>workflow_dispatch</code>, one tag at a
+   time, with <code>publish_pypi=false</code>. v0.6.0 gets no files.</li>
+<li>Backfill the docs: <code>scripts/backfill_docs.py --push</code> (0.1–0.6). Then deploy <code>dev</code>
+   from main, and report the strict/non-strict list. <strong>Ask before pushing <code>gh-pages</code>.</strong></li>
+<li><strong>STOP:</strong> you set Pages to the <code>gh-pages</code> branch and enable Zenodo (manual steps 4
+   and 7).</li>
+<li>Tag v0.7.0 on main. <strong>Ask first.</strong> <code>release.yml</code> then does the following:</li>
+<li>verify, test and build;</li>
+<li>publish to PyPI (after your approval in the <code>pypi</code> environment);</li>
+<li>create the GitHub release;</li>
+<li>deploy docs <code>0.7</code> with aliases <code>latest</code> and default.</li>
+<li>Zenodo archives the release.</li>
+<li>Report the release URLs, the docs URL and the PyPI page, then open the DOI follow-up
+   PR once you send me the DOI.</li>
+</ol>
+<h2 id="risk-register">Risk register<a class="headerlink" href="#risk-register" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Risk</th>
+<th>Mitigation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>R1: the mike fork is incompatible with the installed Zensical</td>
+<td>Confirm in Phase 2; bump Zensical; record the version</td>
+</tr>
+<tr>
+<td>R2: old tags fail <code>--strict</code> with the current Zensical</td>
+<td>Build non-strict, list them in the backfill report</td>
+</tr>
+<tr>
+<td>R3: a private repository blocks Pages and public badges</td>
+<td>Resolved: the repository is public</td>
+</tr>
+<tr>
+<td>R4: a release workflow bug publishes the wrong version</td>
+<td><code>check_release.py</code> gate; PyPI only at ≥0.7.0 and behind the <code>pypi</code> environment reviewer</td>
+</tr>
+<tr>
+<td>R5: the engine default flip breaks host-gradient users</td>
+<td>It fails closed with an actionable message; listed under Breaking changes</td>
+</tr>
+<tr>
+<td>R6: frozen artifacts are touched</td>
+<td>No writes under <code>results/</code> or <code>checkpoints/</code>; the PR diff is checked for those paths</td>
+</tr>
+</tbody>
+</table>
+<h2 id="decisions-answered-2026-11-22">Decisions (answered 2026-11-22)<a class="headerlink" href="#decisions-answered-2026-11-22" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>D1:</strong> UTC (GitHub) merge dates everywhere; the +05:30 time goes in the tag messages.</li>
+<li><strong>D2:</strong> no files for v0.6.0, explained in its notes.</li>
+<li><strong>D3:</strong> squash-merge with the PR title (you will set this).</li>
+<li><strong>D4:</strong> the repository is public.</li>
+<li><strong>D5:</strong> include the amortized-direction note.</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Risk</th>
+<th>Mitigation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>R7: Zenodo is enabled too early and archives the backfilled 0.x releases</td>
+<td>Manual step 7; Phase 3 stops before tagging v0.7.0</td>
+</tr>
+<tr>
+<td>R8: the citation metadata drifts from the version</td>
+<td><code>check_release.py</code> cross-checks every version field; <code>cffconvert --validate</code> in CI</td>
+</tr>
+</tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-circle-arrow-up" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m16 12-4-4-4 4M12 16V8"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright © 2026 Abhinav Mishra · MIT License
+    </div>
+  
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+    <a href="https://github.com/bibymaths/neuralopt" target="_blank" rel="noopener" title="NeuralOpt on GitHub" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.3.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2026 Fonticons, Inc.--><path fill="currentColor" d="M216.5 362.5c-66-8-112.5-55.5-112.5-117 0-25 9-52 24-70-6.5-16.5-5.5-51.5 2-66 20-2.5 47 8 63 22.5 19-6 39-9 63.5-9s44.5 3 62.5 8.5c15.5-14 43-24.5 63-22 7 13.5 8 48.5 1.5 65.5 16 19 24.5 44.5 24.5 70.5 0 61.5-46.5 108-113.5 116.5 17 11 28.5 35 28.5 62.5v52c0 15 12.5 23.5 27.5 17.5C441 459.5 512 369 512 257 512 115.5 397 0 255.5 0S0 115.5 0 257c0 111 70.5 203 165.5 237.5 13.5 5 26.5-4 26.5-17.5v-40c-7 3-16 5-24 5-33 0-52.5-18-66.5-51.5-5.5-13.5-11.5-21.5-23-23-6-.5-8-3-8-6 0-6 10-10.5 20-10.5 14.5 0 27 9 40 27.5 10 14.5 20.5 21 33 21s20.5-4.5 32-16c8.5-8.5 15-16 21-21"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog" role="status" aria-atomic="true">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      
+      
+        
+        
+      <script id="__config" type="application/json">{"annotate":null,"base":"../..","features":["navigation.instant","navigation.tracking","navigation.sections","navigation.path","navigation.footer","navigation.top","navigation.indexes","search.highlight","content.action.edit","content.action.view","content.code.copy","content.tooltips"],"redirect":null,"search":"../../assets/javascripts/workers/search.719e0d91.min.js","tags":null,"translations":{"clipboard.copied":"Copied to clipboard","clipboard.copy":"Copy to clipboard","clipboard.error":"Could not copy to clipboard","search.result.more.one":"1 more on this page","search.result.more.other":"# more on this page","search.result.none":"No matching documents","search.result.one":"1 matching document","search.result.other":"# matching documents","search.result.placeholder":"Type to start searching","search.result.term.missing":"Missing","select.version":"Select version"},"version":{"alias":true,"default":"latest","provider":"mike"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.3cb411a8.min.js"></script>
+      
+    
+  </body>
+</html>

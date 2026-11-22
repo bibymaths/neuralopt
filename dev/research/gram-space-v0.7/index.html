@@ -1,0 +1,4545 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="A JAX research package for learned optimization, with replayable interval certification">
+      
+      
+        <meta name="author" content="Abhinav Mishra">
+      
+      
+        <link rel="canonical" href="https://bibymaths.github.io/neuralopt/dev/research/gram-space-v0.7/">
+      
+      
+      
+        <link rel="prev" href="../engine-speed-v0.7/">
+      
+      
+        <link rel="next" href="../trajectory-curvature-v0.6/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon/favicon-32x32.png">
+      <meta name="generator" content="zensical-0.1.1">
+    
+    
+      
+        <title>Gram-space model (Track B, negative) - NeuralOpt</title>
+      
+    
+    
+      
+        
+      
+      <link rel="stylesheet" href="../../assets/stylesheets/modern/main.ebb7f775.min.css">
+      
+        
+          
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/modern/palette.b60ce83d.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,500,500i,700,700i%7CJetBrains+Mono:400,400i,700,700i&amp;display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_scope.pathname.endsWith("/")||(__md_scope=new URL(__md_scope.pathname+"/",location)),__md_hash=e=>[...e].reduce(((e,t)=>(e<<5)-e+t.charCodeAt(0)),0),__md_get=(e,t=localStorage,_=__md_scope)=>JSON.parse(t.getItem(_.pathname+"."+e)),__md_set=(e,t,_=localStorage,a=__md_scope)=>{try{_.setItem(a.pathname+"."+e,JSON.stringify(t))}catch(e){}},document.documentElement.setAttribute("data-platform",navigator.platform)</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer" aria-hidden="true"></label>
+    <div data-md-component="skip">
+      <a href="#__skip" class="md-skip">
+        Skip to content
+      </a>
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="NeuralOpt" class="md-header__button md-logo" aria-label="NeuralOpt" data-md-component="logo">
+      
+  <img src="../../assets/images/icon.svg" alt="NeuralOpt">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-menu" viewBox="0 0 24 24"><path d="M4 5h16M4 12h16M4 19h16"/></svg>
+      <span class="md-visually-hidden">Navigation</span>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            NeuralOpt
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Gram-space model (Track B, negative)
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-sun-moon" viewBox="0 0 24 24"><path d="M12 2v2M14.837 16.385a6 6 0 1 1-7.223-7.222c.624-.147.97.66.715 1.248a4 4 0 0 0 5.26 5.259c.589-.255 1.396.09 1.248.715M16 12a4 4 0 0 0-4-4M19 5l-1.256 1.256M20 12h2"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="deep-purple"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_2" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="deep-purple"  aria-label="Switch to system preference"  type="radio" name="__palette" id="__palette_2">
+    
+      <label class="md-header__button md-icon" title="Switch to system preference" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-moon" viewBox="0 0 24 24"><path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-search" viewBox="0 0 24 24"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg>
+          <span class="md-visually-hidden">Search</span>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog" aria-label="Search">
+  <button type="button" class="md-search__button">
+    Search
+  </button>
+</div>
+      
+    
+    <div class="md-header__source">
+      
+        <a href="https://github.com/bibymaths/neuralopt" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.3.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2026 Fonticons, Inc.--><path fill="currentColor" d="M216.5 362.5c-66-8-112.5-55.5-112.5-117 0-25 9-52 24-70-6.5-16.5-5.5-51.5 2-66 20-2.5 47 8 63 22.5 19-6 39-9 63.5-9s44.5 3 62.5 8.5c15.5-14 43-24.5 63-22 7 13.5 8 48.5 1.5 65.5 16 19 24.5 44.5 24.5 70.5 0 61.5-46.5 108-113.5 116.5 17 11 28.5 35 28.5 62.5v52c0 15 12.5 23.5 27.5 17.5C441 459.5 512 369 512 257 512 115.5 397 0 255.5 0S0 115.5 0 257c0 111 70.5 203 165.5 237.5 13.5 5 26.5-4 26.5-17.5v-40c-7 3-16 5-24 5-33 0-52.5-18-66.5-51.5-5.5-13.5-11.5-21.5-23-23-6-.5-8-3-8-6 0-6 10-10.5 20-10.5 14.5 0 27 9 40 27.5 10 14.5 20.5 21 33 21s20.5-4.5 32-16c8.5-8.5 15-16 21-21"/></svg>
+  </div>
+  <div class="md-source__repository">
+    bibymaths/neuralopt
+  </div>
+</a>
+      
+    </div>
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="NeuralOpt" class="md-nav__button md-logo" aria-label="NeuralOpt" data-md-component="logo">
+      
+  <img src="../../assets/images/icon.svg" alt="NeuralOpt">
+
+    </a>
+    NeuralOpt
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/bibymaths/neuralopt" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.3.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2026 Fonticons, Inc.--><path fill="currentColor" d="M216.5 362.5c-66-8-112.5-55.5-112.5-117 0-25 9-52 24-70-6.5-16.5-5.5-51.5 2-66 20-2.5 47 8 63 22.5 19-6 39-9 63.5-9s44.5 3 62.5 8.5c15.5-14 43-24.5 63-22 7 13.5 8 48.5 1.5 65.5 16 19 24.5 44.5 24.5 70.5 0 61.5-46.5 108-113.5 116.5 17 11 28.5 35 28.5 62.5v52c0 15 12.5 23.5 27.5 17.5C441 459.5 512 369 512 257 512 115.5 397 0 255.5 0S0 115.5 0 257c0 111 70.5 203 165.5 237.5 13.5 5 26.5-4 26.5-17.5v-40c-7 3-16 5-24 5-33 0-52.5-18-66.5-51.5-5.5-13.5-11.5-21.5-23-23-6-.5-8-3-8-6 0-6 10-10.5 20-10.5 14.5 0 27 9 40 27.5 10 14.5 20.5 21 33 21s20.5-4.5 32-16c8.5-8.5 15-16 21-21"/></svg>
+  </div>
+  <div class="md-source__repository">
+    bibymaths/neuralopt
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Home
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Getting started
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        
+          <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+            <label class="md-nav__title" for="__nav_2">
+              <span class="md-nav__icon md-icon"></span>
+              
+  
+  Getting started
+
+            </label>
+            <ul class="md-nav__list" data-md-scrollfix>
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Installation
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Quickstart
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../when-to-use/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  When to use NeuralOpt
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+            </ul>
+          </nav>
+        
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  User guide
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        
+          <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+            <label class="md-nav__title" for="__nav_3">
+              <span class="md-nav__icon md-icon"></span>
+              
+  
+  User guide
+
+            </label>
+            <ul class="md-nav__list" data-md-scrollfix>
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/learned-mode/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Learned mode
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/certified-mode/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Certified mode
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/compiled-engine/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Compiled engine
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+            </ul>
+          </nav>
+        
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Research reports
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        
+          <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+            <label class="md-nav__title" for="__nav_4">
+              <span class="md-nav__icon md-icon"></span>
+              
+  
+  Research reports
+
+            </label>
+            <ul class="md-nav__list" data-md-scrollfix>
+              
+                
+                  
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_1" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4_1" id="__nav_4_1_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  v0.7: compiled engine and Gram-space model
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        
+          <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_1_label" aria-expanded="true">
+            <label class="md-nav__title" for="__nav_4_1">
+              <span class="md-nav__icon md-icon"></span>
+              
+  
+  v0.7: compiled engine and Gram-space model
+
+            </label>
+            <ul class="md-nav__list" data-md-scrollfix>
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../engine-speed-v0.7/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Engine speed (Track A)
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Gram-space model (Track B, negative)
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="././" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Gram-space model (Track B, negative)
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+
+<nav class="md-nav md-nav--secondary" aria-label="On this page">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#result" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Result
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#stage-2-every-pre-registered-decision-resultsgram-space-stage2-v070json" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Stage 2: every pre-registered decision (<code>results/gram-space-stage2-v0.7.0.json</code>)
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#per-family-at-budget-100-mean-log10-regret-floored-at-12-exploratory" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Per family at budget 100 (mean log10 regret, floored at −12; exploratory)
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-training-contributed-exploratory-not-pre-registered-feeds-no-decision" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        What training contributed (EXPLORATORY: not pre-registered, feeds no decision)
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#post-mortem-exploratory-not-pre-registered-no-new-claims-feeds-no-decision" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Post-mortem (EXPLORATORY: not pre-registered, no new claims, feeds no decision)
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Post-mortem (EXPLORATORY: not pre-registered, no new claims, feeds no decision)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-imitation-sweep" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        1. Imitation sweep
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-head-saddle-check" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        2. Head saddle check
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-conclusion-exploratory" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        3. Conclusion (exploratory)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#decision-and-next-work" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Decision and next work
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#training-and-compute" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Training and compute
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#stage-1-results-frozen-protocol-resultsgram-space-stage1-v070json" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Stage 1 results (frozen protocol; <code>results/gram-space-stage1-v0.7.0.json</code>)
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Stage 1 results (frozen protocol; results&#x2f;gram-space-stage1-v0.7.0.json)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#training" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Training
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#stage-1-decision" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Stage 1 decision
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#per-family-exploratory-mean-floored-log10-regret-at-budget-100" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Per family (exploratory; mean floored log10 regret at budget 100)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reading-no-claims-beyond-the-frozen-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Reading (no claims beyond the frozen rules)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pre-registration-frozen-and-infrastructure" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Pre-registration (frozen) and infrastructure
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#development-history-model-gates-loop-rule-and-masks-before-the-pre-registration" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Development history: model, gates, loop rule and masks (before the pre-registration)
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Development history: model, gates, loop rule and masks (before the pre-registration)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-model-b1-opt-in-schema-neuralopt-policyv07-gram-v1" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        The model (B1; opt-in, schema <code>neuralopt-policy/v0.7-gram-v1</code>)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gate-1-algebraic-float64-teststest_grampy" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Gate 1: algebraic, float64 (<code>tests/test_gram.py</code>)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gate-2-capacity-no-training-resultsgram-gates-v070json" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Gate 2: capacity, no training (<code>results/gram-gates-v0.7.0.json</code>)
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Gate 2: capacity, no training (results&#x2f;gram-gates-v0.7.0.json)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#reading" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Reading
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gate-2-as-written-and-the-amended-criterion" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Gate 2 as written, and the amended criterion
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#loop-rule-ablation-resultsloop-rule-ablation-v070json" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Loop-rule ablation (<code>results/loop-rule-ablation-v0.7.0.json</code>)
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Loop-rule ablation (results&#x2f;loop-rule-ablation-v0.7.0.json)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Setup
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-three-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        The three rules
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#results" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Results
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reading_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Reading
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mask-diagnostic-oracle-k10-halving-resultsmask-diagnostic-v070json" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Mask diagnostic (oracle K=10, halving; <code>results/mask-diagnostic-v0.7.0.json</code>)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-acceptance-rules-scope" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Step-acceptance rules (scope)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tf-h8-anisotropy-cap-the-frozen-v06-checkpoints" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        tf-h8 anisotropy cap (the frozen v0.6 checkpoints)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#review-findings-and-dispositions" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Review findings and dispositions
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#corrections" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Corrections
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#limitations" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Limitations
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#reproduction" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Reproduction
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+                
+              
+            </ul>
+          </nav>
+        
+      
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_2" id="__nav_4_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  v0.6: trajectory curvature
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        
+          <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_2_label" aria-expanded="false">
+            <label class="md-nav__title" for="__nav_4_2">
+              <span class="md-nav__icon md-icon"></span>
+              
+  
+  v0.6: trajectory curvature
+
+            </label>
+            <ul class="md-nav__list" data-md-scrollfix>
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../trajectory-curvature-v0.6/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Pre-registered study (negative)
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../trajectory-curvature-experiments/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Experiments
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../trajectory-curvature-literature/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Literature
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+            </ul>
+          </nav>
+        
+      
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    
+    
+      
+        
+      
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_3" id="__nav_4_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  v0.5: transferable geometry
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        
+          <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_3_label" aria-expanded="false">
+            <label class="md-nav__title" for="__nav_4_3">
+              <span class="md-nav__icon md-icon"></span>
+              
+  
+  v0.5: transferable geometry
+
+            </label>
+            <ul class="md-nav__list" data-md-scrollfix>
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../transferable-geometry/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Transferable geometry (negative)
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+            </ul>
+          </nav>
+        
+      
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    
+    
+      
+        
+      
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_4" id="__nav_4_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  v0.4: distribution-aware training
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        
+          <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_4_label" aria-expanded="false">
+            <label class="md-nav__title" for="__nav_4_4">
+              <span class="md-nav__icon md-icon"></span>
+              
+  
+  v0.4: distribution-aware training
+
+            </label>
+            <ul class="md-nav__list" data-md-scrollfix>
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../distribution-aware-training/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Distribution-aware training (negative)
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+            </ul>
+          </nav>
+        
+      
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_5" id="__nav_4_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  v0.3: stochastic geometry
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        
+          <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_5_label" aria-expanded="false">
+            <label class="md-nav__title" for="__nav_4_5">
+              <span class="md-nav__icon md-icon"></span>
+              
+  
+  v0.3: stochastic geometry
+
+            </label>
+            <ul class="md-nav__list" data-md-scrollfix>
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../langevin-theory/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Langevin theory
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../fokker-planck/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Fokker–Planck diagnostics
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../gibbs-measures/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Gibbs measures
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../function-spaces/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Function spaces
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../stochastic-novelty/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Stochastic novelty
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../stochastic-limitations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Stochastic limitations
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+            </ul>
+          </nav>
+        
+      
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_6" id="__nav_4_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  v0.2: outcome-driven foundation
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        
+          <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_6_label" aria-expanded="false">
+            <label class="md-nav__title" for="__nav_4_6">
+              <span class="md-nav__icon md-icon"></span>
+              
+  
+  v0.2: outcome-driven foundation
+
+            </label>
+            <ul class="md-nav__list" data-md-scrollfix>
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../training/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Training
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../benchmarks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Benchmarks
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../certification/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Certified scheduling
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../generalization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Generalization
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../trajectory-diagnostics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Trajectory diagnostics
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../hamiltonian-theory/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Hamiltonian theory
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../hamiltonian-correctness/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Hamiltonian correctness
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../hamiltonian-related-work/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Hamiltonian related work
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+            </ul>
+          </nav>
+        
+      
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_7" id="__nav_4_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  v0.1: first prototype
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        
+          <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_7_label" aria-expanded="false">
+            <label class="md-nav__title" for="__nav_4_7">
+              <span class="md-nav__icon md-icon"></span>
+              
+  
+  v0.1: first prototype
+
+            </label>
+            <ul class="md-nav__list" data-md-scrollfix>
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../theory/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Theory
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../experiment-plan/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Experiment plan
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../literature/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Literature
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../novelty/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Novelty
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../limitations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Limitations (v0.1–v0.2)
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../benchmarks/smoke/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Smoke benchmark
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+            </ul>
+          </nav>
+        
+      
+    </li>
+  
+
+                
+              
+            </ul>
+          </nav>
+        
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../release-notes/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Release notes
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5" id="__nav_5_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        
+          <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+            <label class="md-nav__title" for="__nav_5">
+              <span class="md-nav__icon md-icon"></span>
+              
+  
+  Release notes
+
+            </label>
+            <ul class="md-nav__list" data-md-scrollfix>
+              
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../release-notes/v0.7.0/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  v0.7.0
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../release-notes/v0.6.0/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  v0.6.0
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../release-notes/v0.5.0/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  v0.5.0
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../release-notes/v0.4.0/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  v0.4.0
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../release-notes/v0.3.0/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  v0.3.0
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../release-notes/v0.2.0/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  v0.2.0
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../release-notes/v0.1.0/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  v0.1.0
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+            </ul>
+          </nav>
+        
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../changelog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Changelog
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../limitations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Limitations
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../citing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Citing NeuralOpt
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  API reference
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  
+                    
+                    
+                    
+                      
+                    
+                    
+                      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+                      <div class="md-sidebar-button__wrapper">
+                        <label class="md-sidebar-button" for="__toc"></label>
+                      </div>
+                    
+                  
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--secondary" aria-label="On this page">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#result" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Result
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#stage-2-every-pre-registered-decision-resultsgram-space-stage2-v070json" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Stage 2: every pre-registered decision (<code>results/gram-space-stage2-v0.7.0.json</code>)
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#per-family-at-budget-100-mean-log10-regret-floored-at-12-exploratory" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Per family at budget 100 (mean log10 regret, floored at −12; exploratory)
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-training-contributed-exploratory-not-pre-registered-feeds-no-decision" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        What training contributed (EXPLORATORY: not pre-registered, feeds no decision)
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#post-mortem-exploratory-not-pre-registered-no-new-claims-feeds-no-decision" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Post-mortem (EXPLORATORY: not pre-registered, no new claims, feeds no decision)
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Post-mortem (EXPLORATORY: not pre-registered, no new claims, feeds no decision)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-imitation-sweep" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        1. Imitation sweep
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-head-saddle-check" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        2. Head saddle check
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-conclusion-exploratory" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        3. Conclusion (exploratory)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#decision-and-next-work" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Decision and next work
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#training-and-compute" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Training and compute
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#stage-1-results-frozen-protocol-resultsgram-space-stage1-v070json" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Stage 1 results (frozen protocol; <code>results/gram-space-stage1-v0.7.0.json</code>)
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Stage 1 results (frozen protocol; results&#x2f;gram-space-stage1-v0.7.0.json)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#training" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Training
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#stage-1-decision" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Stage 1 decision
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#per-family-exploratory-mean-floored-log10-regret-at-budget-100" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Per family (exploratory; mean floored log10 regret at budget 100)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reading-no-claims-beyond-the-frozen-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Reading (no claims beyond the frozen rules)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pre-registration-frozen-and-infrastructure" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Pre-registration (frozen) and infrastructure
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#development-history-model-gates-loop-rule-and-masks-before-the-pre-registration" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Development history: model, gates, loop rule and masks (before the pre-registration)
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Development history: model, gates, loop rule and masks (before the pre-registration)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-model-b1-opt-in-schema-neuralopt-policyv07-gram-v1" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        The model (B1; opt-in, schema <code>neuralopt-policy/v0.7-gram-v1</code>)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gate-1-algebraic-float64-teststest_grampy" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Gate 1: algebraic, float64 (<code>tests/test_gram.py</code>)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gate-2-capacity-no-training-resultsgram-gates-v070json" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Gate 2: capacity, no training (<code>results/gram-gates-v0.7.0.json</code>)
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Gate 2: capacity, no training (results&#x2f;gram-gates-v0.7.0.json)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#reading" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Reading
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gate-2-as-written-and-the-amended-criterion" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Gate 2 as written, and the amended criterion
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#loop-rule-ablation-resultsloop-rule-ablation-v070json" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Loop-rule ablation (<code>results/loop-rule-ablation-v0.7.0.json</code>)
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Loop-rule ablation (results&#x2f;loop-rule-ablation-v0.7.0.json)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Setup
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-three-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        The three rules
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#results" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Results
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reading_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Reading
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mask-diagnostic-oracle-k10-halving-resultsmask-diagnostic-v070json" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Mask diagnostic (oracle K=10, halving; <code>results/mask-diagnostic-v0.7.0.json</code>)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-acceptance-rules-scope" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Step-acceptance rules (scope)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tf-h8-anisotropy-cap-the-frozen-v06-checkpoints" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        tf-h8 anisotropy cap (the frozen v0.6 checkpoints)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#review-findings-and-dispositions" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Review findings and dispositions
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#corrections" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Corrections
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#limitations" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Limitations
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#reproduction" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Reproduction
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+                
+
+
+
+  
+
+
+  <nav class="md-path" aria-label="Navigation" >
+    <ol class="md-path__list">
+      
+        
+  
+  
+    <li class="md-path__item">
+      <a href="../.." class="md-path__link">
+        
+  
+  <span class="md-ellipsis">
+    Home
+  </span>
+
+      </a>
+    </li>
+  
+
+      
+      
+        
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    
+      
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+    
+      <li class="md-path__item">
+        <a href="../engine-speed-v0.7/" class="md-path__link">
+          
+  
+  <span class="md-ellipsis">
+    Research reports
+  </span>
+
+        </a>
+      </li>
+    
+  
+
+    
+  
+
+      
+        
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+    
+      <li class="md-path__item">
+        <a href="../engine-speed-v0.7/" class="md-path__link">
+          
+  
+  <span class="md-ellipsis">
+    v0.7: compiled engine and Gram-space model
+  </span>
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ol>
+  </nav>
+
+              
+              <article class="md-content__inner md-typeset">
+                <a id="__skip" tabindex="-1"></a>
+                
+                  
+
+  
+    <a href="https://github.com/bibymaths/neuralopt/edit/main/docs/research/gram-space-v0.7.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-file-pen" viewBox="0 0 24 24"><path d="M12.659 22H18a2 2 0 0 0 2-2V8a2.4 2.4 0 0 0-.706-1.706l-3.588-3.588A2.4 2.4 0 0 0 14 2H6a2 2 0 0 0-2 2v9.34"/><path d="M14 2v5a1 1 0 0 0 1 1h5M10.378 12.622a1 1 0 0 1 3 3.003L8.36 20.637a2 2 0 0 1-.854.506l-2.867.837a.5.5 0 0 1-.62-.62l.836-2.869a2 2 0 0 1 .506-.853z"/></svg>
+    </a>
+  
+  
+    
+      
+    
+    <a href="https://github.com/bibymaths/neuralopt/raw/main/docs/research/gram-space-v0.7.md" title="View source of this page" class="md-content__button md-icon">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-file-code-2" viewBox="0 0 24 24"><path d="M4 12.15V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.706.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2h-3.35"/><path d="M14 2v5a1 1 0 0 0 1 1h5M5 16l-3 3 3 3M9 22l3-3-3-3"/></svg>
+    </a>
+  
+
+
+<h1 id="v07-gram-space-history-model-pre-registered-result">v0.7 Gram-space history model: pre-registered result<a class="headerlink" href="#v07-gram-space-history-model-pre-registered-result" title="Permanent link">&para;</a></h1>
+<h2 id="result">Result<a class="headerlink" href="#result" title="Permanent link">&para;</a></h2>
+<p><strong>The claim the frozen outcome-to-claim table permits: learned geometry did not beat BB
+on the curvature domain; BB stays the bar.</strong> H2 and H3 are exploratory, with no claim.</p>
+<p><strong>This is a negative result.</strong> Read off the frozen outcome-to-claim table
+(pre-registration sha256 <code>6d5489da…3cad3f</code>), the row that applies is: Stage 1 passes,
+H1 fails, so:</p>
+<blockquote>
+<p><em>Learned geometry did not beat BB on the curvature domain; BB stays the bar. H2 and H3
+are exploratory, with no claim.</em></p>
+</blockquote>
+<ul>
+<li><strong>Primary, H1, fails.</strong> gram-full − BB on the curvature domain (diagonal κ1000,
+  rotated κ100 and κ1000 at unseen d = 7/16/32, budget 100) is −0.224
+  [−0.510, +0.115]. The interval is not entirely below 0.</li>
+<li><strong>The reliability guard is also violated.</strong></li>
+<li>Rastrigin: +2.14 [+0.36, +4.34].</li>
+<li>Ackley: +0.89 [+0.10, +2.08].</li>
+<li>Shifted Rosenbrock: −0.06 [−0.11, −0.03].</li>
+<li>Under the table, the guard changes nothing once H1 has failed. It is reported
+    because it confirms the Stage 1 warning.</li>
+<li><strong>The learned model is far from relearning L-BFGS.</strong></li>
+<li>gram-full − oracle-BFGS is +4.69 [+3.76, +5.68] decades.</li>
+<li>Its step directions have a median cosine of 0.48 with the oracle's on 200 probe
+    states.</li>
+<li>Per family it is almost identical to the learned scalar step (gram-scalar): A and C
+    added essentially nothing.</li>
+<li><strong>BB stays the bar,</strong> and no claim is made for the Gram model. The headroom the oracle
+  shows (A and C set to BFGS values) exists but was not learned.</li>
+</ul>
+<h2 id="stage-2-every-pre-registered-decision-resultsgram-space-stage2-v070json">Stage 2: every pre-registered decision (<code>results/gram-space-stage2-v0.7.0.json</code>)<a class="headerlink" href="#stage-2-every-pre-registered-decision-resultsgram-space-stage2-v070json" title="Permanent link">&para;</a></h2>
+<p>Intervals are 95% paired over 5 training seeds × tasks (two-level crossed bootstrap,
+10,000 draws). Values are log10 regret floored at −12; negative favours the first arm.</p>
+<table>
+<thead>
+<tr>
+<th>Decision</th>
+<th>Contrast</th>
+<th>Mean [95% CI]</th>
+<th>Rule</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>S1 (Stage 1, recomputed)</td>
+<td>gram-scalar − BB, curvature</td>
+<td>−0.139 [−0.334, +0.044]</td>
+<td>upper &lt; +0.25</td>
+<td>pass</td>
+</tr>
+<tr>
+<td><strong>H1 (primary)</strong></td>
+<td>gram-full − BB, curvature</td>
+<td><strong>−0.224 [−0.510, +0.115]</strong></td>
+<td>whole CI &lt; 0</td>
+<td><strong>fail</strong></td>
+</tr>
+<tr>
+<td>Guard</td>
+<td>gram-full − BB, Rastrigin</td>
+<td>+2.144 [+0.356, +4.338]</td>
+<td>mean &gt; +0.5 and lower &gt; 0</td>
+<td><strong>violated</strong></td>
+</tr>
+<tr>
+<td>Guard</td>
+<td>gram-full − BB, Ackley</td>
+<td>+0.892 [+0.095, +2.082]</td>
+<td>same</td>
+<td><strong>violated</strong></td>
+</tr>
+<tr>
+<td>Guard</td>
+<td>gram-full − BB, shifted Rosenbrock</td>
+<td>−0.062 [−0.111, −0.026]</td>
+<td>same</td>
+<td>not violated</td>
+</tr>
+<tr>
+<td>H2 (secondary; <strong>exploratory</strong> because H1 failed)</td>
+<td>gram-full, rotated κ1000 − diagonal κ1000 (equal spectrum)</td>
+<td>+0.054 [−0.257, +0.367]</td>
+<td>whole CI within ±0.5</td>
+<td>within the margin; <strong>no claim</strong></td>
+</tr>
+<tr>
+<td>H3 (secondary; exploratory because H1 failed)</td>
+<td>gram-full − oracle-BFGS, curvature</td>
+<td>+4.688 [+3.758, +5.681]</td>
+<td>upper &lt; +0.5</td>
+<td><strong>fail</strong></td>
+</tr>
+<tr>
+<td>R(i)</td>
+<td>share of task × seed pairs with |gram-full − oracle| ≤ 0.25</td>
+<td>0.000</td>
+<td>≥ 0.75</td>
+<td>not met</td>
+</tr>
+<tr>
+<td>R(ii)</td>
+<td>median direction cosine with the oracle (200 probe states)</td>
+<td>0.482</td>
+<td>≥ 0.99</td>
+<td>not met</td>
+</tr>
+</tbody>
+</table>
+<p>H2 context (rotated − diagonal at equal spectrum, reported only):
+- BB: −0.037 [−0.379, +0.326]
+- oracle: −0.254 [−0.589, +0.026]
+- L-BFGS-B: +0.258 [+0.095, +0.438]
+- tf-h8 (v0.6): +0.507 [+0.188, +0.828], the rotation penalty that v0.6's
+  coordinate-axis geometry predicts.</p>
+<h2 id="per-family-at-budget-100-mean-log10-regret-floored-at-12-exploratory">Per family at budget 100 (mean log10 regret, floored at −12; exploratory)<a class="headerlink" href="#per-family-at-budget-100-mean-log10-regret-floored-at-12-exploratory" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Arm</th>
+<th style="text-align: right;">diagonal-1000</th>
+<th style="text-align: right;">rotated-100</th>
+<th style="text-align: right;">rotated-1000</th>
+<th style="text-align: right;">isotropic</th>
+<th style="text-align: right;">rastrigin</th>
+<th style="text-align: right;">ackley</th>
+<th style="text-align: right;">rosenbrock-shifted</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>BB (bar)</td>
+<td style="text-align: right;">−2.98</td>
+<td style="text-align: right;">−4.61</td>
+<td style="text-align: right;">−3.01</td>
+<td style="text-align: right;">−12.00</td>
+<td style="text-align: right;">−12.00</td>
+<td style="text-align: right;">−12.00</td>
+<td style="text-align: right;">−1.07</td>
+</tr>
+<tr>
+<td>oracle-BFGS (ceiling)</td>
+<td style="text-align: right;">−7.14</td>
+<td style="text-align: right;">−10.80</td>
+<td style="text-align: right;">−7.40</td>
+<td style="text-align: right;">−12.00</td>
+<td style="text-align: right;">−12.00</td>
+<td style="text-align: right;">−10.26</td>
+<td style="text-align: right;">−2.90</td>
+</tr>
+<tr>
+<td>L-BFGS-B (context)</td>
+<td style="text-align: right;">−7.55</td>
+<td style="text-align: right;">−10.96</td>
+<td style="text-align: right;">−7.29</td>
+<td style="text-align: right;">−12.00</td>
+<td style="text-align: right;">−10.19</td>
+<td style="text-align: right;">−7.15</td>
+<td style="text-align: right;">−1.99</td>
+</tr>
+<tr>
+<td>tf-h8 (v0.6, context)</td>
+<td style="text-align: right;">−2.82</td>
+<td style="text-align: right;">−2.90</td>
+<td style="text-align: right;">−2.31</td>
+<td style="text-align: right;">−11.02</td>
+<td style="text-align: right;">−7.42</td>
+<td style="text-align: right;">−5.45</td>
+<td style="text-align: right;">−1.02</td>
+</tr>
+<tr>
+<td>gram-nohist</td>
+<td style="text-align: right;">−2.17</td>
+<td style="text-align: right;">−2.36</td>
+<td style="text-align: right;">−1.99</td>
+<td style="text-align: right;">−11.83</td>
+<td style="text-align: right;">−7.98</td>
+<td style="text-align: right;">−7.54</td>
+<td style="text-align: right;">−0.99</td>
+</tr>
+<tr>
+<td>gram-scalar</td>
+<td style="text-align: right;">−3.09</td>
+<td style="text-align: right;">−4.89</td>
+<td style="text-align: right;">−3.03</td>
+<td style="text-align: right;">−12.00</td>
+<td style="text-align: right;">−7.78</td>
+<td style="text-align: right;">−10.83</td>
+<td style="text-align: right;">−1.08</td>
+</tr>
+<tr>
+<td><strong>gram-full</strong></td>
+<td style="text-align: right;"><strong>−3.16</strong></td>
+<td style="text-align: right;"><strong>−5.02</strong></td>
+<td style="text-align: right;"><strong>−3.10</strong></td>
+<td style="text-align: right;"><strong>−12.00</strong></td>
+<td style="text-align: right;"><strong>−9.86</strong></td>
+<td style="text-align: right;"><strong>−11.11</strong></td>
+<td style="text-align: right;"><strong>−1.14</strong></td>
+</tr>
+<tr>
+<td>gram-scalar, untrained (exploratory)</td>
+<td style="text-align: right;">−2.62</td>
+<td style="text-align: right;">−3.57</td>
+<td style="text-align: right;">−2.62</td>
+<td style="text-align: right;">−12.00</td>
+<td style="text-align: right;">−11.67</td>
+<td style="text-align: right;">−10.76</td>
+<td style="text-align: right;">−1.05</td>
+</tr>
+<tr>
+<td>gram-full, untrained (exploratory)</td>
+<td style="text-align: right;">−2.62</td>
+<td style="text-align: right;">−3.69</td>
+<td style="text-align: right;">−2.56</td>
+<td style="text-align: right;">−12.00</td>
+<td style="text-align: right;">−11.67</td>
+<td style="text-align: right;">−11.64</td>
+<td style="text-align: right;">−1.04</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><strong>Direction cosine</strong> (gram-full against the oracle, criterion R(ii)): median 0.48
+  over 200 probe states from oracle trajectories on curvature-domain test tasks
+  (seed-0 model).</li>
+<li><strong>Reliability:</strong> no learned arm returned an error status. Mean units: 99.2–99.3 for
+  the Gram arms and BB; 83.9 for L-BFGS-B, which stops early on some tasks.</li>
+</ul>
+<h2 id="what-training-contributed-exploratory-not-pre-registered-feeds-no-decision">What training contributed (EXPLORATORY: not pre-registered, feeds no decision)<a class="headerlink" href="#what-training-contributed-exploratory-not-pre-registered-feeds-no-decision" title="Permanent link">&para;</a></h2>
+<p>Source: <code>results/gram-untrained-diagnostic-v0.7.0.json</code>.
+- <strong>Why it was run:</strong> requested because gram-scalar's training loss was flat from the
+  start.
+- <strong>What it compares:</strong> the same models at their initial weights
+  (<code>init_gram_model(PRNGKey(seed))</code>, exactly what training starts from), on the same test
+  tasks at budget 100, paired by seed.</p>
+<table>
+<thead>
+<tr>
+<th>Arm</th>
+<th>Trained − untrained, curvature</th>
+<th>Rastrigin</th>
+<th>Ackley</th>
+<th>Shifted Rosenbrock</th>
+<th>Untrained − BB, curvature</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>gram-scalar</td>
+<td>−0.736 [−1.020, −0.513]</td>
+<td>+3.893 [+0.392, +7.885]</td>
+<td>−0.075 [−1.003, +0.907]</td>
+<td>−0.030 [−0.058, −0.007]</td>
+<td>+0.598 [+0.325, +0.886]</td>
+</tr>
+<tr>
+<td>gram-full</td>
+<td>−0.805 [−1.072, −0.562]</td>
+<td>+1.814 [−0.239, +4.218]</td>
+<td>+0.533 [−0.270, +1.675]</td>
+<td>−0.095 [−0.153, −0.050]</td>
+<td>+0.581 [+0.311, +0.873]</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><strong>Training helped on the curvature domain.</strong> It moved both arms from about 0.6
+  decades worse than BB to a tie.</li>
+<li><strong>Training hurt on Rastrigin.</strong> The untrained models stay in the global basin, about
+  as BB does; the trained ones do not.</li>
+<li><strong>The flat training loss hides this.</strong> The gain on the curvature domain and the
+  regression on Rastrigin both happened during training.</li>
+<li>These are exploratory observations, not claims.</li>
+</ul>
+<h2 id="post-mortem-exploratory-not-pre-registered-no-new-claims-feeds-no-decision">Post-mortem (EXPLORATORY: not pre-registered, no new claims, feeds no decision)<a class="headerlink" href="#post-mortem-exploratory-not-pre-registered-no-new-claims-feeds-no-decision" title="Permanent link">&para;</a></h2>
+<p>Source: <code>results/gram-postmortem-v0.7.0.json</code>.
+- <strong>Hypothesis tested:</strong> the model configuration (depth and width) limits learning the A
+  and C coefficients.
+- <strong>Data:</strong> only training tasks and validation tasks (seeds 8500+, dimensions 6 and 10).
+  No test task was built. Frozen v0.7 results and checkpoints are unchanged.
+- <strong>Oracle states:</strong> oracle-BFGS runs in the frozen loop (halving, K = 10, history-v2
+  masks, float64, budget 100) gave 6,505 training states and 2,101 validation states.</p>
+<h3 id="1-imitation-sweep">1. Imitation sweep<a class="headerlink" href="#1-imitation-sweep" title="Permanent link">&para;</a></h3>
+<p>Each configuration was fitted by supervised regression to the oracle's A, C·Cᵀ (C is
+defined only up to a right orthogonal factor), δ and σ = 1. Training used 3,000 Adam
+steps, batch 256 and seed 0. Heads = width/8, so the head dimension is 8 as in the
+frozen model.</p>
+<p><strong>Fit columns:</strong> median relative error on held-out validation states, and the median
+cosine between the fitted model's step direction and the oracle's.</p>
+<p><strong>Regret column:</strong> median log10 regret when the fitted model runs the shared loop on the
+12 curvature-domain validation tasks.</p>
+<p><strong>Reference on those 12 tasks:</strong>
+- BB −3.32;
+- oracle −15.99;
+- the frozen meta-trained gram-full, per seed: −3.82, −3.34, −3.94, −3.57, −3.67.</p>
+<table>
+<thead>
+<tr>
+<th>Layers × width</th>
+<th style="text-align: right;">Parameters</th>
+<th style="text-align: right;">Rel. error A</th>
+<th style="text-align: right;">Rel. error CCᵀ</th>
+<th style="text-align: right;">|δ error|</th>
+<th style="text-align: right;">Direction cosine</th>
+<th style="text-align: right;">Regret (validation)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2 × 32 (frozen config)</td>
+<td style="text-align: right;">14,080</td>
+<td style="text-align: right;">0.700</td>
+<td style="text-align: right;">0.731</td>
+<td style="text-align: right;">0.089</td>
+<td style="text-align: right;">0.916</td>
+<td style="text-align: right;">−2.34</td>
+</tr>
+<tr>
+<td>2 × 64</td>
+<td style="text-align: right;">52,736</td>
+<td style="text-align: right;">0.435</td>
+<td style="text-align: right;">0.488</td>
+<td style="text-align: right;">0.088</td>
+<td style="text-align: right;">0.947</td>
+<td style="text-align: right;">−2.60</td>
+</tr>
+<tr>
+<td>2 × 128</td>
+<td style="text-align: right;">203,776</td>
+<td style="text-align: right;">0.349</td>
+<td style="text-align: right;">0.466</td>
+<td style="text-align: right;">0.049</td>
+<td style="text-align: right;">0.963</td>
+<td style="text-align: right;">−1.79</td>
+</tr>
+<tr>
+<td>4 × 32</td>
+<td style="text-align: right;">22,272</td>
+<td style="text-align: right;">0.630</td>
+<td style="text-align: right;">0.662</td>
+<td style="text-align: right;">0.080</td>
+<td style="text-align: right;">0.922</td>
+<td style="text-align: right;">−2.24</td>
+</tr>
+<tr>
+<td>4 × 64</td>
+<td style="text-align: right;">85,504</td>
+<td style="text-align: right;">0.444</td>
+<td style="text-align: right;">0.541</td>
+<td style="text-align: right;">0.071</td>
+<td style="text-align: right;">0.937</td>
+<td style="text-align: right;">−2.55</td>
+</tr>
+<tr>
+<td>4 × 128</td>
+<td style="text-align: right;">334,848</td>
+<td style="text-align: right;">0.328</td>
+<td style="text-align: right;">0.430</td>
+<td style="text-align: right;">0.067</td>
+<td style="text-align: right;">0.970</td>
+<td style="text-align: right;">−2.47</td>
+</tr>
+<tr>
+<td>6 × 32</td>
+<td style="text-align: right;">30,464</td>
+<td style="text-align: right;">0.708</td>
+<td style="text-align: right;">0.765</td>
+<td style="text-align: right;">0.109</td>
+<td style="text-align: right;">0.891</td>
+<td style="text-align: right;">−2.20</td>
+</tr>
+<tr>
+<td>6 × 64</td>
+<td style="text-align: right;">118,272</td>
+<td style="text-align: right;">0.485</td>
+<td style="text-align: right;">0.535</td>
+<td style="text-align: right;">0.074</td>
+<td style="text-align: right;">0.956</td>
+<td style="text-align: right;">−2.37</td>
+</tr>
+<tr>
+<td>6 × 128</td>
+<td style="text-align: right;">465,920</td>
+<td style="text-align: right;">0.339</td>
+<td style="text-align: right;">0.438</td>
+<td style="text-align: right;">0.043</td>
+<td style="text-align: right;">0.966</td>
+<td style="text-align: right;">−2.70</td>
+</tr>
+</tbody>
+</table>
+<h3 id="2-head-saddle-check">2. Head saddle check<a class="headerlink" href="#2-head-saddle-check" title="Permanent link">&para;</a></h3>
+<p><strong>Setup:</strong>
+- 200 updates of the frozen meta-training on training tasks, with the same batching as
+  <code>train_batched</code>.
+- The loop is verified to reproduce <code>train_batched</code> exactly for seed 0: maximum
+  parameter difference 0.0.
+- Seeds 0, 1 and 2, under two initializations: the frozen one (A/C head weights at
+  0.1 scale), and a variant with those weights rescaled to 1.0 scale.
+- No NaN skips occurred.</p>
+<p><strong>Measures:</strong>
+- Median per-update gradient norm (before the global-norm clip at 1.0) at the A, C, δ
+  and σ heads.
+- A/C output magnitudes (mean Frobenius norm) on 256 fixed validation probe states.
+- For scale: on training states with pairs, the oracle targets have median ‖A<em>‖_F 4.5
+  and median ‖C</em>C*ᵀ‖_F 5.0.</p>
+<table>
+<thead>
+<tr>
+<th>Init</th>
+<th style="text-align: right;">Seed</th>
+<th style="text-align: right;">‖∇A heads‖</th>
+<th style="text-align: right;">‖∇C heads‖</th>
+<th style="text-align: right;">‖∇δ‖</th>
+<th style="text-align: right;">‖∇σ‖</th>
+<th style="text-align: right;">(A,C) / (δ,σ) ratio</th>
+<th>‖A‖_F: 0 → 200</th>
+<th>‖C‖_F: 0 → 200</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0.1 (frozen)</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">22.8</td>
+<td style="text-align: right;">3.3</td>
+<td style="text-align: right;">137</td>
+<td style="text-align: right;">39.1</td>
+<td style="text-align: right;">0.14</td>
+<td>0.010 → 0.034</td>
+<td>0.010 → 0.249</td>
+</tr>
+<tr>
+<td>0.1 (frozen)</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">35.4</td>
+<td style="text-align: right;">11.0</td>
+<td style="text-align: right;">179</td>
+<td style="text-align: right;">53.1</td>
+<td style="text-align: right;">0.19</td>
+<td>0.009 → 0.260</td>
+<td>0.007 → 0.495</td>
+</tr>
+<tr>
+<td>0.1 (frozen)</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">53.3</td>
+<td style="text-align: right;">1.4</td>
+<td style="text-align: right;">245</td>
+<td style="text-align: right;">71.4</td>
+<td style="text-align: right;">0.18</td>
+<td>0.008 → 0.089</td>
+<td>0.009 → 0.084</td>
+</tr>
+<tr>
+<td>1.0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">293</td>
+<td style="text-align: right;">92.1</td>
+<td style="text-align: right;">678</td>
+<td style="text-align: right;">245</td>
+<td style="text-align: right;">0.44</td>
+<td>0.966 → 1.573</td>
+<td>1.014 → 0.497</td>
+</tr>
+<tr>
+<td>1.0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">158</td>
+<td style="text-align: right;">66.3</td>
+<td style="text-align: right;">293</td>
+<td style="text-align: right;">120</td>
+<td style="text-align: right;">0.57</td>
+<td>0.850 → 0.513</td>
+<td>0.724 → 0.390</td>
+</tr>
+<tr>
+<td>1.0</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">89.7</td>
+<td style="text-align: right;">65.7</td>
+<td style="text-align: right;">193</td>
+<td style="text-align: right;">92.8</td>
+<td style="text-align: right;">0.55</td>
+<td>0.807 → 0.744</td>
+<td>0.912 → 0.922</td>
+</tr>
+</tbody>
+</table>
+<h3 id="3-conclusion-exploratory">3. Conclusion (exploratory)<a class="headerlink" href="#3-conclusion-exploratory" title="Permanent link">&para;</a></h3>
+<p><strong>Depth and width are not the binding limit.</strong>
+- Width improves imitation fit: relative A error falls from 0.70 to 0.33–0.35, and the
+  direction cosine rises from 0.92 to 0.96–0.97. Depth adds little.
+- But no fitted configuration performs well in the shared loop. Every one is worse than
+  BB on validation (−1.79 to −2.70, against −3.32), and worse than the frozen
+  meta-trained model (−3.3 to −3.9).
+- Even direction cosines of 0.96–0.97 with the oracle do not reproduce the oracle's
+  −15.99. That points to the loop's sensitivity to small metric errors and to the shift
+  between oracle-visited and self-visited states. Neither cause was isolated.</p>
+<p><strong>There is no head saddle.</strong>
+- Gradients reach the A and C heads from the frozen init, and A/C magnitudes grow 3–30×
+  in 200 updates.
+- They stay 20–150× below the oracle's median ‖A*‖_F of 4.5.
+- The A/C gradient is only about 0.14–0.19 of the δ/σ gradient, and every update is
+  dominated by δ: total norms of 135–370 are clipped to 1.0.
+- With init scale 1.0, A and C do not collapse, but their share stays at 0.44–0.57,
+  and δ moves most (|δ| 0.3 to 1.1–1.6).</p>
+<p><strong>Overall, the failure is undetermined, leaning towards optimization and objective
+signal rather than representation.</strong> The meta-gradient mostly drives the scalar step
+(δ/σ). Larger networks fit the oracle better without performing better in the loop.
+Which change would let A and C be learned (the loss, the gradient balance or clipping,
+on-policy imitation, or more updates) was not tested. Any such change belongs to a
+future v0.8 pre-registration, not to v0.7.</p>
+<h2 id="decision-and-next-work">Decision and next work<a class="headerlink" href="#decision-and-next-work" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>By plan gate G7, the trajectory-curvature line is not expanded further.</strong> The
+  validation-tuned fixed diagonal and the BB step remain the reference geometries, and
+  no v0.7 learned geometry becomes a default.</li>
+<li><strong>The next work is learned guidance for certified global search.</strong> This was set by
+  the user on 2026-11-22. In this repository it connects to plan gate G6 (optional
+  feasible-incumbent candidate injection into certified search), which the v0.6 plan
+  deferred until learned geometry showed value. Certification itself remains
+  independent and model-free.</li>
+<li>Any changed model or training setup for the Gram line, including the post-mortem
+  ideas above, needs a new pre-registration (v0.8). It is not added to v0.7.</li>
+<li><strong>Update, 2026-11-22: direction changed.</strong> After the bullet above was written, the
+  user chose <strong>amortized optimization over problem families</strong> ("train an optimizer for
+  your problem family": a learned start or step policy, refined by NeuralOpt's own loop)
+  as the next direction. Learned guidance for certified global search (plan gate G6) is
+  <strong>deferred, not cancelled</strong>. The earlier bullet is kept as written for the record; the
+  v0.8 plan will be written in <code>docs/plans/neuralopt-v08-amortized-families.md</code>.</li>
+</ul>
+<h2 id="training-and-compute">Training and compute<a class="headerlink" href="#training-and-compute" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Stage 2 training:</strong> gram-full, 5 seeds × 2,000 updates, locked configuration.</li>
+<li><strong>0 NaN-skipped updates.</strong></li>
+<li>9.0 minutes wall-clock in parallel; 8.7–8.9 minutes per run; 17.8–18.5 minutes of
+    process CPU per run (including XLA helper threads); <strong>1.51 CPU-hours</strong> in total.</li>
+<li>Loss (mean natural-log regret per 100 updates) ranged from −10.8 to −13.2 in the
+    first 100 updates and ended at −12.5 to −13.2, with occasional excursions (seed 4,
+    updates 1400–1500: −10.8).</li>
+<li><strong>Total for Stages 1 and 2:</strong> 15 runs, <strong>4.32 CPU-hours</strong> against the probe's 5.0
+  CPU-hour estimate, and 18.2 minutes wall-clock of training.</li>
+<li><strong>Evaluation:</strong> Stage 1 219 s; Stage 2 296 s; untrained diagnostic 69 s.</li>
+<li><strong>Hashes:</strong> the sha256 of all 15 checkpoints and of the pre-registration are in
+  <code>results/gram-space-stage2-v0.7.0.json</code>.</li>
+</ul>
+<h2 id="stage-1-results-frozen-protocol-resultsgram-space-stage1-v070json">Stage 1 results (frozen protocol; <code>results/gram-space-stage1-v0.7.0.json</code>)<a class="headerlink" href="#stage-1-results-frozen-protocol-resultsgram-space-stage1-v070json" title="Permanent link">&para;</a></h2>
+<h3 id="training">Training<a class="headerlink" href="#training" title="Permanent link">&para;</a></h3>
+<ul>
+<li>gram-scalar and gram-nohist, 5 seeds each, 2,000 updates.</li>
+<li><strong>0 NaN-skipped updates</strong> in all 10 runs.</li>
+<li>9.2 minutes wall-clock in parallel; 2.81 CPU-hours.</li>
+<li>Per run: 7–9 minutes wall-clock and 15–19 minutes of process CPU time (the CPU time
+  includes XLA helper threads).</li>
+<li>Checkpoints: <code>artifacts/gram-v0.7.0-gram-{scalar,nohist}-seed{0..4}.npz</code>, with sha256
+  in the results file.</li>
+<li>Training loss (mean log regret per 100 updates):</li>
+<li>gram-scalar: flat from the start, about −12.1 to −13.1 at first, ending at −12.6 to
+    −13.5.</li>
+<li>gram-nohist: improves noisily, from −5.5 to −7.3 at first to −7.2 to −9.1 at the end.</li>
+</ul>
+<h3 id="stage-1-decision">Stage 1 decision<a class="headerlink" href="#stage-1-decision" title="Permanent link">&para;</a></h3>
+<p>Curvature domain, budget 100, two-level paired intervals (5 seeds × 36 tasks).</p>
+<table>
+<thead>
+<tr>
+<th>Contrast</th>
+<th>Mean D [95% CI]</th>
+<th>Rule</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>S1: gram-scalar − BB</strong></td>
+<td><strong>−0.139 [−0.334, +0.044]</strong></td>
+<td>upper bound &lt; +0.25: <strong>pass, continue to Stage 2</strong></td>
+</tr>
+<tr>
+<td>S1b: gram-scalar − gram-nohist</td>
+<td>−1.499 [−1.844, −1.173]</td>
+<td>diagnostic</td>
+</tr>
+<tr>
+<td>S1b: gram-nohist − BB</td>
+<td>+1.360 [+1.084, +1.647]</td>
+<td>diagnostic</td>
+</tr>
+</tbody>
+</table>
+<h3 id="per-family-exploratory-mean-floored-log10-regret-at-budget-100">Per family (exploratory; mean floored log10 regret at budget 100)<a class="headerlink" href="#per-family-exploratory-mean-floored-log10-regret-at-budget-100" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Arm</th>
+<th style="text-align: right;">diagonal-1000</th>
+<th style="text-align: right;">rotated-100</th>
+<th style="text-align: right;">rotated-1000</th>
+<th style="text-align: right;">isotropic</th>
+<th style="text-align: right;">rastrigin</th>
+<th style="text-align: right;">ackley</th>
+<th style="text-align: right;">rosenbrock-shifted</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>BB</td>
+<td style="text-align: right;">−2.98</td>
+<td style="text-align: right;">−4.61</td>
+<td style="text-align: right;">−3.01</td>
+<td style="text-align: right;">−12.00</td>
+<td style="text-align: right;">−12.00</td>
+<td style="text-align: right;">−12.00</td>
+<td style="text-align: right;">−1.07</td>
+</tr>
+<tr>
+<td>oracle-BFGS</td>
+<td style="text-align: right;">−7.14</td>
+<td style="text-align: right;">−10.80</td>
+<td style="text-align: right;">−7.40</td>
+<td style="text-align: right;">−12.00</td>
+<td style="text-align: right;">−12.00</td>
+<td style="text-align: right;">−10.26</td>
+<td style="text-align: right;">−2.90</td>
+</tr>
+<tr>
+<td>L-BFGS-B</td>
+<td style="text-align: right;">−7.55</td>
+<td style="text-align: right;">−10.96</td>
+<td style="text-align: right;">−7.29</td>
+<td style="text-align: right;">−12.00</td>
+<td style="text-align: right;">−10.19</td>
+<td style="text-align: right;">−7.15</td>
+<td style="text-align: right;">−1.99</td>
+</tr>
+<tr>
+<td>tf-h8 (v0.6)</td>
+<td style="text-align: right;">−2.82</td>
+<td style="text-align: right;">−2.90</td>
+<td style="text-align: right;">−2.31</td>
+<td style="text-align: right;">−11.02</td>
+<td style="text-align: right;">−7.42</td>
+<td style="text-align: right;">−5.45</td>
+<td style="text-align: right;">−1.02</td>
+</tr>
+<tr>
+<td>gram-scalar</td>
+<td style="text-align: right;">−3.09</td>
+<td style="text-align: right;">−4.89</td>
+<td style="text-align: right;">−3.03</td>
+<td style="text-align: right;">−12.00</td>
+<td style="text-align: right;">−7.78</td>
+<td style="text-align: right;">−10.83</td>
+<td style="text-align: right;">−1.08</td>
+</tr>
+<tr>
+<td>gram-nohist</td>
+<td style="text-align: right;">−2.17</td>
+<td style="text-align: right;">−2.36</td>
+<td style="text-align: right;">−1.99</td>
+<td style="text-align: right;">−11.83</td>
+<td style="text-align: right;">−7.98</td>
+<td style="text-align: right;">−7.54</td>
+<td style="text-align: right;">−0.99</td>
+</tr>
+</tbody>
+</table>
+<p><strong>gram-scalar − BB on the guard families (exploratory):</strong>
+- Rastrigin: <strong>+4.22 [+1.08, +7.96]</strong>
+- Ackley: <strong>+1.17 [+0.50, +1.85]</strong>
+- shifted Rosenbrock: −0.00 [−0.02, +0.01]</p>
+<p>No error statuses. Mean units: 99.2 for the Gram arms; 83.9 for L-BFGS-B, which stops
+early on some tasks.</p>
+<h3 id="reading-no-claims-beyond-the-frozen-rules">Reading (no claims beyond the frozen rules)<a class="headerlink" href="#reading-no-claims-beyond-the-frozen-rules" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>The secant scale carries the information.</strong> The learned scalar step ties BB on the
+  curvature domain. Without secant pairs, with only rejection information, the same
+  architecture is 1.36 decades worse than BB and 1.50 decades worse than gram-scalar.</li>
+<li><strong>The learned scalar step regresses on Rastrigin and Ackley,</strong> where BB stays in the
+  global basin. Stage 1 has no guard rule, so this is exploratory. <strong>It is an early
+  warning for the Stage 2 reliability guard,</strong> which applies to gram-full with the same
+  thresholds. Nothing was changed in response.</li>
+<li><strong>On the unseen test dimensions (7, 16, 32), the oracle ceiling is close to SciPy:</strong>
+  rotated-100 −10.80 against −10.96, rotated-1000 −7.40 against −7.29.</li>
+</ul>
+<h2 id="pre-registration-frozen-and-infrastructure">Pre-registration (frozen) and infrastructure<a class="headerlink" href="#pre-registration-frozen-and-infrastructure" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Frozen pre-registration:</strong>
+  <code>docs/superpowers/specs/2026-11-22-gram-space-v07-preregistration.md</code>, sha256
+  <code>6d5489dab06d3bbc5b60f716ab65411e8626af65f3a97de0a0044e24b43cad3f</code>. The hash was
+  recorded in its own commit, and <code>scripts/run_gram_space_v0_7.py</code> checks it at startup.</li>
+<li><strong>Infrastructure built after freezing (no training run):</strong></li>
+<li>Gram schema v2 (<code>neuralopt-policy/v0.7-gram-v2</code>), with history-v2 masks and the
+    <code>history_masked</code> no-history switch. v1 files load with v1 thresholds.</li>
+<li>The matched training unroll (<code>neuralopt.gram_training</code>, a 97-step scan at budget
+    100). It equals the compiled engine to 1e-10 for full, scalar and no-history
+    variants.</li>
+<li><code>train_batched(model_kind="gram")</code>, with the NaN-skip test.</li>
+<li>The reference and evaluation harness (<code>scripts/run_gram_space_v0_7.py</code>): BB and
+    oracle through <code>accept_step</code>, a parity check against the package loop, SciPy, the
+    tf-h8 context arm, two-level paired intervals, the decision rules and the
+    outcome-to-claim table, all tested in <code>tests/test_gram_space_protocol.py</code>.</li>
+<li><strong>Timing probe</strong> (<code>results/gram-probe-v0.7.0.json</code>; gram-full, 20 updates, nothing
+  saved):</li>
+<li>0.59 s per update; 13.5 task-gradients/s; about 5.5 s for the first pass including
+    the 6 compilations.</li>
+<li>Projected 19.9 minutes per run single-process, under the 45-minute limit, so the
+    <strong>2,000 updates are kept</strong>.</li>
+<li>15 runs: <strong>about 5.0 CPU-hours</strong>, or about 20 minutes wall-clock per stage when the
+    runs execute in parallel.</li>
+<li>The draft's earlier estimate of about 11 minutes per run was low by roughly 2×.</li>
+</ul>
+<h2 id="development-history-model-gates-loop-rule-and-masks-before-the-pre-registration">Development history: model, gates, loop rule and masks (before the pre-registration)<a class="headerlink" href="#development-history-model-gates-loop-rule-and-masks-before-the-pre-registration" title="Permanent link">&para;</a></h2>
+<h3 id="the-model-b1-opt-in-schema-neuralopt-policyv07-gram-v1">The model (B1; opt-in, schema <code>neuralopt-policy/v0.7-gram-v1</code>)<a class="headerlink" href="#the-model-b1-opt-in-schema-neuralopt-policyv07-gram-v1" title="Permanent link">&para;</a></h3>
+<p>Source: <code>neuralopt.gram</code>. It runs only through
+<code>minimize(..., model_kind="gram", candidate_method="preconditioned", preconditioned_engine="compiled")</code>.</p>
+<ul>
+<li><strong>Tokens.</strong> There is one token per stored secant pair plus one for the current
+  gradient: K+1 tokens, independent of the dimension d. Every input is a normalized
+  inner product among the columns of S, Y and g_u, or a log norm ratio, mask, pair age,
+  rejection count, last rejected step length, or observed/predicted change ratio of the
+  last rejected trial. Rejected trials never form secant pairs.</li>
+<li><strong>Outputs.</strong> Masked attention produces A and C (K×K), δ and σ. They define
+  <code>P = τ[e^δ (I − ŜAŶᵀ)(I − ŶAᵀŜᵀ) + ŜCCᵀŜᵀ] + ετI</code>, applied without forming the
+  matrix in O(Kd).</li>
+<li>τ = sᵀs/sᵀy of the newest valid pair when sᵀy &gt; 0, otherwise
+    <code>fallback_length/‖g_u‖</code>.</li>
+<li>The step is <code>u' = clip(u − shrink·σ·P g_u, −1, 1)</code>, with the same acceptance and
+    accounting as the shared loop.</li>
+<li><strong>What P is.</strong> P is symmetric positive definite for every A and C, and it is an
+  <em>inverse</em> metric (P y ≈ s). Its directional structure is confined to span(Ŝ, Ŷ); on the
+  complement it is isotropic.</li>
+</ul>
+<h3 id="gate-1-algebraic-float64-teststest_grampy">Gate 1: algebraic, float64 (<code>tests/test_gram.py</code>)<a class="headerlink" href="#gate-1-algebraic-float64-teststest_grampy" title="Permanent link">&para;</a></h3>
+<p>All checks pass.</p>
+<ul>
+<li><strong>(a) The model can express L-BFGS.</strong> With every valid pair having sᵀy &gt; 0, set</li>
+<li>τe^δ = γ = sᵀy/yᵀy of the newest pair,</li>
+<li>A = R⁻ᵀ and C = R⁻ᵀD^{1/2}/√τ, with Rᵢⱼ = sᵢᵀyⱼ for i ≤ j (chronological) and
+    D = diag(sᵢᵀyᵢ),</li>
+<li>converted to normalized columns as Â = D_s A D_y and Ĉ = D_s C.</li>
+</ul>
+<p>Then P g equals the L-BFGS two-loop direction with H₀ = γI to within 1e-10. This holds
+  for d/K = 10/4, 10/6, 16/8 and 5/5, and P y = s holds on the newest pair. The
+  coefficients lie inside the model's output ranges. This is the compact representation
+  of Byrd, Nocedal &amp; Schnabel (1994); the independent derivation review found no error.
+- <strong>(b) SPD.</strong> P is symmetric positive definite for random A and C (minimum eigenvalue at
+  least ετ). The matrix-free product equals the dense matrix. Masked pairs, rows and
+  columns, contribute nothing.
+- <strong>(c) Invariance.</strong> Tokens are invariant to rotation of u and to positive rescaling of
+  the objective. Whole trajectories rotate with a rotated quadratic: a ±1000 cube at the
+  origin with an interior optimum, so clipping is never active. Trajectories are
+  unchanged by rescaling the objective, which rescales τ, while σ is dimensionless.</p>
+<h3 id="gate-2-capacity-no-training-resultsgram-gates-v070json">Gate 2: capacity, no training (<code>results/gram-gates-v0.7.0.json</code>)<a class="headerlink" href="#gate-2-capacity-no-training-resultsgram-gates-v070json" title="Permanent link">&para;</a></h3>
+<p><strong>Criterion, stated before the first run:</strong> for both rotated κ = 100 and κ = 1000, the
+oracle-BFGS arm's median log10 regret must be within one decade of SciPy L-BFGS-B on the
+same tasks.</p>
+<p>Conditions: d ∈ {7, 10, 16}, 4 tasks per d, gate-only seeds 6000+, budget 100
+objective+gradient units, float64. The oracle sets A, C and δ to the BFGS values and
+σ = 1. It lives only in the harness, <code>scripts/gram_reference.py</code> and
+<code>scripts/run_gram_gates_v0_7.py</code>. The harness copy of the loop reproduces the package's
+compiled Gram loop to 1e-10 over 37 iterations; this is checked before any oracle number
+is reported.</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th style="text-align: right;">oracle-BFGS</th>
+<th style="text-align: right;">oracle clipped to the model's ranges</th>
+<th style="text-align: right;">τ only (A=C=0, δ=0, σ=1)</th>
+<th style="text-align: right;">L-BFGS-B</th>
+<th style="text-align: right;">oracle − L-BFGS-B</th>
+<th>Pass</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>rotated κ=100, median log10 regret</td>
+<td style="text-align: right;">−13.80</td>
+<td style="text-align: right;">−13.80</td>
+<td style="text-align: right;">−5.23</td>
+<td style="text-align: right;">−15.96</td>
+<td style="text-align: right;">+2.16</td>
+<td><strong>no</strong></td>
+</tr>
+<tr>
+<td>rotated κ=1000, median log10 regret</td>
+<td style="text-align: right;">−5.49</td>
+<td style="text-align: right;">−5.49</td>
+<td style="text-align: right;">−2.72</td>
+<td style="text-align: right;">−8.79</td>
+<td style="text-align: right;">+3.30</td>
+<td><strong>no</strong></td>
+</tr>
+</tbody>
+</table>
+<p>Further measurements:
+- <strong>Reached 1e-6 regret:</strong> at κ=100, oracle 12/12 and L-BFGS-B 12/12; at κ=1000,
+  oracle 5/12 and L-BFGS-B 8/12.
+- <strong>Acceptance:</strong> the oracle accepted 89% of trials at κ=100 and 93% at κ=1000, so
+  rejections are rare.
+- <strong>Conditioning:</strong> the oracle's P reached a median maximum condition number of 149 at
+  κ=100 and 1,363 at κ=1000. The Gram parameterization therefore expresses at least 100×
+  anisotropy.
+- <strong>Coefficient sizes:</strong> the oracle coefficients never left the model's output ranges.
+  The maximum |Â| was 13.4 and |Ĉ| 7.8, against a bound of 100; |δ| reached 4.84,
+  against a bound of 5. Clipping to the model's ranges changes nothing.</p>
+<h4 id="reading">Reading<a class="headerlink" href="#reading" title="Permanent link">&para;</a></h4>
+<ul>
+<li><strong>κ=100.</strong> Both arms reach 1e-6 on every task. The 2.2-decade gap lies at relative
+  regret around 1e-14 to 1e-16, the float64 roundoff zone. Under the pre-stated rule
+  this still counts as a failure, and it is reported as one.</li>
+<li><strong>κ=1000.</strong> The 3.3-decade gap is substantive.</li>
+<li><strong>Where the limit is.</strong> The same BFGS directions, run through this loop rule, fall well
+  short of L-BFGS-B at equal budget. The loop accepts any decrease with a unit step and
+  only halves after a rejection. There is no sufficient-decrease or curvature (Wolfe)
+  condition and no step lengthening.</li>
+<li><strong>Untested explanations:</strong> the accepted steps may produce poorer secant pairs than
+  Wolfe line-search steps do, and K = 8 against SciPy's default memory of 10 may also
+  matter.</li>
+<li><strong>Rejection signal under clipping.</strong> With a non-diagonal P, a clipped step can ascend
+  for every shrink factor. This is a loop-rule property, shared with v0.6, and it makes
+  the rejection signal ambiguous near active bounds. These gate tasks have interior
+  optima.</li>
+</ul>
+<h3 id="gate-2-as-written-and-the-amended-criterion">Gate 2 as written, and the amended criterion<a class="headerlink" href="#gate-2-as-written-and-the-amended-criterion" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>As written, gate 2 FAILED and stays failed.</strong></li>
+<li>At κ=100 both arms are at the float64 floor, and the original criterion had no
+  regret floor.</li>
+<li>For the reruns below, the user stated an <strong>amended criterion</strong> before any rerun was
+  made:</li>
+<li>per task, log10 regret below −12 counts as −12, so regrets below 1e-12 are equal;</li>
+<li>an arm passes iff its floored median is within one decade of SciPy L-BFGS-B's
+    floored median, at both κ=100 and κ=1000.</li>
+</ul>
+<h3 id="loop-rule-ablation-resultsloop-rule-ablation-v070json">Loop-rule ablation (<code>results/loop-rule-ablation-v0.7.0.json</code>)<a class="headerlink" href="#loop-rule-ablation-resultsloop-rule-ablation-v070json" title="Permanent link">&para;</a></h3>
+<h4 id="setup">Setup<a class="headerlink" href="#setup" title="Permanent link">&para;</a></h4>
+<ul>
+<li>Same gate tasks as gate 2, float64, budget 100 objective+gradient units.</li>
+<li>Every arm steps through <code>neuralopt.loop_rules.accept_step</code>, so all arms share one
+  step-acceptance rule. Only the BFGS oracle's <em>direction</em> lives in the harness.</li>
+<li>The harness outer loop reproduces the package's compiled engine (fixed geometry) to
+  1e-10 under each rule before any number is reported.</li>
+<li>"Initial unchanged" means the model's own step was accepted without correction.</li>
+</ul>
+<h4 id="the-three-rules">The three rules<a class="headerlink" href="#the-three-rules" title="Permanent link">&para;</a></h4>
+<ul>
+<li><strong>halving (v0.6):</strong> one trial per iteration; any decrease is accepted; a rejection
+  halves the next trial.</li>
+<li><strong>armijo:</strong> sufficient decrease with interpolating backtracking. Each trial costs 1
+  objective unit, and the accepted point costs 1 gradient unit.</li>
+<li><strong>wolfe:</strong> strong Wolfe conditions with bracketing and zoom, lengthening up to 10×.
+  Each trial costs 2 units.</li>
+</ul>
+<h4 id="results">Results<a class="headerlink" href="#results" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Arm</th>
+<th style="text-align: right;">κ=100 median (floored)</th>
+<th style="text-align: right;">1e-6</th>
+<th style="text-align: right;">κ=1000 median</th>
+<th style="text-align: right;">1e-6</th>
+<th style="text-align: right;">Units</th>
+<th style="text-align: right;">Accepted / iterations (κ=1000)</th>
+<th style="text-align: right;">Initial unchanged (κ=1000)</th>
+<th>Amended pass</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>oracle K=8, halving</td>
+<td style="text-align: right;">−13.80 (−12)</td>
+<td style="text-align: right;">12/12</td>
+<td style="text-align: right;">−5.49</td>
+<td style="text-align: right;">5/12</td>
+<td style="text-align: right;">≤100</td>
+<td style="text-align: right;">0.91</td>
+<td style="text-align: right;">0.86</td>
+<td>no</td>
+</tr>
+<tr>
+<td>oracle K=8, armijo</td>
+<td style="text-align: right;">−13.71 (−12)</td>
+<td style="text-align: right;">12/12</td>
+<td style="text-align: right;">−5.70</td>
+<td style="text-align: right;">5/12</td>
+<td style="text-align: right;">≤100</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">0.92</td>
+<td>no</td>
+</tr>
+<tr>
+<td>oracle K=8, wolfe</td>
+<td style="text-align: right;">−13.63 (−12)</td>
+<td style="text-align: right;">12/12</td>
+<td style="text-align: right;">−5.59</td>
+<td style="text-align: right;">5/12</td>
+<td style="text-align: right;">100</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">0.92</td>
+<td>no</td>
+</tr>
+<tr>
+<td>oracle K=10, halving</td>
+<td style="text-align: right;">−14.47 (−12)</td>
+<td style="text-align: right;">12/12</td>
+<td style="text-align: right;">−6.19</td>
+<td style="text-align: right;">7/12</td>
+<td style="text-align: right;">≤100</td>
+<td style="text-align: right;">0.92</td>
+<td style="text-align: right;">0.87</td>
+<td>no</td>
+</tr>
+<tr>
+<td>oracle K=10, armijo (supplementary)</td>
+<td style="text-align: right;">−14.96 (−12)</td>
+<td style="text-align: right;">12/12</td>
+<td style="text-align: right;">−6.68</td>
+<td style="text-align: right;">7/12</td>
+<td style="text-align: right;">≤100</td>
+<td style="text-align: right;">—</td>
+<td style="text-align: right;">0.92</td>
+<td>no</td>
+</tr>
+<tr>
+<td>oracle K=10, wolfe (supplementary)</td>
+<td style="text-align: right;">−14.22 (−12)</td>
+<td style="text-align: right;">12/12</td>
+<td style="text-align: right;">−6.43</td>
+<td style="text-align: right;">7/12</td>
+<td style="text-align: right;">100</td>
+<td style="text-align: right;">—</td>
+<td style="text-align: right;">0.93</td>
+<td>no</td>
+</tr>
+<tr>
+<td>τ only, halving</td>
+<td style="text-align: right;">−5.23</td>
+<td style="text-align: right;">2/12</td>
+<td style="text-align: right;">−2.72</td>
+<td style="text-align: right;">0/12</td>
+<td style="text-align: right;">≤100</td>
+<td style="text-align: right;">0.58</td>
+<td style="text-align: right;">0.43</td>
+<td>no</td>
+</tr>
+<tr>
+<td>τ only, armijo</td>
+<td style="text-align: right;">−3.52</td>
+<td style="text-align: right;">0/12</td>
+<td style="text-align: right;">−2.61</td>
+<td style="text-align: right;">0/12</td>
+<td style="text-align: right;">≤100</td>
+<td style="text-align: right;">0.99</td>
+<td style="text-align: right;">0.63</td>
+<td>no</td>
+</tr>
+<tr>
+<td>τ only, wolfe</td>
+<td style="text-align: right;">−3.32</td>
+<td style="text-align: right;">0/12</td>
+<td style="text-align: right;">−2.32</td>
+<td style="text-align: right;">0/12</td>
+<td style="text-align: right;">100</td>
+<td style="text-align: right;">0.99</td>
+<td style="text-align: right;">0.57</td>
+<td>no</td>
+</tr>
+<tr>
+<td>fixed step, halving</td>
+<td style="text-align: right;">−3.16</td>
+<td style="text-align: right;">0/12</td>
+<td style="text-align: right;">−2.19</td>
+<td style="text-align: right;">0/12</td>
+<td style="text-align: right;">≤100</td>
+<td style="text-align: right;">0.64</td>
+<td style="text-align: right;">0.37</td>
+<td>no</td>
+</tr>
+<tr>
+<td>fixed step, armijo</td>
+<td style="text-align: right;">−3.26</td>
+<td style="text-align: right;">0/12</td>
+<td style="text-align: right;">−2.31</td>
+<td style="text-align: right;">0/12</td>
+<td style="text-align: right;">≤100</td>
+<td style="text-align: right;">0.99</td>
+<td style="text-align: right;">0.60</td>
+<td>no</td>
+</tr>
+<tr>
+<td>fixed step, wolfe</td>
+<td style="text-align: right;">−3.22</td>
+<td style="text-align: right;">0/12</td>
+<td style="text-align: right;">−2.18</td>
+<td style="text-align: right;">0/12</td>
+<td style="text-align: right;">100</td>
+<td style="text-align: right;">0.98</td>
+<td style="text-align: right;">0.62</td>
+<td>no</td>
+</tr>
+<tr>
+<td>SciPy L-BFGS-B, maxcor 10</td>
+<td style="text-align: right;">−15.96 (−12)</td>
+<td style="text-align: right;">12/12</td>
+<td style="text-align: right;">−8.79</td>
+<td style="text-align: right;">8/12</td>
+<td style="text-align: right;">100</td>
+<td style="text-align: right;">—</td>
+<td style="text-align: right;">—</td>
+<td>reference</td>
+</tr>
+<tr>
+<td>SciPy L-BFGS-B, maxcor 8</td>
+<td style="text-align: right;">−15.14 (−12)</td>
+<td style="text-align: right;">12/12</td>
+<td style="text-align: right;">−5.98</td>
+<td style="text-align: right;">5/12</td>
+<td style="text-align: right;">100</td>
+<td style="text-align: right;">—</td>
+<td style="text-align: right;">—</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<p>"Supplementary" rows were not part of the requested ablation. They separate history
+length from the loop rule.</p>
+<h4 id="reading_1">Reading<a class="headerlink" href="#reading_1" title="Permanent link">&para;</a></h4>
+<ul>
+<li><strong>The step-acceptance rule is not the bottleneck for good directions.</strong></li>
+<li>Under all three rules the oracle's own step is accepted unchanged 86–93% of the time
+    at κ=1000.</li>
+<li>Changing the rule moves the oracle by at most 0.5 decades.</li>
+<li><strong>For the no-learning baselines the rule matters, in the other direction.</strong> At κ=100,
+  τ-only does best under halving (−5.23, against −3.52 and −3.32).</li>
+<li><strong>History length matters a lot.</strong></li>
+<li>SciPy loses 2.8 decades at κ=1000 when its memory drops from 10 to 8.</li>
+<li>At matched memory 8, every oracle loop is within 0.3–0.5 decades of SciPy.</li>
+<li>At K=10, a gap of 2.1–2.6 decades to SciPy (maxcor 10) remains under every rule.
+    The cause is not identified.</li>
+<li><strong>The amended criterion fails.</strong> Every arm is at the floor at κ=100, but at κ=1000
+  none comes within one decade of SciPy L-BFGS-B at its default memory.</li>
+<li><strong>Uncertainty.</strong> Medians over 12 tasks are coarse, and no paired intervals were
+  computed for this ablation.</li>
+</ul>
+<h4 id="mask-diagnostic-oracle-k10-halving-resultsmask-diagnostic-v070json">Mask diagnostic (oracle K=10, halving; <code>results/mask-diagnostic-v0.7.0.json</code>)<a class="headerlink" href="#mask-diagnostic-oracle-k10-halving-resultsmask-diagnostic-v070json" title="Permanent link">&para;</a></h4>
+<p>The decision rule was stated before running: relaxed masks count as meaningful only if
+they reduce the κ=1000 median gap to SciPy (maxcor 10) by at least one decade.
+- <strong>Masking is rare.</strong> Under the current thresholds (step 1e-7, relative gradient
+  change 1e-6), only the step test fires: on 3.4% of filled pairs at κ=1000 and 18% at
+  κ=100. The gradient-change and nonfinite tests never fire. On average 8.6 of 10 pairs
+  are valid at κ=1000.
+- <strong>Relaxed masks change nothing at κ=1000.</strong> With float64 thresholds (1e-12 and
+  1e-10), or masking only nonfinite pairs and pairs with sᵀy ≤ 0, the oracle median
+  stays at −6.19. <strong>The reduction is 0.0 decades, so not meaningful.</strong>
+- <strong>At κ=100 relaxed masks help,</strong> moving the median from −14.47 to −15.98, but that
+  is at the float64 floor.
+- <strong>Paired over tasks at κ=1000,</strong> oracle − SciPy is mean +0.86 [+0.18, +1.60] (raw)
+  and +0.69 [+0.08, +1.41] (floored at −12), with median +0.06.
+- <strong>The gap sits at d=10:</strong> the oracle reaches about −6 and SciPy −8.5 to −9.8. At d=7
+  both are at the floor; at d=16 both are near −5.
+- <strong>The cause is unexplained.</strong></p>
+<h4 id="step-acceptance-rules-scope">Step-acceptance rules (scope)<a class="headerlink" href="#step-acceptance-rules-scope" title="Permanent link">&para;</a></h4>
+<p><code>loop_rule</code> is a step-acceptance rule in the sense of CLAUDE.md, not a solver.
+- It decides whether, and how far, to move along the model's proposed displacement.
+- The model's step is always the first trial.
+- No curvature is built: there is no BFGS update and no classical solver.
+- It is opt-in, on the compiled engine only (<code>loop_rule="halving" | "armijo" |
+  "wolfe"</code>, default <code>"halving"</code>).
+- The Python loop, the v0.6 rule and all frozen results are unchanged.</p>
+<h3 id="tf-h8-anisotropy-cap-the-frozen-v06-checkpoints">tf-h8 anisotropy cap (the frozen v0.6 checkpoints)<a class="headerlink" href="#tf-h8-anisotropy-cap-the-frozen-v06-checkpoints" title="Permanent link">&para;</a></h3>
+<ul>
+<li>With <code>geometry_bound = 10</code> and <code>lowrank_scale = 0.5</code>, the diagonal ranges over
+  [0.1, 10] and λmax(UUᵀ) &lt; 0.25.</li>
+<li>So the cap is 100× along the coordinate axes and about <strong>3.5× off-axis</strong>.</li>
+<li>Along tf-h8 runs (3 seeds × rotated κ=1000 × d = 7/10/16), the bound
+  cond(P) ≤ (diag_max + ‖U‖_F²)/diag_min reached a maximum of 19.9 and a median of 3.3.</li>
+</ul>
+<h3 id="review-findings-and-dispositions">Review findings and dispositions<a class="headerlink" href="#review-findings-and-dispositions" title="Permanent link">&para;</a></h3>
+<p>Source: curvature-reviewer, 2026-11-22.</p>
+<ul>
+<li><strong>Fixed:</strong></li>
+<li>Gram diagnostics now record τ and σ in their own fields, with a test.</li>
+<li>The oracle arm now reports coefficient sizes, and a correctly clipped
+    bounded-oracle arm was added.</li>
+<li>The gate (a) test now checks that the coefficients lie inside the model's ranges.</li>
+<li>The compiled engine's docstring now describes the Gram rule.</li>
+<li>A separate fix from this round: the compiled engine casts the budget fraction to the
+    parameters' dtype, which removes a future-JAX type error for float32 checkpoints on
+    float64 problems.</li>
+<li><strong>Open, for the next design decision:</strong></li>
+<li>The pair mask uses a max-norm, so it is not exactly rotation-invariant near its
+    1e-7 threshold.</li>
+<li>The default ε is 1e-12, which provides no positive-definiteness floor in float32.</li>
+<li>A near-noise newest pair can make τ very large in float32.</li>
+<li>The oracle handles all-valid histories; masking is tested only for the oldest slots.</li>
+<li>Any change to the token layout must bump <code>GRAM_SCHEMA</code>.</li>
+<li>The clip-induced ascent described under "Rejection signal under clipping".</li>
+</ul>
+<h2 id="corrections">Corrections<a class="headerlink" href="#corrections" title="Permanent link">&para;</a></h2>
+<p>These are deviations from the frozen pre-registration, or details it did not fix. The
+frozen file is never edited.</p>
+<ol>
+<li><strong>Training group sampling</strong> (fixed before any training). The groups (quadratic-d4/8/12
+   with 28 tasks each, Rastrigin-d4/8/12 with 4 each) are cycled in proportion to their
+   size, 7:1, so every training task is equally likely. Uniform cycling would have put
+   50% of updates on Rastrigin.</li>
+<li><strong>Reporting-only harness additions</strong> (committed before Stage 1 training): per-run
+   loss curves and CPU time; checkpoint sha256 in the results; exploratory per-family
+   tables; error-status counts. No decision, threshold or claim changed.</li>
+<li><strong>The first Stage 1 launch failed</strong> before training: <code>/usr/bin/time</code> is not
+   installed. Nothing was trained; the relaunch timed itself with <code>date</code> plus each run's
+   process CPU time.</li>
+<li><strong>The Stage 2 evaluation re-evaluates the Stage 1 arms</strong> on the same frozen tasks
+   (deterministic). It reproduces the Stage 1 decision exactly:
+   −0.139 [−0.334, +0.044].</li>
+<li><strong>Untrained-weights diagnostic and post-mortem</strong> (added after Stage 2, at the user's
+   request): both are <strong>exploratory, not pre-registered, and feed no decision.</strong> They
+   used training and validation tasks only, except that the untrained diagnostic used
+   the already-built test tasks.</li>
+<li><strong>CPU accounting:</strong> process CPU time includes XLA helper threads, so it is about
+   twice the per-run wall time. The probe's estimate was a single-process wall-time
+   projection.</li>
+<li><strong>A test was changed before training</strong> so that it does not build test-split tasks.
+   The equal-spectrum property is now checked on seeds outside all splits.</li>
+</ol>
+<h2 id="limitations">Limitations<a class="headerlink" href="#limitations" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Statistics.</strong> Five training seeds make the seed level of the bootstrap coarse.
+  Medians and floored means at −12 hide differences below 1e-12.</li>
+<li><strong>Scope.</strong> Exact gradients and float64 only; noise-aware pair reliability is untested.
+  The test dimensions are 7, 16 and 32 for a model trained at 4, 8 and 12.</li>
+<li><strong>The oracle's gap to SciPy at d = 10</strong> (gate tasks) remains unexplained. At the test
+  dimensions the oracle is close to SciPy.</li>
+<li><strong>BB here</strong> means τ-only (sᵀs/sᵀy of the newest valid pair) inside the frozen halving
+  loop. It is not SciPy and not v0.6's harness-only BB variant.</li>
+<li><strong>tf-h8 is context only:</strong> a v0.6 history-v1 model with float32 checkpoints, run here
+  through the compiled engine on float64 problems.</li>
+<li><strong>Untested hypotheses.</strong> Why A and C were not learned (their training signal, the
+  loss, the 2,000 updates or the model size) is not established. Neither is why the
+  trained models leave the Rastrigin and Ackley basins. Neither was investigated, and
+  nothing was tuned after the results.</li>
+</ul>
+<h2 id="reproduction">Reproduction<a class="headerlink" href="#reproduction" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>uv<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </span>scripts/run_gram_gates_v0_7.py<span class="w">            </span><span class="c1"># gates (harness only)</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>uv<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </span>scripts/run_loop_rule_ablation_v0_7.py<span class="w">    </span><span class="c1"># loop-rule ablation</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>uv<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </span>scripts/run_mask_diagnostic_v0_7.py<span class="w">       </span><span class="c1"># mask diagnostic</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>uv<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </span>scripts/run_ceiling_d32_v0_7.py<span class="w">           </span><span class="c1"># d=32 ceiling (validation seeds)</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>uv<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </span>scripts/run_gram_space_v0_7.py<span class="w"> </span>--probe
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>uv<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </span>scripts/run_gram_space_v0_7.py<span class="w"> </span>--stage<span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>uv<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </span>scripts/run_gram_space_v0_7.py<span class="w"> </span>--evaluate<span class="w"> </span><span class="m">1</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>uv<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </span>scripts/run_gram_space_v0_7.py<span class="w"> </span>--stage<span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>uv<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </span>scripts/run_gram_space_v0_7.py<span class="w"> </span>--evaluate<span class="w"> </span><span class="m">2</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>uv<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </span>scripts/run_gram_untrained_diagnostic_v0_7.py<span class="w">   </span><span class="c1"># exploratory</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>uv<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </span>scripts/run_gram_postmortem_v0_7.py<span class="w">              </span><span class="c1"># exploratory post-mortem</span>
+</code></pre></div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-circle-arrow-up" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m16 12-4-4-4 4M12 16V8"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../engine-speed-v0.7/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Engine speed (Track A)">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-arrow-left" viewBox="0 0 24 24"><path d="m12 19-7-7 7-7M19 12H5"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Engine speed (Track A)
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../trajectory-curvature-v0.6/" class="md-footer__link md-footer__link--next" aria-label="Next: Pre-registered study (negative)">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Pre-registered study (negative)
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-arrow-right" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright © 2026 Abhinav Mishra · MIT License
+    </div>
+  
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+    <a href="https://github.com/bibymaths/neuralopt" target="_blank" rel="noopener" title="NeuralOpt on GitHub" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.3.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2026 Fonticons, Inc.--><path fill="currentColor" d="M216.5 362.5c-66-8-112.5-55.5-112.5-117 0-25 9-52 24-70-6.5-16.5-5.5-51.5 2-66 20-2.5 47 8 63 22.5 19-6 39-9 63.5-9s44.5 3 62.5 8.5c15.5-14 43-24.5 63-22 7 13.5 8 48.5 1.5 65.5 16 19 24.5 44.5 24.5 70.5 0 61.5-46.5 108-113.5 116.5 17 11 28.5 35 28.5 62.5v52c0 15 12.5 23.5 27.5 17.5C441 459.5 512 369 512 257 512 115.5 397 0 255.5 0S0 115.5 0 257c0 111 70.5 203 165.5 237.5 13.5 5 26.5-4 26.5-17.5v-40c-7 3-16 5-24 5-33 0-52.5-18-66.5-51.5-5.5-13.5-11.5-21.5-23-23-6-.5-8-3-8-6 0-6 10-10.5 20-10.5 14.5 0 27 9 40 27.5 10 14.5 20.5 21 33 21s20.5-4.5 32-16c8.5-8.5 15-16 21-21"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog" role="status" aria-atomic="true">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      
+      
+        
+        
+      <script id="__config" type="application/json">{"annotate":null,"base":"../..","features":["navigation.instant","navigation.tracking","navigation.sections","navigation.path","navigation.footer","navigation.top","navigation.indexes","search.highlight","content.action.edit","content.action.view","content.code.copy","content.tooltips"],"redirect":null,"search":"../../assets/javascripts/workers/search.719e0d91.min.js","tags":null,"translations":{"clipboard.copied":"Copied to clipboard","clipboard.copy":"Copy to clipboard","clipboard.error":"Could not copy to clipboard","search.result.more.one":"1 more on this page","search.result.more.other":"# more on this page","search.result.none":"No matching documents","search.result.one":"1 matching document","search.result.other":"# matching documents","search.result.placeholder":"Type to start searching","search.result.term.missing":"Missing","select.version":"Select version"},"version":{"alias":true,"default":"latest","provider":"mike"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.3cb411a8.min.js"></script>
+      
+    
+  </body>
+</html>

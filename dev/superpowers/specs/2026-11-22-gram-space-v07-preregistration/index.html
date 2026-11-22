@@ -1,0 +1,2913 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="A JAX research package for learned optimization, with replayable interval certification">
+      
+      
+        <meta name="author" content="Abhinav Mishra">
+      
+      
+        <link rel="canonical" href="https://bibymaths.github.io/neuralopt/dev/superpowers/specs/2026-11-22-gram-space-v07-preregistration/">
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../../assets/images/favicon/favicon-32x32.png">
+      <meta name="generator" content="zensical-0.1.1">
+    
+    
+      
+        <title>NeuralOpt v0.7 Track B: Gram-space history model, pre-registration - NeuralOpt</title>
+      
+    
+    
+      
+        
+      
+      <link rel="stylesheet" href="../../../assets/stylesheets/modern/main.ebb7f775.min.css">
+      
+        
+          
+        
+        <link rel="stylesheet" href="../../../assets/stylesheets/modern/palette.b60ce83d.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,500,500i,700,700i%7CJetBrains+Mono:400,400i,700,700i&amp;display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../../..",location),__md_scope.pathname.endsWith("/")||(__md_scope=new URL(__md_scope.pathname+"/",location)),__md_hash=e=>[...e].reduce(((e,t)=>(e<<5)-e+t.charCodeAt(0)),0),__md_get=(e,t=localStorage,_=__md_scope)=>JSON.parse(t.getItem(_.pathname+"."+e)),__md_set=(e,t,_=localStorage,a=__md_scope)=>{try{_.setItem(a.pathname+"."+e,JSON.stringify(t))}catch(e){}},document.documentElement.setAttribute("data-platform",navigator.platform)</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer" aria-hidden="true"></label>
+    <div data-md-component="skip">
+      <a href="#__skip" class="md-skip">
+        Skip to content
+      </a>
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../.." title="NeuralOpt" class="md-header__button md-logo" aria-label="NeuralOpt" data-md-component="logo">
+      
+  <img src="../../../assets/images/icon.svg" alt="NeuralOpt">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-menu" viewBox="0 0 24 24"><path d="M4 5h16M4 12h16M4 19h16"/></svg>
+      <span class="md-visually-hidden">Navigation</span>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            NeuralOpt
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              NeuralOpt v0.7 Track B: Gram-space history model, pre-registration
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-sun-moon" viewBox="0 0 24 24"><path d="M12 2v2M14.837 16.385a6 6 0 1 1-7.223-7.222c.624-.147.97.66.715 1.248a4 4 0 0 0 5.26 5.259c.589-.255 1.396.09 1.248.715M16 12a4 4 0 0 0-4-4M19 5l-1.256 1.256M20 12h2"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="deep-purple"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_2" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="deep-purple"  aria-label="Switch to system preference"  type="radio" name="__palette" id="__palette_2">
+    
+      <label class="md-header__button md-icon" title="Switch to system preference" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-moon" viewBox="0 0 24 24"><path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-search" viewBox="0 0 24 24"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg>
+          <span class="md-visually-hidden">Search</span>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog" aria-label="Search">
+  <button type="button" class="md-search__button">
+    Search
+  </button>
+</div>
+      
+    
+    <div class="md-header__source">
+      
+        <a href="https://github.com/bibymaths/neuralopt" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.3.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2026 Fonticons, Inc.--><path fill="currentColor" d="M216.5 362.5c-66-8-112.5-55.5-112.5-117 0-25 9-52 24-70-6.5-16.5-5.5-51.5 2-66 20-2.5 47 8 63 22.5 19-6 39-9 63.5-9s44.5 3 62.5 8.5c15.5-14 43-24.5 63-22 7 13.5 8 48.5 1.5 65.5 16 19 24.5 44.5 24.5 70.5 0 61.5-46.5 108-113.5 116.5 17 11 28.5 35 28.5 62.5v52c0 15 12.5 23.5 27.5 17.5C441 459.5 512 369 512 257 512 115.5 397 0 255.5 0S0 115.5 0 257c0 111 70.5 203 165.5 237.5 13.5 5 26.5-4 26.5-17.5v-40c-7 3-16 5-24 5-33 0-52.5-18-66.5-51.5-5.5-13.5-11.5-21.5-23-23-6-.5-8-3-8-6 0-6 10-10.5 20-10.5 14.5 0 27 9 40 27.5 10 14.5 20.5 21 33 21s20.5-4.5 32-16c8.5-8.5 15-16 21-21"/></svg>
+  </div>
+  <div class="md-source__repository">
+    bibymaths/neuralopt
+  </div>
+</a>
+      
+    </div>
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../.." title="NeuralOpt" class="md-nav__button md-logo" aria-label="NeuralOpt" data-md-component="logo">
+      
+  <img src="../../../assets/images/icon.svg" alt="NeuralOpt">
+
+    </a>
+    NeuralOpt
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/bibymaths/neuralopt" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.3.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2026 Fonticons, Inc.--><path fill="currentColor" d="M216.5 362.5c-66-8-112.5-55.5-112.5-117 0-25 9-52 24-70-6.5-16.5-5.5-51.5 2-66 20-2.5 47 8 63 22.5 19-6 39-9 63.5-9s44.5 3 62.5 8.5c15.5-14 43-24.5 63-22 7 13.5 8 48.5 1.5 65.5 16 19 24.5 44.5 24.5 70.5 0 61.5-46.5 108-113.5 116.5 17 11 28.5 35 28.5 62.5v52c0 15 12.5 23.5 27.5 17.5C441 459.5 512 369 512 257 512 115.5 397 0 255.5 0S0 115.5 0 257c0 111 70.5 203 165.5 237.5 13.5 5 26.5-4 26.5-17.5v-40c-7 3-16 5-24 5-33 0-52.5-18-66.5-51.5-5.5-13.5-11.5-21.5-23-23-6-.5-8-3-8-6 0-6 10-10.5 20-10.5 14.5 0 27 9 40 27.5 10 14.5 20.5 21 33 21s20.5-4.5 32-16c8.5-8.5 15-16 21-21"/></svg>
+  </div>
+  <div class="md-source__repository">
+    bibymaths/neuralopt
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Home
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Getting started
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        
+          <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+            <label class="md-nav__title" for="__nav_2">
+              <span class="md-nav__icon md-icon"></span>
+              
+  
+  Getting started
+
+            </label>
+            <ul class="md-nav__list" data-md-scrollfix>
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Installation
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Quickstart
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../when-to-use/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  When to use NeuralOpt
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+            </ul>
+          </nav>
+        
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  User guide
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        
+          <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+            <label class="md-nav__title" for="__nav_3">
+              <span class="md-nav__icon md-icon"></span>
+              
+  
+  User guide
+
+            </label>
+            <ul class="md-nav__list" data-md-scrollfix>
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../guide/learned-mode/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Learned mode
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../guide/certified-mode/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Certified mode
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../guide/compiled-engine/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Compiled engine
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+            </ul>
+          </nav>
+        
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Research reports
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        
+          <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+            <label class="md-nav__title" for="__nav_4">
+              <span class="md-nav__icon md-icon"></span>
+              
+  
+  Research reports
+
+            </label>
+            <ul class="md-nav__list" data-md-scrollfix>
+              
+                
+                  
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_1" id="__nav_4_1_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  v0.7: compiled engine and Gram-space model
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        
+          <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_1_label" aria-expanded="false">
+            <label class="md-nav__title" for="__nav_4_1">
+              <span class="md-nav__icon md-icon"></span>
+              
+  
+  v0.7: compiled engine and Gram-space model
+
+            </label>
+            <ul class="md-nav__list" data-md-scrollfix>
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../research/engine-speed-v0.7/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Engine speed (Track A)
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../research/gram-space-v0.7/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Gram-space model (Track B, negative)
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+            </ul>
+          </nav>
+        
+      
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_2" id="__nav_4_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  v0.6: trajectory curvature
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        
+          <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_2_label" aria-expanded="false">
+            <label class="md-nav__title" for="__nav_4_2">
+              <span class="md-nav__icon md-icon"></span>
+              
+  
+  v0.6: trajectory curvature
+
+            </label>
+            <ul class="md-nav__list" data-md-scrollfix>
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../research/trajectory-curvature-v0.6/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Pre-registered study (negative)
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../research/trajectory-curvature-experiments/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Experiments
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../research/trajectory-curvature-literature/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Literature
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+            </ul>
+          </nav>
+        
+      
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    
+    
+      
+        
+      
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_3" id="__nav_4_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  v0.5: transferable geometry
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        
+          <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_3_label" aria-expanded="false">
+            <label class="md-nav__title" for="__nav_4_3">
+              <span class="md-nav__icon md-icon"></span>
+              
+  
+  v0.5: transferable geometry
+
+            </label>
+            <ul class="md-nav__list" data-md-scrollfix>
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../research/transferable-geometry/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Transferable geometry (negative)
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+            </ul>
+          </nav>
+        
+      
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    
+    
+      
+        
+      
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_4" id="__nav_4_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  v0.4: distribution-aware training
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        
+          <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_4_label" aria-expanded="false">
+            <label class="md-nav__title" for="__nav_4_4">
+              <span class="md-nav__icon md-icon"></span>
+              
+  
+  v0.4: distribution-aware training
+
+            </label>
+            <ul class="md-nav__list" data-md-scrollfix>
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../research/distribution-aware-training/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Distribution-aware training (negative)
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+            </ul>
+          </nav>
+        
+      
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_5" id="__nav_4_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  v0.3: stochastic geometry
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        
+          <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_5_label" aria-expanded="false">
+            <label class="md-nav__title" for="__nav_4_5">
+              <span class="md-nav__icon md-icon"></span>
+              
+  
+  v0.3: stochastic geometry
+
+            </label>
+            <ul class="md-nav__list" data-md-scrollfix>
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../research/langevin-theory/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Langevin theory
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../research/fokker-planck/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Fokker–Planck diagnostics
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../research/gibbs-measures/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Gibbs measures
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../research/function-spaces/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Function spaces
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../research/stochastic-novelty/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Stochastic novelty
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../research/stochastic-limitations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Stochastic limitations
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+            </ul>
+          </nav>
+        
+      
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_6" id="__nav_4_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  v0.2: outcome-driven foundation
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        
+          <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_6_label" aria-expanded="false">
+            <label class="md-nav__title" for="__nav_4_6">
+              <span class="md-nav__icon md-icon"></span>
+              
+  
+  v0.2: outcome-driven foundation
+
+            </label>
+            <ul class="md-nav__list" data-md-scrollfix>
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../research/training/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Training
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../research/benchmarks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Benchmarks
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../research/certification/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Certified scheduling
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../research/generalization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Generalization
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../research/trajectory-diagnostics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Trajectory diagnostics
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../research/hamiltonian-theory/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Hamiltonian theory
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../research/hamiltonian-correctness/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Hamiltonian correctness
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../research/hamiltonian-related-work/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Hamiltonian related work
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+            </ul>
+          </nav>
+        
+      
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_7" id="__nav_4_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  v0.1: first prototype
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        
+          <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_7_label" aria-expanded="false">
+            <label class="md-nav__title" for="__nav_4_7">
+              <span class="md-nav__icon md-icon"></span>
+              
+  
+  v0.1: first prototype
+
+            </label>
+            <ul class="md-nav__list" data-md-scrollfix>
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../research/theory/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Theory
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../research/experiment-plan/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Experiment plan
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../research/literature/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Literature
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../research/novelty/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Novelty
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../research/limitations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Limitations (v0.1–v0.2)
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../benchmarks/smoke/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Smoke benchmark
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+            </ul>
+          </nav>
+        
+      
+    </li>
+  
+
+                
+              
+            </ul>
+          </nav>
+        
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../release-notes/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Release notes
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5" id="__nav_5_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        
+          <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+            <label class="md-nav__title" for="__nav_5">
+              <span class="md-nav__icon md-icon"></span>
+              
+  
+  Release notes
+
+            </label>
+            <ul class="md-nav__list" data-md-scrollfix>
+              
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../release-notes/v0.7.0/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  v0.7.0
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../release-notes/v0.6.0/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  v0.6.0
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../release-notes/v0.5.0/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  v0.5.0
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../release-notes/v0.4.0/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  v0.4.0
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../release-notes/v0.3.0/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  v0.3.0
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../release-notes/v0.2.0/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  v0.2.0
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+                
+                  
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../release-notes/v0.1.0/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  v0.1.0
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+                
+              
+            </ul>
+          </nav>
+        
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../changelog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Changelog
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../limitations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Limitations
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../citing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Citing NeuralOpt
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  API reference
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  
+                    
+                    
+                    
+                      
+                    
+                    
+                      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+                      <div class="md-sidebar-button__wrapper">
+                        <label class="md-sidebar-button" for="__toc"></label>
+                      </div>
+                    
+                  
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--secondary" aria-label="On this page">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-question" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        1. Question
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-evidence-this-design-rests-on-measured-before-freezing" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        2. Evidence this design rests on (measured before freezing)
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-capacity-ceiling-stated-not-a-target" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        3. Capacity ceiling (stated, not a target)
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-frozen-design" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        4. Frozen design
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-tasks-and-splits" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        5. Tasks and splits
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-arms" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        6. Arms
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-metric-statistics-and-decision-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        7. Metric, statistics and decision rules
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-hypotheses-and-stop-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        8. Hypotheses and stop rules
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8. Hypotheses and stop rules">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#stage-1-gram-scalar-and-gram-nohist-only" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Stage 1 (gram-scalar and gram-nohist only)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#stage-2-only-if-s1-passes" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Stage 2 (only if S1 passes)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#outcome-to-claim-table" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Outcome-to-claim table
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-costs-reported" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        9. Costs reported
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-artifacts" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        10. Artifacts
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-infrastructure-built-after-freezing-before-any-training" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        11. Infrastructure built after freezing (before any training)
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+                
+
+
+
+  
+
+
+              
+              <article class="md-content__inner md-typeset">
+                <a id="__skip" tabindex="-1"></a>
+                
+                  
+
+  
+    <a href="https://github.com/bibymaths/neuralopt/edit/main/docs/superpowers/specs/2026-11-22-gram-space-v07-preregistration.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-file-pen" viewBox="0 0 24 24"><path d="M12.659 22H18a2 2 0 0 0 2-2V8a2.4 2.4 0 0 0-.706-1.706l-3.588-3.588A2.4 2.4 0 0 0 14 2H6a2 2 0 0 0-2 2v9.34"/><path d="M14 2v5a1 1 0 0 0 1 1h5M10.378 12.622a1 1 0 0 1 3 3.003L8.36 20.637a2 2 0 0 1-.854.506l-2.867.837a.5.5 0 0 1-.62-.62l.836-2.869a2 2 0 0 1 .506-.853z"/></svg>
+    </a>
+  
+  
+    
+      
+    
+    <a href="https://github.com/bibymaths/neuralopt/raw/main/docs/superpowers/specs/2026-11-22-gram-space-v07-preregistration.md" title="View source of this page" class="md-content__button md-icon">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-file-code-2" viewBox="0 0 24 24"><path d="M4 12.15V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.706.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2h-3.35"/><path d="M14 2v5a1 1 0 0 0 1 1h5M5 16l-3 3 3 3M9 22l3-3-3-3"/></svg>
+    </a>
+  
+
+
+<h1 id="neuralopt-v07-track-b-gram-space-history-model-pre-registration">NeuralOpt v0.7 Track B: Gram-space history model, pre-registration<a class="headerlink" href="#neuralopt-v07-track-b-gram-space-history-model-pre-registration" title="Permanent link">&para;</a></h1>
+<p><strong>Status:</strong> FROZEN on 2026-11-22. The approved draft was revised as instructed. This
+file's sha256 is recorded in the commit that follows it and in
+<code>docs/superpowers/specs/2026-11-22-gram-space-v07-preregistration.sha256</code>. <strong>No
+training had been run when it was frozen.</strong> Any later deviation goes under
+"Corrections" in the results report (<code>docs/research/gram-space-v0.7.md</code>), never into
+this file. Literature: <code>docs/research/trajectory-curvature-literature.md</code> (v0.7
+additions, verified against OpenAlex).</p>
+<h2 id="1-question">1. Question<a class="headerlink" href="#1-question" title="Permanent link">&para;</a></h2>
+<p>Can a small model that sees only rotation-invariant statistics of K = 10 actually
+evaluated secant pairs produce an inverse metric P that beats an untrained
+Barzilai–Borwein (BB) step on unseen rotated and ill-conditioned problems? The
+comparison uses equal objective+gradient budgets and one frozen step-acceptance rule.</p>
+<h2 id="2-evidence-this-design-rests-on-measured-before-freezing">2. Evidence this design rests on (measured before freezing)<a class="headerlink" href="#2-evidence-this-design-rests-on-measured-before-freezing" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Gate 1, algebraic (passed).</strong> With the BFGS coefficients
+  (A = R⁻ᵀ, C = R⁻ᵀD^{1/2}/√τ, τe^δ = γ), P g equals the L-BFGS two-loop direction to
+  within 1e-10, and the coefficients lie inside the model's output ranges. P is SPD for
+  every A and C, the tokens are invariant, and trajectories are rotation-equivariant and
+  invariant to objective scale.</li>
+<li><strong>Anisotropy of at least 100× is demonstrated.</strong> In gate 2 the oracle's P reached
+  condition numbers of 149 at κ = 100 and 1,363 at κ = 1000 (medians of per-run
+  maxima). The frozen v0.6 tf-h8 geometry is capped at about 3.5× off-axis (at most
+  19.9 measured).</li>
+<li><strong>Gate 2.</strong> It FAILED as written. The amended criterion (regret floor 1e-12; within
+  one decade of SciPy maxcor 10) also fails at κ = 1000.</li>
+<li><strong>Loop-rule ablation.</strong> The step-acceptance rule moves the oracle by at most 0.5
+  decades.</li>
+<li>Frozen loop: <strong>halving, K = 10</strong>.</li>
+<li>Halving is the strongest rule for the untrained BB-like baseline, so the bar is not
+    weakened.</li>
+<li><strong>Mask diagnostic.</strong> The decision rule was stated before running.</li>
+<li>Relaxed masks reduce the κ = 1000 median gap by 0.0 decades, so they are not
+    meaningful for the gap.</li>
+<li>Paired oracle − SciPy at κ = 1000 (d = 7/10/16): mean +0.86 [+0.18, +1.60], median
+    +0.06.</li>
+<li>The gap sits at d = 10 and is <strong>unexplained</strong>.</li>
+</ul>
+<h2 id="3-capacity-ceiling-stated-not-a-target">3. Capacity ceiling (stated, not a target)<a class="headerlink" href="#3-capacity-ceiling-stated-not-a-target" title="Permanent link">&para;</a></h2>
+<p>The oracle uses BFGS coefficients and σ = 1 in the frozen loop with history-v2 masks
+(harness only). The table gives median log10 regret and the number of tasks reaching
+1e-6.</p>
+<table>
+<thead>
+<tr>
+<th>Tasks</th>
+<th style="text-align: right;">κ = 100</th>
+<th style="text-align: right;">κ = 1000</th>
+<th>Paired oracle − SciPy maxcor 10</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>gate tasks, d = 7/10/16 (12 per κ)</td>
+<td style="text-align: right;">−15.98 (12/12)</td>
+<td style="text-align: right;">−6.19 (7/12)</td>
+<td>κ=1000: +0.86 [+0.18, +1.60] (gap at d = 10, unexplained)</td>
+</tr>
+<tr>
+<td><strong>validation seeds 8000+, d = 32 (4 per κ)</strong></td>
+<td style="text-align: right;"><strong>−9.30 (4/4)</strong></td>
+<td style="text-align: right;"><strong>−5.07 (0/4)</strong></td>
+<td>κ=100: −0.34 [−0.47, −0.14]; κ=1000: −0.02 [−0.23, +0.20]</td>
+</tr>
+</tbody>
+</table>
+<p>The d = 32 values come from <code>results/oracle-ceiling-d32-v0.7.0.json</code>, measured on
+validation seeds, not test tasks. <strong>At d = 32 the oracle matches or beats SciPy
+L-BFGS-B.</strong> The learned model is not expected to exceed this ceiling.</p>
+<h2 id="4-frozen-design">4. Frozen design<a class="headerlink" href="#4-frozen-design" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Engine and rule.</strong> Compiled engine, float64 throughout (features, training,
+  evaluation). <code>loop_rule="halving"</code>: one trial; any finite decrease is accepted; a
+  rejection halves the next trial. No Armijo test, and no BB-based base step inside the
+  model: BB enters only as the τ scale and as a reference arm.</li>
+<li><strong>Model.</strong> <code>model_kind="gram"</code>, K = 10 pairs, width 32, 4 heads, 2 layers (14,080
+  parameters). Output ranges: |A|, |C| &lt; 100; |δ| &lt; 5; σ ∈ [1/4, 4]; ε_rel = 1e-12;
+  fallback length 0.1.</li>
+<li><strong>history-v2 masks</strong> (approved). Schema <code>neuralopt-policy/v0.7-gram-v2</code>, with the
+  thresholds stored in its config.</li>
+<li>Thresholds: max|s| &gt; 1e-12 and ‖y‖ &gt; 1e-10·max‖g‖, plus finiteness.</li>
+<li>Reasons: the protocol is float64; the masks are neutral at κ = 1000, reach the floor
+    at κ = 100, and were chosen before training.</li>
+<li><strong>Coverage.</strong> The tokens carry ŜᵀŜ (rank and conditioning of the observed span); P
+    is isotropic on the unobserved complement by construction.</li>
+<li><strong>Noise-aware reliability is untested:</strong> no noisy-gradient family is in this round.</li>
+<li><strong>Rejection information.</strong> The rejection count, the last rejected step length and the
+  ratio of observed to predicted change. Rejected trials never form pairs.</li>
+<li><strong>No-history control</strong> (<code>history_masked=True</code>). Every pair is masked, so the model
+  sees only the gradient token (rejection information and budget fraction) and τ uses
+  its fallback.</li>
+<li><strong>The training unroll is matched to the evaluation budget of 100 units.</strong></li>
+<li>The training loop is the inference loop under <code>lax.scan</code>: the same <code>accept_step</code>
+    halving rule, the same budget accounting (start costs 2 units; a trial costs 1,
+    plus 1 if it improved), and the same stopping condition (<code>used + 2 ≤ 100</code> and a
+    nonzero gradient). Inactive scan steps are masked.</li>
+<li>The scan length is the maximum number of iterations at budget 100, which is
+    <strong>97</strong>. The budget-fraction input is <code>1 − used/100</code>, as in inference.</li>
+<li>A parity test against the compiled engine is required before any training:
+    trajectory, history and counts must match to 1e-10.</li>
+<li><strong>Training settings.</strong></li>
+<li>Starts are random in the box.</li>
+<li>Loss: mean over unit horizons {25, 50, 100} of
+    log(normalized incumbent regret + 1e-12), plus 0.1 × the mean over active steps of
+    candidate log-regret.</li>
+<li>The history buffer (S, Y, f) is treated as observed data: <code>stop_gradient</code> applies
+    in both the tokens and the metric. The meta-gradient flows through the current
+    position and ∇f, so it is second-order; this cost is reported.</li>
+<li>Adam 1e-3, global-norm clip 1.0, batch 8 tasks per update from one family and
+    dimension group, 2,000 updates, final weights. There is no checkpoint selection and
+    no tuning on any split.</li>
+<li>NaN guard: a skipped update is counted and reported.</li>
+<li><strong>Seeds and cost.</strong> Five training seeds (0–4) per trained arm.</li>
+<li>The cost estimate is in the infrastructure report.</li>
+<li>A 20-update timing probe runs first. It may only lower the update count, uniformly
+    for all arms, and only if one run would exceed 45 minutes.</li>
+</ul>
+<h2 id="5-tasks-and-splits">5. Tasks and splits<a class="headerlink" href="#5-tasks-and-splits" title="Permanent link">&para;</a></h2>
+<p>Hashes are recorded. Test tasks are built only after training. Everything uses the
+<code>make_task</code> generator.</p>
+<ul>
+<li><strong>Training.</strong> Families: isotropic, diagonal κ ∈ {10, 100, 1000}, rotated
+  κ ∈ {10, 100, 1000}, Rastrigin. Dimensions {4, 8, 12}, 4 tasks per family and
+  dimension, seeds 7000+ (96 tasks). Objective scale cycles 0.2/1/5 and coordinate scale
+  0.5/1/2.</li>
+<li><strong>Validation seeds 8000+.</strong> Used only for the d = 32 ceiling. There is no tuning and
+  no selection.</li>
+<li><strong>Final test.</strong> Seeds 9000+, unseen dimensions {7, 16, 32}, 4 tasks per family and
+  dimension (84 tasks).</li>
+<li><strong>Curvature domain</strong> (primary): diagonal κ = 1000, rotated κ = 100, rotated
+    κ = 1000.</li>
+<li><strong>Equal-spectrum pairs:</strong> the same seed gives the same permuted spectrum for
+    diagonal and rotated κ = 1000.</li>
+<li><strong>Context:</strong> isotropic.</li>
+<li><strong>Reliability-guard families:</strong> Rastrigin (in-distribution), and Ackley and
+    shifted Rosenbrock (held out).</li>
+<li><strong>Shifted Rosenbrock</strong> (<code>rosenbrock-shifted</code>) replaces v0.6's seed-independent
+  Rosenbrock. Each replicate has a seeded shift in [−0.5, 0.5]ᵈ, giving a distinct
+  interior minimizer c(1 + shift). This is tested.</li>
+<li><strong>Budgets.</strong> Primary 100 objective+gradient units; secondary 50 and 200.</li>
+</ul>
+<h2 id="6-arms">6. Arms<a class="headerlink" href="#6-arms" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Arm</th>
+<th>Kind</th>
+<th>Trained</th>
+<th>Stage</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>gram-scalar</td>
+<td>Gram model with A = C = 0; learns δ and σ</td>
+<td>5 seeds</td>
+<td>1</td>
+</tr>
+<tr>
+<td>gram-nohist</td>
+<td>same architecture with <code>history_masked</code>; keeps rejection information and the τ fallback</td>
+<td>5 seeds</td>
+<td>1</td>
+</tr>
+<tr>
+<td>gram-full</td>
+<td>Gram model (A, C, δ, σ)</td>
+<td>5 seeds</td>
+<td>2</td>
+</tr>
+<tr>
+<td>BB</td>
+<td>τ only (A = C = 0, δ = 0, σ = 1) in the frozen loop with history-v2 masks: <strong>the bar</strong></td>
+<td>no (harness reference)</td>
+<td>1, 2</td>
+</tr>
+<tr>
+<td>gram-oracle-BFGS</td>
+<td>BFGS coefficients, σ = 1, frozen loop, history-v2 masks</td>
+<td>no (harness only, never a package mode)</td>
+<td>2</td>
+</tr>
+<tr>
+<td>L-BFGS-B</td>
+<td>SciPy, maxcor 10, 2 units per call, capped at 50 calls (line-search calls included)</td>
+<td>no</td>
+<td>context</td>
+</tr>
+<tr>
+<td>tf-h8</td>
+<td>frozen v0.6 checkpoints, seeds 0–2, <code>history-v1</code>, frozen loop</td>
+<td>no</td>
+<td>context</td>
+</tr>
+</tbody>
+</table>
+<h2 id="7-metric-statistics-and-decision-rules">7. Metric, statistics and decision rules<a class="headerlink" href="#7-metric-statistics-and-decision-rules" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Per task:</strong> D = log10(r_cand) − log10(r_ref), with r = max(f − f<em>, 0)/|f₀ − f</em>| and
+  log10 r floored at −12. Raw values are reported as secondary. Negative favours the
+  candidate.</li>
+<li><strong>Intervals.</strong> Every contrast gets a 95% paired bootstrap interval with 10,000 draws.</li>
+<li>Trained arm versus a reference: two-level crossed resampling of training seeds and
+    tasks.</li>
+<li>Reference versus reference: resampling over tasks only.</li>
+<li>Five seeds make the seed level coarse; this is stated in the report.</li>
+<li><strong>Decision rules</strong> (all on the 95% paired interval):</li>
+<li><strong>Superiority:</strong> the whole interval is below 0.</li>
+<li><strong>Non-inferiority at margin m:</strong> the upper bound is below +m.</li>
+<li><strong>Equivalence:</strong> the whole interval lies within ±0.5 decades.</li>
+</ul>
+<h2 id="8-hypotheses-and-stop-rules">8. Hypotheses and stop rules<a class="headerlink" href="#8-hypotheses-and-stop-rules" title="Permanent link">&para;</a></h2>
+<h3 id="stage-1-gram-scalar-and-gram-nohist-only">Stage 1 (gram-scalar and gram-nohist only)<a class="headerlink" href="#stage-1-gram-scalar-and-gram-nohist-only" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>S1 (non-inferiority):</strong> gram-scalar − BB on the curvature domain at budget 100.</li>
+<li><strong>STOP before Stage 2 only if the upper bound is above +0.25 decades.</strong></li>
+<li>Reason (recorded): the oracle shows that the headroom over BB comes from the
+    metric (A, C), not the scalar step. A tie at Stage 1 therefore should not end the
+    round.</li>
+<li><strong>S1b (diagnostic, no stop):</strong> gram-scalar − gram-nohist, which measures what the
+  secant τ adds beyond rejection information. Also gram-nohist − BB.</li>
+</ul>
+<h3 id="stage-2-only-if-s1-passes">Stage 2 (only if S1 passes)<a class="headerlink" href="#stage-2-only-if-s1-passes" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Primary, H1:</strong> gram-full beats BB on the curvature domain at budget 100, meaning
+  the whole interval is below 0.</li>
+<li><strong>Reliability guard (G):</strong> H1 is void if, on any of Rastrigin, Ackley or shifted
+  Rosenbrock, gram-full − BB has a mean above +0.5 with a lower bound above 0.</li>
+<li><strong>Secondary, H2 (rotation equivalence):</strong> for gram-full, the equal-spectrum difference
+  rotated κ1000 − diagonal κ1000 (paired by seed) lies within ±0.5 decades over its
+  whole interval. The same contrast is reported for BB, the oracle, L-BFGS-B and tf-h8
+  as context.</li>
+<li><strong>Secondary, H3 (oracle non-inferiority):</strong> the upper bound of gram-full −
+  gram-oracle-BFGS on the curvature domain is below +0.5.</li>
+<li><strong>"Relearned L-BFGS" criterion (R, pre-stated, evaluated only if H3 holds).</strong> R is met
+  if both hold:</li>
+<li>(i) |gram-full − oracle| ≤ 0.25 decades on at least 75% of curvature-domain
+    task × seed pairs;</li>
+<li>(ii) on 200 fixed probe states (sampled from oracle trajectories on test tasks,
+    seed 0), the median cosine between the model's and the oracle's step directions is
+    at least 0.99.</li>
+<li><strong>Exploratory:</strong> budgets 50 and 200; per-family and per-dimension results; all arms
+  against L-BFGS-B.</li>
+</ul>
+<h3 id="outcome-to-claim-table">Outcome-to-claim table<a class="headerlink" href="#outcome-to-claim-table" title="Permanent link">&para;</a></h3>
+<p>Claims are cumulative within a row. "No claim" means the result is reported but nothing
+is asserted. Under no outcome is a claim made of superiority over SciPy L-BFGS-B, or of
+novelty over L-SR1, Optimus, LODO or the v0.7 literature.</p>
+<table>
+<thead>
+<tr>
+<th>Stage 1 S1</th>
+<th>H1</th>
+<th>Guard G</th>
+<th>H3</th>
+<th>R</th>
+<th>H2</th>
+<th>What we may claim</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>fails (upper &gt; +0.25)</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+<td>The learned scalar step is worse than BB beyond the 0.25-decade margin. The round ends; BB stays the bar; no Stage 2.</td>
+</tr>
+<tr>
+<td>passes</td>
+<td>fails</td>
+<td>any</td>
+<td>any</td>
+<td>any</td>
+<td>any</td>
+<td>Learned geometry did <strong>not</strong> beat BB on the curvature domain. BB stays the bar. H2 and H3 are reported as exploratory, with no claim.</td>
+</tr>
+<tr>
+<td>passes</td>
+<td>passes</td>
+<td>violated</td>
+<td>any</td>
+<td>any</td>
+<td>any</td>
+<td><strong>No superiority claim:</strong> the curvature-domain gain comes with a reliability regression on a multimodal family. Both are reported as exploratory.</td>
+</tr>
+<tr>
+<td>passes</td>
+<td>passes</td>
+<td>holds</td>
+<td>fails</td>
+<td>—</td>
+<td>passes</td>
+<td>Beats BB on unseen rotated and ill-conditioned tasks at equal budget, with no measurable rotation penalty (±0.5). It remains short of the oracle-BFGS ceiling.</td>
+</tr>
+<tr>
+<td>passes</td>
+<td>passes</td>
+<td>holds</td>
+<td>fails</td>
+<td>—</td>
+<td>fails</td>
+<td>Beats BB at equal budget, short of the oracle ceiling. <strong>No rotation-invariance claim;</strong> the rotated − diagonal gap is reported.</td>
+</tr>
+<tr>
+<td>passes</td>
+<td>passes</td>
+<td>holds</td>
+<td>passes</td>
+<td>met</td>
+<td>passes</td>
+<td>Beats BB with no measurable rotation penalty, <strong>by relearning L-BFGS-like directions in this loop: no evidence of a new method.</strong></td>
+</tr>
+<tr>
+<td>passes</td>
+<td>passes</td>
+<td>holds</td>
+<td>passes</td>
+<td>met</td>
+<td>fails</td>
+<td>Beats BB by relearning L-BFGS-like directions (no new method). No rotation-invariance claim.</td>
+</tr>
+<tr>
+<td>passes</td>
+<td>passes</td>
+<td>holds</td>
+<td>passes</td>
+<td>not met</td>
+<td>passes</td>
+<td>Beats BB with no measurable rotation penalty, and is non-inferior to oracle-BFGS (+0.5) without matching its directions. Whether it differs usefully from L-BFGS is not established.</td>
+</tr>
+<tr>
+<td>passes</td>
+<td>passes</td>
+<td>holds</td>
+<td>passes</td>
+<td>not met</td>
+<td>fails</td>
+<td>Beats BB and is non-inferior to the oracle. No rotation-invariance claim.</td>
+</tr>
+</tbody>
+</table>
+<p>If the upper bound of gram-full − oracle is below 0 (better than the oracle), that is
+reported as "improves on L-BFGS directions in this loop". It is still reported against
+SciPy L-BFGS-B, with no claim over it.</p>
+<h2 id="9-costs-reported">9. Costs reported<a class="headerlink" href="#9-costs-reported" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Objective, gradient and HVP counts (HVP is always 0), and units used.</li>
+<li>Accepted fraction, and the fraction of initial steps accepted unchanged.</li>
+<li>Cold, warm and batched wall-clock (Track A conventions, float64, single process).</li>
+<li>Training seconds per run, skipped updates, parameter counts, and checkpoint bytes and
+  sha256.</li>
+</ul>
+<h2 id="10-artifacts">10. Artifacts<a class="headerlink" href="#10-artifacts" title="Permanent link">&para;</a></h2>
+<ul>
+<li><code>artifacts/gram-v0.7.0-&lt;arm&gt;-seed&lt;s&gt;.npz</code> (Gram schema v2), with metadata recording
+  split hashes and RNG.</li>
+<li><code>results/gram-space-v0.7.0.json</code>.</li>
+<li>Frozen v0.1–v0.6 artifacts and results are never written.</li>
+</ul>
+<h2 id="11-infrastructure-built-after-freezing-before-any-training">11. Infrastructure built after freezing (before any training)<a class="headerlink" href="#11-infrastructure-built-after-freezing-before-any-training" title="Permanent link">&para;</a></h2>
+<ul>
+<li>The Gram schema v2 mask thresholds and the <code>history_masked</code> switch, with a schema
+  bump and tests.</li>
+<li>The Gram training scan (the matched unroll), with a parity test against the compiled
+  engine.</li>
+<li><code>train_batched</code> support for <code>model_kind="gram"</code>, including the NaN-skip test.</li>
+<li>An evaluation and reference harness that reuses <code>accept_step</code>, with parity checks and
+  the statistics above. A 20-update timing probe is run; no training.</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-circle-arrow-up" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m16 12-4-4-4 4M12 16V8"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright © 2026 Abhinav Mishra · MIT License
+    </div>
+  
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+    <a href="https://github.com/bibymaths/neuralopt" target="_blank" rel="noopener" title="NeuralOpt on GitHub" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.3.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2026 Fonticons, Inc.--><path fill="currentColor" d="M216.5 362.5c-66-8-112.5-55.5-112.5-117 0-25 9-52 24-70-6.5-16.5-5.5-51.5 2-66 20-2.5 47 8 63 22.5 19-6 39-9 63.5-9s44.5 3 62.5 8.5c15.5-14 43-24.5 63-22 7 13.5 8 48.5 1.5 65.5 16 19 24.5 44.5 24.5 70.5 0 61.5-46.5 108-113.5 116.5 17 11 28.5 35 28.5 62.5v52c0 15 12.5 23.5 27.5 17.5C441 459.5 512 369 512 257 512 115.5 397 0 255.5 0S0 115.5 0 257c0 111 70.5 203 165.5 237.5 13.5 5 26.5-4 26.5-17.5v-40c-7 3-16 5-24 5-33 0-52.5-18-66.5-51.5-5.5-13.5-11.5-21.5-23-23-6-.5-8-3-8-6 0-6 10-10.5 20-10.5 14.5 0 27 9 40 27.5 10 14.5 20.5 21 33 21s20.5-4.5 32-16c8.5-8.5 15-16 21-21"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog" role="status" aria-atomic="true">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      
+      
+        
+        
+      <script id="__config" type="application/json">{"annotate":null,"base":"../../..","features":["navigation.instant","navigation.tracking","navigation.sections","navigation.path","navigation.footer","navigation.top","navigation.indexes","search.highlight","content.action.edit","content.action.view","content.code.copy","content.tooltips"],"redirect":null,"search":"../../../assets/javascripts/workers/search.719e0d91.min.js","tags":null,"translations":{"clipboard.copied":"Copied to clipboard","clipboard.copy":"Copy to clipboard","clipboard.error":"Could not copy to clipboard","search.result.more.one":"1 more on this page","search.result.more.other":"# more on this page","search.result.none":"No matching documents","search.result.one":"1 matching document","search.result.other":"# matching documents","search.result.placeholder":"Type to start searching","search.result.term.missing":"Missing","select.version":"Select version"},"version":{"alias":true,"default":"latest","provider":"mike"}}</script>
+    
+    
+      <script src="../../../assets/javascripts/bundle.3cb411a8.min.js"></script>
+      
+    
+  </body>
+</html>
