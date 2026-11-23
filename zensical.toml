@@ -29,6 +29,7 @@ nav = [
       { "Gate F0: headroom, no learning" = "research/f0-v0.8.md" },
       { "Pre-registration (frozen, stop point 3)" = "research/v0.8-preregistration.md" },
       { "Pre-registration amendments" = "research/v0.8-preregistration-amendments.md" },
+      { "Training and validation choices (no test opened)" = "research/v0.8-training.md" },
       { "v0.8-B B-S2: baselines and headroom" = "research/v0.8-b-b0.md" },
       { "v0.8-B pre-registration (frozen)" = "research/v0.8-b-preregistration.md" },
       { "v0.8-B pre-registration amendments" = "research/v0.8-b-preregistration-amendments.md" },
