@@ -79,6 +79,23 @@ def test_unfilled_history_slots_do_not_matter():
     np.testing.assert_allclose(a[1], b[1], atol=1e-10)
 
 
+def test_outputs_do_not_depend_on_the_number_of_empty_slots():
+    # The same three states in a 16-slot and an 8-slot window: empty slots must not dilute
+    # attention (no positional encoding, so the parameters do not depend on the history).
+    long_config, w_long = _window(filled=3)
+    short_config = PolicyConfig(history=8)
+    rng = np.random.default_rng(0)
+    w_short = empty_window(4, short_config)
+    for _ in range(3):
+        w_short = push_window(w_short, jnp.asarray(rng.uniform(-1, 1, 4)),
+                              jnp.asarray(rng.normal(size=4)), float(rng.normal()))
+    params = init_policy(jax.random.PRNGKey(4), long_config)
+    a = policy_outputs(params, w_long, 0.4, long_config)
+    b = policy_outputs(params, w_short, 0.4, short_config)
+    np.testing.assert_allclose(a[0], b[0], atol=1e-10)
+    np.testing.assert_allclose(a[1], b[1], atol=1e-10)
+
+
 @pytest.mark.parametrize("budget", [20, 21, 100])
 def test_rollout_spends_two_units_per_point_stays_in_the_box_and_starts_at_x0(budget):
     name = "rastrigin"
